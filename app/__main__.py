@@ -42,10 +42,14 @@ def main():
         d = res.decision
         print(f'turn {turn}: "{msg}"')
         print(f'   -> {res.transition.value} task={res.task_id} '
+              f'referent={res.predicted_referent_id} '
               f'(top_raw={d.candidates[0].raw:.2f} margin={d.margin:.2f})')
         if res.package:
             print(f'   decision_tokens={res.package.decision_tokens} '
-                  f'answer_tokens={res.package.answer_tokens}')
+                  f'answer_tokens={res.package.answer_tokens} '
+                  f'total={res.package.total_context_tokens} '
+                  f'mode={res.package.context_mode} '
+                  f'loops={res.package.included_loop_ids}')
     print("\nExpected final: RETURN task=A  (routed by open-loop, not recency)")
 
 

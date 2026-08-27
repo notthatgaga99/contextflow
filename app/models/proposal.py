@@ -24,10 +24,23 @@ class Candidate:
 
 @dataclass
 class GateDecision:
+    """Deterministic routing record. No field here is a calibrated probability."""
+
     transition: Transition
     task_id: Optional[str]
-    top: float
-    margin: float
-    gating_quantity: float
+    top: float  # top_norm (diagnostic only; does not gate)
+    margin: float  # raw_margin (decision quantity; not a probability)
+    gating_quantity: float  # = raw_margin, for risk-coverage sweeps
     conflict: Optional[Conflict] = None
     candidates: list = field(default_factory=list)
+    top_raw: float = 0.0
+    runner_raw: float = 0.0
+    raw_margin: float = 0.0
+    top_norm: float = 0.0
+    runner_norm: float = 0.0
+    norm_margin: float = 0.0
+    open_task_count: int = 0
+    plausible_candidate_count: int = 0
+    active_task: Optional[str] = None
+    active_raw: float = 0.0
+    active_gap: float = 0.0  # top_raw - active_raw; 0 if no active task

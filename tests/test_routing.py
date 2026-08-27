@@ -31,11 +31,19 @@ def test_return_explicit(registry):
     assert r.task_id == "A" and r.transition in (Transition.RETURN, Transition.SWITCH)
 
 
-def test_vague_return_uses_proposal(registry):
+def test_vague_deictic_follows_mention_not_llm(registry):
+    registry.mark_active("C", 10)
+    registry.record_mention("C", 10, "C.loop1")
+    llm = scripted(**{"fix that": {"task_id": "A", "is_new_task": False, "confidence": 0.85}})
+    r = _engine(registry, llm).handle_turn("fix that", 12)
+    assert r.task_id == "C" and r.predicted_referent_id == "C.loop1"
+
+
+def test_deictic_without_mentions_clarifies(registry):
     registry.mark_active("C", 10)
     llm = scripted(**{"fix that": {"task_id": "A", "is_new_task": False, "confidence": 0.85}})
     r = _engine(registry, llm).handle_turn("fix that", 12)
-    assert r.task_id == "A"
+    assert r.transition == Transition.CLARIFY
 
 
 def test_new(registry):

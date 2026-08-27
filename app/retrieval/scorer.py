@@ -44,13 +44,15 @@ def open_loop_match(message: str, t: Task) -> float:
 
 def score_candidates(llm: LLM, message: str, open_tasks: list[Task],
                      proposal: TaskProposal, turn: int,
-                     settings: Settings) -> list[Candidate]:
+                     settings: Settings, apply_llm: bool = True) -> list[Candidate]:
     msg_emb = llm.embed([message])[0]
     task_embs = {t.id: llm.embed([task_text(t)])[0] for t in open_tasks}
 
     cands: list[Candidate] = []
     for t in open_tasks:
-        llm_conf = proposal.confidence if (not proposal.is_new_task and proposal.task_id == t.id) else 0.0
+        llm_conf = 0.0
+        if apply_llm and (not proposal.is_new_task and proposal.task_id == t.id):
+            llm_conf = proposal.confidence
         cos = cos_sim(msg_emb, task_embs[t.id])
         rec = recency(t.last_active_turn, turn, settings.LAMBDA)
         loop = open_loop_match(message, t)
@@ -59,7 +61,7 @@ def score_candidates(llm: LLM, message: str, open_tasks: list[Task],
         cands.append(Candidate(task_id=t.id, raw=raw, norm=0.0,
                                components={"llm": llm_conf, "cos": cos, "rec": rec, "loop": loop}))
 
-    new_llm = proposal.confidence if proposal.is_new_task else 0.0
+    new_llm = proposal.confidence if (apply_llm and proposal.is_new_task) else 0.0
     new_base = settings.BASE_NEW if proposal.is_new_task else 0.0
     new_raw = settings.W_LLM * new_llm + new_base
     cands.append(Candidate(task_id=NEW_ID, raw=new_raw, norm=0.0,

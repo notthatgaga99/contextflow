@@ -10,4 +10,7 @@ class FirestoreRegistry:
     def open_tasks(self) -> list: raise NotImplementedError
     def active(self): raise NotImplementedError
     def mark_active(self, id: str, turn: int) -> None: raise NotImplementedError
+    def record_mention(self, task_id: str, turn: int, loop_id: str | None = None) -> None: raise NotImplementedError
+    def last_selected_referent(self): raise NotImplementedError
+    def set_last_selected_referent(self, referent_id: str | None) -> None: raise NotImplementedError
     def apply_update(self, id: str, delta: dict) -> None: raise NotImplementedError

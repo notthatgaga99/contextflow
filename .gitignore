@@ -6,4 +6,5 @@ __pycache__/
 .DS_Store
 .vscode/
 CONTEXTFLOW_AGENT_NOTES.md
-eval/out/
+eval/out/*
+!eval/out/POC_RESULTS.md
