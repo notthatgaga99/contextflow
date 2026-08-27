@@ -49,8 +49,33 @@ def test_deictic_without_mentions_clarifies(registry):
 def test_new(registry):
     registry.mark_active("A", 5)
     llm = scripted(**{"poem": {"task_id": None, "is_new_task": True, "confidence": 0.95}})
-    r = _engine(registry, llm).handle_turn("help me write a poem about rain", 6)
+    eng = _engine(registry, llm)
+    r = eng.handle_turn("help me write a poem about rain", 6)
     assert r.transition == Transition.NEW
+    assert r.task_id is not None
+    created = registry.get(r.task_id)
+    assert created is not None
+    assert created.status == "active"
+    assert r.predicted_referent_id == f"{r.task_id}.loop1"
+    assert registry.active() is not None and registry.active().id == r.task_id
+
+
+def test_new_is_resumable_on_later_turn():
+    from app.memory.registry import InMemoryRegistry
+    reg = InMemoryRegistry()
+    llm = scripted(
+        **{
+            "poem about rain": {"task_id": None, "is_new_task": True, "confidence": 0.95},
+            "rain stanza": {"task_id": "T1", "is_new_task": False, "confidence": 0.9},
+        }
+    )
+    eng = Engine(llm, reg, SETTINGS)
+    first = eng.handle_turn("help me write a poem about rain", 1)
+    assert first.transition == Transition.NEW and first.task_id == "T1"
+    second = eng.handle_turn("continue the rain stanza", 2)
+    assert second.task_id == "T1"
+    assert second.transition in (Transition.CONTINUE, Transition.SWITCH, Transition.RETURN)
+
 
 
 def test_ambiguous_clarifies(registry):

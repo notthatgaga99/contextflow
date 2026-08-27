@@ -5,6 +5,20 @@ belongs to; a pure, LLM-free deterministic gate decides CONTINUE / SWITCH / RETU
 NEW / CLARIFY. Context is compiled in `split` or `merged` modes with separate
 decision/answer token accounting. Runs fully on MockLLM for $0.
 
+## 60-second demo
+
+    python -m eval.demo
+
+Several workstreams are interleaved (auth, frontend, deploy, OAuth). The user
+says `fix that`. MockLLM proposes Authentication with high confidence. ContextFlow
+classifies the utterance as deictic, follows mention clocks to Deployment /
+`C.loop1`, and the deterministic gate CONTINUEs that work. Answer context is
+that selected loop, not the full card dump.
+
+Optional local UI (still MockLLM, no cloud): `python -m eval.demo --serve`
+
+PoC write-up: `docs/POC_FREEZE.md`. How to reproduce experiments: `docs/REPRODUCE.md`.
+
 ## Layout
 - `app/config.py` — all tunable constants (weights, thresholds, seed).
 - `app/domain.py` — Transition enum + LLM/Registry Protocols.

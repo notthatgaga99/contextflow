@@ -1,19 +1,23 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 from app.config import SETTINGS, NEW_ID
 from app.domain import LLM, Registry, Transition
 from app.models.context import ContextPackage
 from app.models.proposal import GateDecision, TaskProposal
+from app.models.task import Task, TaskAnchor
 from app.router.proposal import propose
 from app.router.references import parse_reference, detect_conflict
 from app.router.gate import decide, bind_task, clarify_question
 from app.router.referent import (
     loop_index_from_id,
+    loop_referent_id,
     resolve_referent,
 )
 from app.retrieval.scorer import score_candidates
 from app.context.compiler import ContextCompiler
+
+NewTaskFactory = Callable[[str, int], Optional[Task]]
 
 
 @dataclass
@@ -57,13 +61,16 @@ class Engine:
     """Single composition root. Wiring only — no algorithm lives here."""
 
     def __init__(self, llm: LLM, registry: Registry, settings=SETTINGS,
-                 mode: str = "split", platt: tuple[float, float] | None = None):
+                 mode: str = "split", platt: tuple[float, float] | None = None,
+                 new_task_factory: NewTaskFactory | None = None):
         self.llm = llm
         self.reg = registry
         self.settings = settings
         self.mode = mode
         self.platt = platt
         self.compiler = ContextCompiler()
+        # Optional card body for NEW. Gate still decides NEW; this only materializes state.
+        self.new_task_factory = new_task_factory
 
     def handle_turn(self, message: str, turn: int) -> TurnResult:
         open_tasks = self.reg.open_tasks()
@@ -118,10 +125,7 @@ class Engine:
         if decision.transition == Transition.CLARIFY:
             return self._clarify(decision, cands, pred_task, pred_ref, evidence)
         if decision.transition == Transition.NEW:
-            return TurnResult(
-                Transition.NEW, None, None, None, None, decision,
-                pred_task, pred_ref, evidence,
-            )
+            return self._new(decision, evidence, turn, message)
         return self._act(decision, decision.task_id, pred_ref, evidence, turn, message, open_tasks)
 
     def _clarify(self, decision: GateDecision, cands, pred_task, pred_ref, evidence) -> TurnResult:
@@ -156,4 +160,50 @@ class Engine:
         return TurnResult(
             decision.transition, task_id, answer, None, pkg, decision,
             task_id, pred_ref, evidence,
+        )
+
+    def _next_task_id(self) -> str:
+        n = 1
+        while self.reg.get(f"T{n}") is not None:
+            n += 1
+        return f"T{n}"
+
+    def _default_new_task(self, message: str) -> Task:
+        text = " ".join(message.strip().split())
+        title = text[:48] or "untitled"
+        cues = [w for w in text.lower().replace("'", "").split() if w.isalpha() and len(w) >= 3][:8]
+        return Task(
+            id=self._next_task_id(),
+            title=title,
+            retrieval_cues=cues,
+            anchor=TaskAnchor(goal=text[:160], open_loops=[text[:200]] if text else []),
+        )
+
+    def _new(self, decision: GateDecision, evidence: dict, turn: int, message: str) -> TurnResult:
+        """Persist a card after the gate accepts NEW. Does not change scoring or thresholds."""
+        task = None
+        if self.new_task_factory is not None:
+            task = self.new_task_factory(message, turn)
+        if task is None:
+            task = self._default_new_task(message)
+        if self.reg.get(task.id) is not None:
+            task = self._default_new_task(message)
+            task.id = self._next_task_id()
+        self.reg.add(task)
+        ref_id = loop_referent_id(task.id, 0) if task.anchor.open_loops else task.id
+        self.reg.mark_active(task.id, turn)
+        self.reg.record_mention(task.id, turn, ref_id)
+        self.reg.set_last_selected_referent(ref_id)
+        loop_text = _loop_text(task, ref_id)
+        pkg = self.compiler.build(
+            task, self.mode,
+            selected_referent_id=ref_id,
+            selected_open_loop=loop_text,
+            message=message,
+            open_tasks=self.reg.open_tasks(),
+        )
+        answer = self.llm.generate(self.compiler.render(pkg))
+        return TurnResult(
+            Transition.NEW, task.id, answer, None, pkg, decision,
+            task.id, ref_id, evidence,
         )
