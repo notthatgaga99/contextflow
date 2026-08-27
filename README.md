@@ -1,54 +1,152 @@
 # ContextFlow
 
-Task-state-conditioned context controller. The LLM proposes which task a message
-belongs to; a pure, LLM-free deterministic gate decides CONTINUE / SWITCH / RETURN /
-NEW / CLARIFY. Context is compiled in `split` or `merged` modes with separate
-decision/answer token accounting. Runs fully on MockLLM for $0.
+Watch what happens when a conversation contains four unfinished problems
+and the user says **"fix that"**.
+
+Long conversations usually fail because the system does not know **which
+piece of unfinished work** the user is referring to — not because the model
+cannot read a transcript.
+
+ContextFlow keeps structured task/loop state and foregrounding so a user can
+switch workstreams and later say `fix that` without restating everything.
+
+The LLM **proposes**. ContextFlow **maintains state** and **decides** whether
+that proposal is safe to act on.
+
+## Why ContextFlow?
+
+**What problem?**
+Users interleave tasks. Later they point with underspecified language
+(`fix that`, `the other one`). Recency and keyword similarity mix up sibling
+work. Dumping the whole transcript (or every open card) into the answer model
+is bulky and can distract a generator.
+
+**What does ContextFlow do?**
+It tracks open tasks and open loops, mention clocks, and a derived foreground
+referent. A deterministic gate then ACTS (continue/switch/return/new) or
+CLARIFIES. The answer model sees the **selected task + selected loop**, not
+the full dump.
+
+**What evidence do we have?**
+A controlled PoC on a fixed scenario family: MockLLM tests, local Ollama
+probes, a 512-cell interference/scale grid, and Gemini 2.5 Flash-Lite as a
+hosted **proposer** (not a product cost claim). Details: `docs/POC_FREEZE.md`,
+`eval/out/POC_RESULTS.md`.
+
+**How do I run it?**
+See the 60-second demo below. No API key. No network.
 
 ## 60-second demo
 
     python -m eval.demo
 
-Several workstreams are interleaved (auth, frontend, deploy, OAuth). The user
-says `fix that`. MockLLM proposes Authentication with high confidence. ContextFlow
-classifies the utterance as deictic, follows mention clocks to Deployment /
-`C.loop1`, and the deterministic gate CONTINUEs that work. Answer context is
-that selected loop, not the full card dump.
+Optional local UI (still MockLLM, no cloud):
 
-Optional local UI (still MockLLM, no cloud): `python -m eval.demo --serve`
+    python -m eval.demo --serve
 
-PoC write-up: `docs/POC_FREEZE.md`. How to reproduce experiments: `docs/REPRODUCE.md`.
+Every-turn dump: `python -m eval.demo --verbose`
+
+You should see Authentication / Frontend / Deployment / OAuth, then:
+
+```
+USER                "fix that"
+LLM PROPOSAL        Authentication (0.97)     [soft; not the decision]
+CONTEXTFLOW         Deployment / C.loop1      [deictic mention clocks]
+GATE                CONTINUE C
+ANSWER CONTEXT      Deployment + Docker CI failure
+```
+
+FULL HISTORY = everything. CONTEXTFLOW = what matters now.
+No numerical token-savings claim.
+
+## Architecture
+
+```
+User message
+     │
+     ▼
+LLM proposal          (soft; never the decision)
+     │
+     ▼
+Referent resolution
+     ├── task mention clocks
+     ├── loop mention clocks
+     └── explicit / deictic / correction cues
+     │
+     ▼
+Deterministic gate
+     ├── ACT   (CONTINUE / SWITCH / RETURN / NEW)
+     └── CLARIFY
+     │
+     ▼
+Selected task + loop
+     │
+     ▼
+Compact answer context
+     │
+     ▼
+LLM answer
+```
+
+The LLM proposes; ContextFlow maintains state and decides whether the
+proposal is safe to act on. Gate thresholds (TAU / DELTA / HYST) and score
+weights are frozen PoC defaults, not calibrated probabilities.
+
+## Evidence ladder (controlled PoC)
+
+1. **MockLLM** — deterministic routing/gate tests.
+2. **Ollama qwen2.5:1.5b** — local weak-model answer probe.
+3. **Ollama llama3.1:8b** — stronger local answer-context probe.
+4. **512-cell scale stress** — open-task count × LOW/HIGH interference.
+5. **Gemini 2.5 Flash-Lite** — hosted proposer validation (Vertex; billed;
+   do not re-run the large suite casually).
+
+Most defensible Gemini-scale result, still **controlled evidence only**:
+ContextFlow **wrong-ACT remained 0**; the hardest sibling-401 collisions
+degraded through **clarification** rather than confident misrouting, while
+recency/similarity baselines degraded earlier as *n* grew.
+
+Allowed PoC claim (verbatim, `docs/POC_FREEZE.md`):
+
+> ContextFlow demonstrates interference-resistant task and referent
+> resolution across interleaved tasks, using explicit referent/mention
+> state plus a deterministic act/clarify gate. Across controlled
+> high-interference scenarios, the system maintained zero wrong-action
+> rate and degraded through clarification rather than confident
+> misrouting at the hardest tested sibling-collision cases, while recency
+> and similarity baselines degraded earlier as open-task count increased.
+
+## What this is NOT
+
+- not a claim of a novel routing mechanism
+- not a replacement for an LLM
+- not “perfect memory” or lifetime memory solved
+- not mathematically minimum context
+- not a production accuracy benchmark
+- not a claim that Gemini (or any LLM) confidence is P(correct)
+- not decision-context efficiency or total token savings
+  (answer context is compact; **decision** context still lists open cards)
+
+The PoC contribution is the **combination** of structured task/referent
+state, interference-aware resolution, and fail-closed act/clarify behavior,
+validated on a **controlled scenario family**.
+
+## How to reproduce
+
+    python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
+    pytest -q
+    python -m app
+    python -m eval.demo
+
+Experiments (optional; some cost money): `docs/REPRODUCE.md`.
+Submission draft: `docs/SUBMISSION.md`.
 
 ## Layout
-- `app/config.py` — all tunable constants (weights, thresholds, seed).
-- `app/domain.py` — Transition enum + LLM/Registry Protocols.
-- `app/models/` — Task/TaskAnchor, TaskEvent, ContextPackage/Reference/Conflict, TaskProposal/Candidate/GateDecision.
-- `app/llm/` — tokens (single source of truth), base (proposal validation), mock, gemini (isolated adapter).
-- `app/memory/` — InMemoryRegistry (+ Firestore seam).
-- `app/retrieval/scorer.py` — embeddings + blended candidate scoring (owns the math).
-- `app/router/` — proposal (registry-conditioned), references (conflict detection), gate (pure decision).
-- `app/context/compiler.py` — split/merged ContextPackage.
-- `app/engine.py` — the only composition root.
-- `app/api/main.py` — FastAPI boundary.
-- `eval/` — scenarios, baselines, harness, metrics (split-vs-merged go/no-go).
 
-## Run
-    python -m venv .venv && source .venv/bin/activate
-    pip install -r requirements.txt
-    cp .env.example .env
-
-    python -m app            # A->B->C->"fix that" demo; final = RETURN task=A
-    pytest -q                # MockLLM only, $0
-    python -m eval.harness   # split-vs-merged experiment -> eval/out/rows.csv
-
-## Go live
-Set CF_USE_GEMINI=1 and GEMINI_API_KEY in .env. No engine code changes.
-
-## Notes
-- `run_tests.py` is a sandbox-only convenience runner for environments without pytest.
-  Use real `pytest` in normal development.
-- The gate checks TAU against the RAW top score (absolute match quality) and THETA
-  against the NORMALIZED margin (relative confidence) — normalized scores are bounded
-  below by 1/n, so TAU must be absolute.
-- Ordinal references require a cue (fix/do/#/number/item/step/task) and a small value,
-  so content numbers like HTTP 401 are not misread as references.
+- `app/engine.py` — composition root (propose → resolve → gate → compile).
+- `app/router/` — proposal, referent, references, gate.
+- `app/context/compiler.py` — split / compact answer context.
+- `app/memory/` — in-memory registry (Firestore is an unused seam).
+- `eval/demo.py` — canonical $0 judge demo.
+- `docs/POC_FREEZE.md` — frozen architecture and allowed claims.

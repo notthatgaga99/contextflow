@@ -376,14 +376,97 @@ def format_frame(frame: dict) -> str:
     return "\n".join(p for p in parts if p is not None)
 
 
-def format_report(frames: list[dict]) -> str:
-    header = "\n".join([
-        "ContextFlow judge-mode demo",
-        "The LLM proposes. ContextFlow owns referent state and the act/clarify gate.",
-        "PoC claim is interference-resistant resolution + fail-closed gating, not production accuracy.",
+def _workboard(rows: list[dict]) -> str:
+    lines = ["FOUR UNFINISHED PROBLEMS"]
+    for t in rows:
+        lines.append(f"  {t['title'].upper()}")
+        loops = t["loops"] or ["(none)"]
+        for i, loop in enumerate(loops):
+            mark = "`-" if i == len(loops) - 1 else "+-"
+            lines.append(f"    {mark} {loop}")
+    return "\n".join(lines)
+
+
+def _compact_line(frame: dict) -> str:
+    g = frame["gate"]["transition"]
+    tid = frame["resolution"]["predicted_task_id"] or "-"
+    rid = frame["resolution"]["predicted_referent_id"] or "-"
+    mark = "  <== LOOK" if frame.get("highlight") else ""
+    return f"  {frame['turn']:2} {g:8} {tid}/{rid:10}  {frame['message'][:52]}{mark}"
+
+
+def format_killer(frame: dict) -> str:
+    prop = frame["llm_proposal"]
+    reso = frame["resolution"]
+    gate = frame["gate"]
+    ac = frame["answer_context"]
+    loop_txt = (ac.get("open_loops") or ["-"])[0]
+    title = frame["state"].get("active_title") or ac.get("task_summary") or "-"
+    return "\n".join([
+        "--------------------------------------------------------------",
+        "THE MOMENT",
+        'USER              "fix that"',
         "",
+        f"LLM PROPOSAL      Authentication  (confidence {prop.get('confidence')})",
+        "                  [soft guess; not the decision; not P(correct)]",
+        "",
+        f"CONTEXTFLOW       mode={reso.get('kind')}  {reso.get('predicted_task_id')} / {reso.get('predicted_referent_id')}",
+        "  REFERENT         mention clocks, not the LLM lure",
+        "",
+        f"GATE              {gate['transition']} {gate.get('task_id')}",
+        f"                  top_raw={gate.get('top_raw'):.2f}  raw_margin={gate.get('raw_margin'):.2f}",
+        "",
+        f"ANSWER CONTEXT    {title} + {loop_txt}",
+        "                  (selected task/loop only)",
+        "",
+        "FULL HISTORY = everything on the card dump.",
+        "CONTEXTFLOW  = what matters now.",
+        "--------------------------------------------------------------",
     ])
-    return header + "\n\n".join(format_frame(f) for f in frames) + "\n"
+
+
+def format_report(frames: list[dict], verbose: bool = False) -> str:
+    if verbose:
+        header = "\n".join([
+            "ContextFlow judge-mode demo (verbose)",
+            "The LLM proposes. ContextFlow owns referent state and the act/clarify gate.",
+            "",
+        ])
+        return header + "\n\n".join(format_frame(f) for f in frames) + "\n"
+
+    last = frames[-1]
+    killer = next((f for f in frames if f.get("highlight")), frames[11] if len(frames) > 11 else last)
+    corr = next((f for f in frames if f["message"] == "no, the other one"), None)
+    lines = [
+        "ContextFlow  |  60-second judge demo  |  MockLLM  $0  no network",
+        "",
+        "Long conversations fail when the system does not know which piece of",
+        "unfinished work the user is pointing at. Watch four open problems,",
+        "then the user says \"fix that\".",
+        "",
+        _workboard(last["naive_full_history"]),
+        "",
+        format_killer(killer),
+        "",
+        _tree_naive(killer["naive_full_history"]),
+        "",
+        _tree_answer(killer),
+        "",
+        "TURN LOG  (decision / resolved task.loop / utterance)",
+        *[_compact_line(f) for f in frames],
+        "",
+        "The LLM proposes. ContextFlow keeps task/loop clocks and decides ACT vs CLARIFY.",
+        "PoC evidence is controlled, not a production benchmark. See docs/POC_FREEZE.md.",
+    ]
+    if corr:
+        lines.extend([
+            "",
+            "Also: \"no, the other one\" (correction). LLM still guesses Authentication;",
+            f"ContextFlow resolves {corr['resolution']['predicted_task_id']}/"
+            f"{corr['resolution']['predicted_referent_id']} and "
+            f"{corr['gate']['transition']}s.",
+        ])
+    return "\n".join(lines) + "\n"
 
 
 def serve(host: str = "127.0.0.1", port: int = 8765) -> None:
@@ -415,6 +498,7 @@ def main() -> None:
         except Exception:
             pass
     p = argparse.ArgumentParser(description="ContextFlow $0 interleaved demo")
+    p.add_argument("--verbose", action="store_true", help="print every turn in full")
     p.add_argument("--json", action="store_true")
     p.add_argument("--serve", action="store_true", help="local browser UI; still MockLLM, no Vertex")
     p.add_argument("--host", default="127.0.0.1")
@@ -427,7 +511,7 @@ def main() -> None:
     if args.json:
         print(json.dumps(frames, indent=2))
     else:
-        print(format_report(frames))
+        print(format_report(frames, verbose=args.verbose))
 
 
 if __name__ == "__main__":

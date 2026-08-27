@@ -6,101 +6,120 @@
   <title>ContextFlow — judge demo</title>
   <style>
     :root {
-      --bg: #0f1419; --panel: #1a2330; --ink: #e7ecf3; --muted: #8b9bb4;
-      --accent: #5ee0a0; --warn: #f5c56e; --bad: #ff7a8a; --line: #2a384c; --user: #7eb8ff;
+      --bg: #0e1116; --panel: #171c24; --ink: #e8edf4; --muted: #8b9bb4;
+      --accent: #4fd2a0; --warn: #e8c36a; --bad: #ff7a8a; --line: #2c3646;
+      --user: #8ec0ff; --sys: #9aa8bd;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
-    header { padding: 1rem 1.3rem; border-bottom: 1px solid var(--line); }
-    header h1 { margin: 0; font-size: 1.15rem; }
-    header p { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.88rem; max-width: 72rem; }
-    .banner { margin-top: 0.6rem; font-size: 0.8rem; color: var(--warn); }
-    .layout { display: grid; grid-template-columns: 1.05fr 1.25fr 1fr; gap: 0.7rem; padding: 0.7rem; min-height: calc(100vh - 8rem); }
+    header { padding: 1rem 1.25rem 0.85rem; border-bottom: 1px solid var(--line); }
+    header h1 { margin: 0; font-size: 1.12rem; font-weight: 650; }
+    header p { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.9rem; max-width: 74rem; }
+    .banner { margin-top: 0.55rem; font-size: 0.78rem; color: var(--warn); }
+    .layout {
+      display: grid; grid-template-columns: minmax(16rem, 1fr) minmax(18rem, 1.15fr) minmax(18rem, 1.15fr);
+      gap: 0.75rem; padding: 0.75rem; min-height: calc(100vh - 7.5rem);
+    }
     @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
-    .col { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
-    .col h2 { margin: 0; padding: 0.6rem 0.85rem; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); }
-    .body { padding: 0.75rem 0.85rem; overflow: auto; flex: 1; font-size: 0.86rem; }
-    .turn-btn { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); padding: 0.6rem 0.85rem; cursor: pointer; font: inherit; }
-    .turn-btn:hover, .turn-btn.active { background: #223044; }
-    .turn-btn.killer { box-shadow: inset 3px 0 0 var(--bad); }
-    .who { color: var(--user); font-weight: 600; font-size: 0.72rem; }
-    .pipe { background: #101820; border: 1px solid var(--line); border-radius: 8px; padding: 0.55rem 0.7rem; margin: 0.45rem 0; }
+    .col { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+    .col.conversation { border-color: #3a4a63; }
+    .col.state { border-color: #2f5a4a; }
+    .col.answer { border-color: #5a4630; }
+    .col h2 { margin: 0; padding: 0.65rem 0.9rem; font-size: 0.72rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); }
+    .col.conversation h2 { background: #1b2430; }
+    .col.state h2 { background: #16241f; color: #9dd4bc; }
+    .col.answer h2 { background: #241c14; color: #e8c9a0; }
+    .body { padding: 0.8rem 0.9rem; overflow: auto; flex: 1; font-size: 0.86rem; }
+    .turn-btn { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--ink); padding: 0.62rem 0.9rem; cursor: pointer; font: inherit; }
+    .turn-btn:hover, .turn-btn.active { background: #222b38; }
+    .turn-btn.killer { box-shadow: inset 4px 0 0 var(--bad); background: #2a1c22; }
+    .who { color: var(--user); font-weight: 600; font-size: 0.7rem; }
+    .sys { color: var(--sys); font-size: 0.72rem; margin-top: 0.15rem; }
+    .pipe { background: #10151c; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.75rem; margin: 0.4rem 0; }
     .pipe .k { color: var(--muted); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; }
-    .pipe .v { font-family: ui-monospace, Consolas, monospace; margin-top: 0.15rem; }
+    .pipe .v { font-family: ui-monospace, Consolas, monospace; margin-top: 0.2rem; }
     .ok { color: var(--accent); }
     .lure { color: var(--bad); }
-    .arrow { text-align: center; color: var(--muted); font-size: 0.8rem; }
-    pre { background: #101820; border: 1px solid var(--line); border-radius: 8px; padding: 0.65rem; overflow: auto; font-size: 0.75rem; color: #c5d4e8; }
-    footer { padding: 0.5rem 1.3rem 1rem; color: var(--muted); font-size: 0.78rem; }
+    .arrow { text-align: center; color: var(--muted); }
+    .hero { font-size: 1.02rem; font-weight: 650; margin: 0.15rem 0 0.55rem; }
+    details { margin-top: 0.75rem; color: var(--muted); }
+    details summary { cursor: pointer; font-size: 0.78rem; }
+    pre { background: #10151c; border: 1px solid var(--line); border-radius: 8px; padding: 0.65rem; overflow: auto; font-size: 0.75rem; color: #c5d4e8; }
+    footer { padding: 0.45rem 1.25rem 0.9rem; color: var(--muted); font-size: 0.76rem; }
   </style>
 </head>
 <body>
   <header>
-    <h1>ContextFlow — messy interleaved work</h1>
+    <h1>Watch four unfinished problems. Then the user says “fix that”.</h1>
     <p>
-      The user juggles Authentication, Frontend, Deployment, and OAuth, then says
-      <strong>fix that</strong>. MockLLM proposes Authentication. Mention clocks
-      pick the last foregrounded loop. The gate acts. Answer context is that loop, not the transcript.
+      Long chats fail when the system does not know which open loop is being pointed at.
+      ContextFlow keeps task/loop state. The LLM only proposes; the gate decides.
     </p>
-    <div class="banner">
-      MockLLM · $0 · no Vertex. Proposal confidence is not P(correct).
-      Token counts are diagnostic, not savings.
-    </div>
+    <div class="banner">MockLLM · $0 · no cloud. Confidence is not P(correct). No token-savings claim.</div>
   </header>
   <div class="layout">
-    <section class="col"><h2>A. Conversation</h2><div id="conv"></div></section>
-    <section class="col"><h2>B. LLM vs ContextFlow vs gate</h2><div class="body" id="mech">Select a turn.</div></section>
-    <section class="col"><h2>C. Full dump vs reconstructed context</h2><div class="body" id="contrast">Select a turn.</div></section>
+    <section class="col conversation">
+      <h2>1. Conversation</h2>
+      <div id="conv"></div>
+    </section>
+    <section class="col state">
+      <h2>2. ContextFlow state</h2>
+      <div class="body" id="mech">Select a turn.</div>
+    </section>
+    <section class="col answer">
+      <h2>3. Context supplied to the answer</h2>
+      <div class="body" id="contrast">Select a turn.</div>
+    </section>
   </div>
-  <footer><code>python -m eval.demo</code> · optional UI <code>python -m eval.demo --serve</code></footer>
+  <footer><code>python -m eval.demo</code> · <code>python -m eval.demo --serve</code></footer>
   <script>
     function treeNaive(rows) {
-      const lines = ["TRADITIONAL / FULL HISTORY"];
+      const lines = ["FULL HISTORY = everything"];
       (rows || []).forEach(t => {
-        lines.push("+-- [" + t.id + "] " + t.title);
-        (t.loops || []).forEach((loop, i) => {
-          lines.push("|   +-- " + (t.loop_ids[i] || "") + " - " + loop);
-        });
+        lines.push(t.title.toUpperCase());
+        (t.loops || []).forEach(loop => lines.push("  - " + loop));
       });
       return lines.join("\n");
     }
-    function treeAnswer(f) {
-      const ac = f.answer_context, s = f.state;
-      if (!ac || !ac.task_id) return "CONTEXTFLOW ANSWER CONTEXT\n`-- (none)";
-      return [
-        "CONTEXTFLOW",
-        "ACTIVE WORKSTREAM  [" + s.active_task_id + "] " + (s.active_title || ""),
-        "CURRENT REFERENT   " + (s.foreground_referent || "-") + " - " + (s.foreground_loop || ""),
-        "ANSWER CONTEXT     " + ac.task_id + " + " + (ac.included_loop_ids || []).join(", "),
-        "                   " + ((ac.open_loops || [])[0] || ""),
-      ].join("\n");
-    }
     function renderMech(f) {
-      const p = f.llm_proposal, r = f.resolution, g = f.gate;
+      const p = f.llm_proposal, r = f.resolution, g = f.gate, s = f.state;
       const lure = f.highlight;
+      const tasks = (s.open_tasks || []).map(t =>
+        "[" + t.id + "] " + t.title + (t.status === "active" ? "  (active)" : "")
+      ).join("\n");
       return `
-        ${lure ? "<div class='pipe lure'><div class='k'>Killer turn</div><div class='v'>LLM proposes A; clocks select another loop</div></div>" : ""}
+        ${lure ? "<div class='pipe lure'><div class='k'>This is the moment</div><div class='v'>LLM proposes Authentication. Clocks say Deployment.</div></div>" : ""}
         ${f.engine_created_task ? "<div class='pipe'><div class='k'>Engine NEW</div><div class='v'>persisted [" + f.engine_created_task.id + "] " + (f.engine_created_task.title || "") + "</div></div>" : ""}
-        <div class="pipe"><div class="k">LLM proposal (soft, not the decision)</div>
-          <div class="v ${lure ? "lure" : ""}">task=${p.task_id}  conf=${p.confidence}</div>
-          <div class="v">${p.rationale || ""}</div></div>
+        <div class="pipe"><div class="k">Active task</div><div class="v ok">[${s.active_task_id}] ${s.active_title || ""}</div></div>
+        <div class="pipe"><div class="k">Foreground referent</div><div class="v ok">${s.foreground_referent || "-"} — ${s.foreground_loop || ""}</div></div>
+        <div class="pipe"><div class="k">Open tasks</div><pre>${tasks}</pre></div>
+        <div class="pipe"><div class="k">LLM proposal (not the decision)</div>
+          <div class="v ${lure ? "lure" : ""}">${p.task_id} · conf ${p.confidence}</div></div>
         <div class="arrow">v</div>
         <div class="pipe"><div class="k">Referent resolution</div>
-          <div class="v ok">mode=${r.kind}  rule=${r.rule}<br>task=${r.predicted_task_id}  foreground=${r.predicted_referent_id}</div></div>
+          <div class="v ok">${r.kind} → ${r.predicted_task_id} / ${r.predicted_referent_id}</div></div>
         <div class="arrow">v</div>
-        <div class="pipe"><div class="k">Deterministic gate</div>
-          <div class="v ok">${g.transition} ${g.task_id || ""} · top_raw=${Number(g.top_raw).toFixed(2)} · raw_margin=${Number(g.raw_margin).toFixed(2)}</div></div>
+        <div class="pipe"><div class="k">Routing decision</div>
+          <div class="v ok">${g.transition} ${g.task_id || ""}</div></div>
       `;
+    }
+    function renderAnswer(f) {
+      const ac = f.answer_context, s = f.state;
+      const loop = (ac.open_loops || [])[0] || "(none)";
+      const hero = ac.task_id
+        ? "<div class='hero'>" + (s.active_title || ac.task_summary || ac.task_id) + "</div><div class='ok'>" + loop + "</div>"
+        : "<div class='hero'>No answer package (CLARIFY)</div>";
+      return hero +
+        "<p class='banner' style='margin-top:0.8rem'>CONTEXTFLOW = what matters now. Not a savings number.</p>" +
+        "<details><summary>Show naive full-history / card dump</summary><pre>" +
+        treeNaive(f.naive_full_history) + "</pre></details>";
     }
     let frames = [];
     function select(i) {
       document.querySelectorAll(".turn-btn").forEach((b, j) => b.classList.toggle("active", j === i));
       const f = frames[i];
       document.getElementById("mech").innerHTML = renderMech(f);
-      document.getElementById("contrast").innerHTML =
-        "<pre>" + treeNaive(f.naive_full_history) + "</pre><pre>" + treeAnswer(f) + "</pre>" +
-        "<div class='pipe'><div class='k'>Diagnostic tokens (not savings)</div><div class='v'>decision=" +
-        f.answer_context.decision_tokens + " answer=" + f.answer_context.answer_tokens + "</div></div>";
+      document.getElementById("contrast").innerHTML = renderAnswer(f);
     }
     fetch("/api/replay").then(r => r.json()).then(data => {
       frames = data;
@@ -108,12 +127,15 @@
       data.forEach((f, i) => {
         const b = document.createElement("button");
         b.className = "turn-btn" + (f.highlight ? " killer" : "");
-        b.innerHTML = "<div class='who'>Turn " + f.turn + " · " + f.final_decision + (f.highlight ? " · mismatch" : "") + "</div>" + f.message;
+        const sys = f.engine_created_task
+          ? "created " + f.engine_created_task.title
+          : (f.final_decision + (f.resolution.predicted_referent_id ? " " + f.resolution.predicted_referent_id : ""));
+        b.innerHTML = "<div class='who'>You · turn " + f.turn + "</div>" + f.message +
+          "<div class='sys'>system: " + sys + "</div>";
         b.onclick = () => select(i);
         conv.appendChild(b);
       });
-      const lure = data.findIndex(f => f.highlight);
-      select(lure >= 0 ? lure : 0);
+      select(Math.max(0, data.findIndex(f => f.highlight)));
     });
   </script>
 </body>
