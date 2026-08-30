@@ -1,0 +1,313 @@
+{
+  "meta": {
+    "kind": "synthetic_adversarial_engineering_fixture",
+    "not": "natural human behavior",
+    "conversation_id": "ten-ws-stress",
+    "n_workstreams": 10,
+    "seed": 10
+  },
+  "workstreams": [
+    {
+      "id": "A",
+      "title": "authentication",
+      "goal": "fix JWT authentication on the auth service",
+      "loops": ["401 after refresh", "rotate signing key"],
+      "cues": ["jwt", "refresh", "authentication", "ttl", "signing", "401", "token"]
+    },
+    {
+      "id": "B",
+      "title": "deployment",
+      "goal": "fix CI Docker deployment",
+      "loops": ["CI failing on Docker step", "container healthcheck"],
+      "cues": ["docker", "container", "ci", "alpine", "debian", "builder", "deploy"]
+    },
+    {
+      "id": "C",
+      "title": "orders api",
+      "goal": "fix orders API 401 at the gateway",
+      "loops": ["gateway 401 on /v2/orders"],
+      "cues": ["orders", "gateway", "authorization", "api", "401", "token"]
+    },
+    {
+      "id": "D",
+      "title": "checkout ui",
+      "goal": "fix checkout double-render and frontend API error toast",
+      "loops": ["checkout renders twice"],
+      "cues": ["checkout", "frontend", "toast", "render", "ui", "401", "api"]
+    },
+    {
+      "id": "E",
+      "title": "corporate outfit",
+      "goal": "choose a corporate event outfit",
+      "loops": ["pick dress color"],
+      "cues": ["dress", "navy", "formal", "corporate", "outfit", "evening"]
+    },
+    {
+      "id": "F",
+      "title": "lisbon trip",
+      "goal": "plan Lisbon trip with parking",
+      "loops": ["book hotel with parking"],
+      "cues": ["lisbon", "hotel", "parking", "flight", "saturday", "trip"]
+    },
+    {
+      "id": "G",
+      "title": "dinner",
+      "goal": "plan a dairy-free dinner",
+      "loops": ["choose a dairy-free dish"],
+      "cues": ["dinner", "pasta", "risotto", "dairy", "carbonara", "recipe"]
+    },
+    {
+      "id": "H",
+      "title": "presentation deck",
+      "goal": "finish the presentation deck",
+      "loops": ["Lisbon airport chart on the deck"],
+      "cues": ["deck", "slides", "chart", "presentation", "lisbon", "airport"]
+    },
+    {
+      "id": "I",
+      "title": "job application",
+      "goal": "submit Stripe backend application",
+      "loops": ["submit before Friday deadline"],
+      "cues": ["stripe", "application", "deadline", "friday", "backend", "role"]
+    },
+    {
+      "id": "J",
+      "title": "trivia",
+      "goal": "settle a Pokémon height trivia argument",
+      "loops": ["name the tallest Pokémon"],
+      "cues": ["pokemon", "wailord", "celesteela", "trivia", "brainrot", "tallest"]
+    }
+  ],
+  "turns": [
+    {"turn": 1, "ws": "A", "message": "JWT still returns 401 after refresh on the auth service."},
+    {"turn": 2, "ws": "A", "message": "On the auth service the access token TTL is 15 minutes."},
+    {"turn": 3, "ws": "E", "message": "I need a black dress for a corporate event."},
+    {"turn": 4, "ws": "E", "message": "The event is formal and in the evening."},
+    {"turn": 5, "ws": "C", "message": "The orders API returns 401 even with a valid token."},
+    {"turn": 6, "ws": "C", "message": "I think the gateway strips the Authorization header on /v2/orders."},
+    {"turn": 7, "ws": "G", "message": "Tonight I'll cook pasta carbonara."},
+    {"turn": 8, "ws": "G", "message": "Wait, no dairy at all for this dinner."},
+    {"turn": 9, "ws": "B", "message": "CI is failing on the Docker step again."},
+    {"turn": 10, "ws": "B", "message": "We're using alpine as the builder image for the container."},
+    {"turn": 11, "ws": "F", "message": "Lisbon trip: the hotel needs parking."},
+    {"turn": 12, "ws": "F", "message": "The Lisbon flight is Saturday morning."},
+    {"turn": 13, "ws": "D", "message": "The checkout component still renders twice."},
+    {"turn": 14, "ws": "D", "message": "The frontend toast shows an API 401 when the token is fine on the client."},
+    {"turn": 15, "ws": "I", "message": "I am applying to Stripe for the backend role."},
+    {"turn": 16, "ws": "I", "message": "The Stripe application deadline is Friday."},
+    {"turn": 17, "ws": "H", "message": "The presentation deck is 12 slides and mentions Lisbon airport traffic."},
+    {"turn": 18, "ws": "H", "message": "Keep Lisbon as a chart on the deck, not the trip."},
+    {"turn": 19, "ws": "J", "message": "Quick brainrot: what is the tallest Pokémon?"},
+    {"turn": 20, "ws": "J", "message": "Trivia correction: it is not Wailord, go with Celesteela."},
+    {"turn": 21, "ws": "C", "message": "back to the orders API 401 with a valid token"},
+    {"turn": 22, "ws": "E", "message": "back to the dress for the corporate event"},
+    {"turn": 23, "ws": "A", "message": "go back to the JWT 401 after refresh on the auth service"},
+    {"turn": 24, "ws": "F", "message": "back to the Lisbon hotel parking"},
+    {"turn": 25, "ws": "B", "message": "back to CI failing on the Docker step"},
+    {"turn": 26, "ws": "G", "message": "back to the dairy-free dinner"},
+    {"turn": 27, "ws": "D", "message": "the checkout component still rendering twice"},
+    {"turn": 28, "ws": "I", "message": "the Stripe application deadline Friday"},
+    {"turn": 29, "ws": "H", "message": "the presentation deck Lisbon chart"},
+    {"turn": 30, "ws": "J", "message": "the tallest Pokémon trivia again"},
+    {"turn": 31, "ws": "A", "message": "On the auth service, TTL is 5 minutes now, not 15."},
+    {"turn": 32, "ws": "E", "message": "Actually navy, not black, for the formal evening event."},
+    {"turn": 33, "ws": "B", "message": "Use debian slim, not alpine, as the builder image."},
+    {"turn": 34, "ws": "G", "message": "Risotto instead of pasta carbonara, still no dairy."},
+    {"turn": 35, "ws": "A", "message": "Also rotate the signing key on the auth service."},
+    {"turn": 36, "ws": "C", "message": "the gateway Authorization header on /v2/orders"},
+    {"turn": 37, "ws": "C", "message": "fix that"},
+    {"turn": 38, "ws": "E", "message": "the navy dress for the formal evening event"},
+    {"turn": 39, "ws": "F", "message": "the Saturday morning Lisbon flight"},
+    {"turn": 40, "ws": "D", "message": "the frontend toast API 401 on checkout"},
+    {"turn": 41, "ws": "A", "message": "JWT 401 after refresh on the auth service still"},
+    {"turn": 42, "ws": "J", "message": "Celesteela trivia again"},
+    {"turn": 43, "ws": "G", "message": "the dairy-free risotto dinner"},
+    {"turn": 44, "ws": "I", "message": "Stripe backend role Friday deadline"},
+    {"turn": 45, "ws": "B", "message": "debian slim builder image Docker CI"},
+    {"turn": 46, "ws": "E", "message": "maybe the navy one?"},
+    {"turn": 47, "ws": "A", "message": "JWT still returns 401 after refresh on the auth service."},
+    {"turn": 48, "ws": "H", "message": "the 12 slides Lisbon chart on the deck"},
+    {"turn": 49, "ws": "A", "message": "no, the other one"},
+    {"turn": 50, "ws": "C", "message": "the token 401 on the orders API still"}
+  ],
+  "extract_scripts": {
+    "JWT still returns 401": {
+      "patches": [
+        {"kind": "fact", "text": "401 after refresh", "workstream_id": "A", "referent_id": "A.loop1"}
+      ]
+    },
+    "TTL is 15 minutes": {
+      "patches": [
+        {"kind": "fact", "text": "access token TTL 15 minutes", "workstream_id": "A", "referent_id": "A.loop1", "slot": "ttl"}
+      ]
+    },
+    "black dress for a corporate": {
+      "patches": [
+        {"kind": "decision", "text": "black", "workstream_id": "E", "referent_id": "E.loop1", "slot": "color"},
+        {"kind": "constraint", "text": "corporate/formal", "workstream_id": "E", "referent_id": "E.loop1", "slot": "dress_code"}
+      ]
+    },
+    "formal and in the evening": {
+      "patches": [
+        {"kind": "constraint", "text": "evening event", "workstream_id": "E", "referent_id": "E.loop1", "slot": "event_time"}
+      ]
+    },
+    "orders API returns 401": {
+      "patches": [
+        {"kind": "fact", "text": "orders API 401 with valid token", "workstream_id": "C", "referent_id": "C.loop1"}
+      ]
+    },
+    "gateway strips the Authorization": {
+      "patches": [
+        {"kind": "fact", "text": "gateway strips Authorization on /v2/orders", "workstream_id": "C", "referent_id": "C.loop1", "slot": "gateway"}
+      ]
+    },
+    "pasta carbonara": {
+      "patches": [
+        {"kind": "decision", "text": "pasta carbonara", "workstream_id": "G", "referent_id": "G.loop1", "slot": "dish"}
+      ]
+    },
+    "no dairy at all": {
+      "patches": [
+        {"kind": "constraint", "text": "no dairy", "workstream_id": "G", "referent_id": "G.loop1", "slot": "diet"}
+      ]
+    },
+    "CI is failing on the Docker": {
+      "patches": [
+        {"kind": "fact", "text": "CI failing on Docker step", "workstream_id": "B", "referent_id": "B.loop1"}
+      ]
+    },
+    "alpine as the builder": {
+      "patches": [
+        {"kind": "decision", "text": "alpine", "workstream_id": "B", "referent_id": "B.loop1", "slot": "builder"}
+      ]
+    },
+    "hotel needs parking": {
+      "patches": [
+        {"kind": "fact", "text": "Lisbon hotel needs parking", "workstream_id": "F", "referent_id": "F.loop1"}
+      ]
+    },
+    "flight is Saturday morning": {
+      "patches": [
+        {"kind": "constraint", "text": "Saturday morning flight", "workstream_id": "F", "referent_id": "F.loop1", "slot": "flight"}
+      ]
+    },
+    "checkout component still renders twice": {
+      "patches": [
+        {"kind": "fact", "text": "checkout renders twice", "workstream_id": "D", "referent_id": "D.loop1"}
+      ]
+    },
+    "frontend toast shows an API 401": {
+      "patches": [
+        {"kind": "fact", "text": "frontend toast API 401", "workstream_id": "D", "referent_id": "D.loop1", "slot": "toast"}
+      ]
+    },
+    "applying to Stripe": {
+      "patches": [
+        {"kind": "fact", "text": "applying to Stripe backend role", "workstream_id": "I", "referent_id": "I.loop1"}
+      ]
+    },
+    "deadline is Friday": {
+      "patches": [
+        {"kind": "constraint", "text": "deadline Friday", "workstream_id": "I", "referent_id": "I.loop1", "slot": "deadline"}
+      ]
+    },
+    "presentation deck is 12 slides": {
+      "patches": [
+        {"kind": "fact", "text": "deck is 12 slides", "workstream_id": "H", "referent_id": "H.loop1", "slot": "slides"}
+      ]
+    },
+    "Lisbon as a chart on the deck": {
+      "patches": [
+        {"kind": "constraint", "text": "Lisbon is a chart not the trip", "workstream_id": "H", "referent_id": "H.loop1", "slot": "lisbon_use"}
+      ]
+    },
+    "what is the tallest Pokémon": {
+      "patches": [
+        {"kind": "decision", "text": "Wailord", "workstream_id": "J", "referent_id": "J.loop1", "slot": "answer"}
+      ]
+    },
+    "not Wailord, go with Celesteela": {
+      "patches": [
+        {"kind": "decision", "text": "Celesteela", "workstream_id": "J", "referent_id": "J.loop1", "slot": "answer"}
+      ],
+      "resolve_supersede_slot": true
+    },
+    "TTL is 5 minutes now, not 15": {
+      "patches": [
+        {"kind": "fact", "text": "access token TTL 5 minutes", "workstream_id": "A", "referent_id": "A.loop1", "slot": "ttl"}
+      ],
+      "resolve_supersede_slot": true
+    },
+    "navy, not black": {
+      "patches": [
+        {"kind": "decision", "text": "navy", "workstream_id": "E", "referent_id": "E.loop1", "slot": "color"},
+        {"kind": "constraint", "text": "corporate/formal", "workstream_id": "E", "referent_id": "E.loop1", "slot": "dress_code"},
+        {"kind": "constraint", "text": "evening event", "workstream_id": "E", "referent_id": "E.loop1", "slot": "event_time"}
+      ],
+      "resolve_supersede_slot": true
+    },
+    "debian slim, not alpine": {
+      "patches": [
+        {"kind": "decision", "text": "debian slim", "workstream_id": "B", "referent_id": "B.loop1", "slot": "builder"}
+      ],
+      "resolve_supersede_slot": true
+    },
+    "Risotto instead of pasta": {
+      "patches": [
+        {"kind": "decision", "text": "risotto", "workstream_id": "G", "referent_id": "G.loop1", "slot": "dish"}
+      ],
+      "resolve_supersede_slot": true
+    },
+    "rotate the signing key": {
+      "patches": [
+        {"kind": "fact", "text": "need to rotate signing key", "workstream_id": "A", "referent_id": "A.loop2"}
+      ]
+    },
+    "maybe the navy one?": {"uncertain": true, "notes": ["ambiguous_preference"]}
+  },
+  "llm_scripts": {
+    "JWT still returns 401": {"task_id": "A", "is_new_task": false, "confidence": 0.4},
+    "TTL is 15 minutes": {"task_id": "A", "is_new_task": false, "confidence": 0.35},
+    "JWT 401 after refresh": {"task_id": "A", "is_new_task": false, "confidence": 0.4},
+    "TTL is 5 minutes": {"task_id": "A", "is_new_task": false, "confidence": 0.35},
+    "signing key on the auth": {"task_id": "A", "is_new_task": false, "confidence": 0.4},
+    "black dress for a corporate": {"task_id": "E", "is_new_task": false, "confidence": 0.4},
+    "formal and in the evening": {"task_id": "E", "is_new_task": false, "confidence": 0.35},
+    "back to the dress": {"task_id": "E", "is_new_task": false, "confidence": 0.35},
+    "navy, not black": {"task_id": "E", "is_new_task": false, "confidence": 0.4},
+    "navy dress for the formal": {"task_id": "E", "is_new_task": false, "confidence": 0.4},
+    "maybe the navy one?": {"task_id": "E", "is_new_task": false, "confidence": 0.3},
+    "orders API returns 401": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "gateway strips the Authorization": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "back to the orders API": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "gateway Authorization header": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "token 401 on the orders API": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "CI is failing on the Docker": {"task_id": "B", "is_new_task": false, "confidence": 0.4},
+    "alpine as the builder": {"task_id": "B", "is_new_task": false, "confidence": 0.35},
+    "back to CI failing": {"task_id": "B", "is_new_task": false, "confidence": 0.4},
+    "debian slim, not alpine": {"task_id": "B", "is_new_task": false, "confidence": 0.4},
+    "debian slim builder": {"task_id": "B", "is_new_task": false, "confidence": 0.4},
+    "checkout component still": {"task_id": "D", "is_new_task": false, "confidence": 0.4},
+    "frontend toast": {"task_id": "D", "is_new_task": false, "confidence": 0.4},
+    "Lisbon trip": {"task_id": "F", "is_new_task": false, "confidence": 0.4},
+    "Lisbon hotel parking": {"task_id": "F", "is_new_task": false, "confidence": 0.4},
+    "Saturday morning Lisbon": {"task_id": "F", "is_new_task": false, "confidence": 0.4},
+    "pasta carbonara": {"task_id": "G", "is_new_task": false, "confidence": 0.4},
+    "no dairy at all": {"task_id": "G", "is_new_task": false, "confidence": 0.35},
+    "dairy-free dinner": {"task_id": "G", "is_new_task": false, "confidence": 0.4},
+    "Risotto instead": {"task_id": "G", "is_new_task": false, "confidence": 0.4},
+    "dairy-free risotto": {"task_id": "G", "is_new_task": false, "confidence": 0.4},
+    "presentation deck": {"task_id": "H", "is_new_task": false, "confidence": 0.4},
+    "Lisbon as a chart": {"task_id": "H", "is_new_task": false, "confidence": 0.4},
+    "12 slides Lisbon chart": {"task_id": "H", "is_new_task": false, "confidence": 0.4},
+    "applying to Stripe": {"task_id": "I", "is_new_task": false, "confidence": 0.4},
+    "Stripe application deadline": {"task_id": "I", "is_new_task": false, "confidence": 0.4},
+    "Stripe backend role": {"task_id": "I", "is_new_task": false, "confidence": 0.4},
+    "tallest Pokémon": {"task_id": "J", "is_new_task": false, "confidence": 0.4},
+    "not Wailord": {"task_id": "J", "is_new_task": false, "confidence": 0.35},
+    "Celesteela trivia": {"task_id": "J", "is_new_task": false, "confidence": 0.4},
+    "the other one": {"task_id": "A", "is_new_task": false, "confidence": 0.45},
+    "fix that": {"task_id": "A", "is_new_task": false, "confidence": 0.97}
+  }
+}

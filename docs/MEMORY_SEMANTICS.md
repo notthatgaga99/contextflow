@@ -1,6 +1,5 @@
-# Memory semantics (v1)
+# Memory semantics
 
-**Date:** 2026-08-30  
 **Authority:** `MemoryWriter` is the deterministic memory authority. The LLM proposes patches only. ContextFlow (gate/resolver) is the routing authority. The compiler builds the context package. `generate()` is answer-only.
 
 ## Representation

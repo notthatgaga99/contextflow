@@ -1,50 +1,24 @@
 # Production readiness
 
 **Date:** 2026-08-30  
-**Engineering frozen.** Frozen routing unchanged. **Not committed yet.**
+Frozen routing unchanged.
 
 Statuses: **IMPLEMENTED** · **TESTED** · **DEMONSTRATED** · **NOT YET**.
 
 | Layer | IMPLEMENTED | TESTED | DEMONSTRATED | NOT YET |
 |---|---|---|---|---|
-| Frozen routing PoC | gate/resolver/scorer | 135+ pytest (pre-stabilization) + invariants | controlled PoC + mock product path | organic real chat |
-| MemoryItem → Writer → Store | models + writer + store | store/writer/invariant/negative tests (**153** pytest) | mock ABCD lifecycle + supersession | durable restart |
-| Working-context reconstruction | `WorkingContextBuilder` + compiler | invariant tests on ABCD return-B | mock path + one hosted turn metadata | hosted return/supersession on Vertex |
-| Conversation isolation | `ConversationStore` | pytest + negative tests | Mock rev `00001` live | hosted Vertex path; cross-instance |
-| Cloud Run live | Dockerfile + deploy | — | rev `00002-95x` serves `/health`, `/docs`, `/turn` | authn; private invoker |
-| End-to-end hosted HTTP | turn pipeline on Cloud Run | — | **1** Vertex `/turn` (`diag-1`, SWITCH→A) | multi-turn hosted ABCD |
-| Vertex extraction (hosted) | `LlmMemoryExtractor` | unit fail-closed tests | **1** hosted turn `extract_ok=true` | quality/robustness |
-| Vertex answer (hosted) | `GeminiClient` | — | **1** hosted non-mock answer (~9.5 KB) | quality benchmark |
-| Local Vertex client smoke | `eval/vertex_smoke.py` | — | 9 calls, 3 probes, ~$0.001896 est. | — |
-| Memory semantics doc | `docs/MEMORY_SEMANTICS.md` | negative + invariant tests | — | production enforcement at scale |
+| Frozen routing | gate / resolver / scorer | pytest + judge demo | controlled PoC + mock product path | organic real chat |
+| MemoryItem → Writer → Store | models + writer + store | store / writer / 10-ws tests (**163** pytest) | mock ABCD + 10-ws supersession | durable restart |
+| Working-context reconstruction | `WorkingContextBuilder` + compiler | ABCD + 10-ws package checks | mock 10-ws returns; 5-probe Vertex packages | organic reconstruction quality |
+| Conversation isolation | `ConversationStore` | pytest + negatives | Mock Cloud Run rev `00001` | cross-instance durability |
+| 10-workstream stress (mock) | fixture + harness | `tests/test_ten_workstream.py` | 50 turns / 17 probes; 0 wrong-ACT; 0 contam | natural-human evaluation |
+| Cloud Run | Dockerfile + deploy | — | rev `00002-95x` `/health`, `/docs`, `/turn` | authn; private invoker |
+| Hosted HTTP Vertex turn | turn pipeline on Cloud Run | — | **1** `/turn` on `00002-95x` | multi-turn hosted ABCD; full 50-turn hosted replay |
+| Vertex five-probe slice (local) | `eval/ten_workstream/vertex_slice.py` | — | **15** calls; 5/5 route match; 0 wrong-ACT | full 50-turn Vertex; extraction robustness |
 | Durable memory | — | — | — | Firestore / persistence |
-| Auth / production reliability | — | — | — | all |
+| Auth / production SLOs | — | — | — | all |
 
-## Evidence preserved (do not re-run)
-
-### Mock Cloud Run (`contextflow-00001-zmp`)
-
-- Health, isolation, ABCD HTTP, structured `turn_decision` logs.
-
-### Hosted Vertex (`contextflow-00002-95x`)
-
-| Field | Value |
-|---|---|
-| Turn time (UTC) | `2026-08-30T04:23:15Z` |
-| Correlation | `diag-turn-1` |
-| Trace | `projects/contextflow-506414/traces/4ded0ec6fa34e53d2b5f7f851e640ddb` |
-| Latency | **11.63 s** (warm) |
-| Models | `gemini-2.5-flash-lite` via Vertex `us-central1` |
-| Gate | SWITCH → A / A.loop1 |
-| Mock path | **off** (`CF_SMOKE_FIXTURE` unset) |
-
-### Local stabilization (this phase)
-
-- **153** pytest pass (invariant + negative memory tests added).
-- `docs/MEMORY_SEMANTICS.md`: ASSERT, SUPERSEDE, RETRACT, UNCERTAIN, ABANDON, CORRECT.
-- Writer: uncertain patches rejected; abandon closes workstream; correction supersedes decision on slot.
-
-## Architecture boundary (locked)
+## Product path
 
 ```
 LLM          → proposer (extract + soft task id)
@@ -54,24 +28,50 @@ Compiler     → context authority (ContextPackage)
 LLM.generate → answer only (no store mutation)
 ```
 
-Retriever → candidates. Store → accumulated state. WorkingContextBuilder → projection for selected task only.
+## Evidence (preserved)
 
-## Billing (last audited 2026-08-30)
+### Cloud Run
 
-| Resource | Actual invoice via CLI | Notes |
+| Revision | Role |
+|---|---|
+| `contextflow-00001-zmp` | MockLLM: health, isolation, ABCD HTTP |
+| `contextflow-00002-95x` | Vertex: one `/turn` (`diag-turn-1`, SWITCH→A, ~11.6s warm) |
+
+The hosted `/turn` is **separate** from the five-probe local Vertex client slice.
+
+### Ten-workstream mock stress
+
+Controlled adversarial engineering fixture — **not** natural human behavior.
+
+- 10 open workstreams, 50 turns, 17 probes
+- 14/17 routing-correct (14/16 ACT + 0/1 CLARIFY-ok); **0** wrong-ACT; **0** critical missing state; **0** contamination
+- See `docs/TEN_WORKSTREAM_RESULTS.md`
+
+### Five-probe Vertex slice (local client)
+
+Vertex exercised the production-shaped extract → writer → frozen routing → working-context → answer path at five selected probes, while non-probe fixture history was seeded.
+
+| Field | Value |
+|---|---|
+| Probes | p08, p06, p11, p15, p13 |
+| Calls | **15** |
+| Tokens | **5373** in / **6065** out |
+| Est. cost | **~$0.002963** (token table, not an invoice) |
+| Routing | **5/5** match; **0** wrong-ACT; **0** contam |
+| Report | `docs/TEN_WORKSTREAM_VERTEX_RESULTS.md` |
+
+## Cost notes
+
+| Item | Kind | Notes |
 |---|---|---|
-| Cloud Build / AR / Run | **Not scraped** | cents-scale estimate |
-| Vertex hosted | **Not scraped** | 1 turn; no token metadata in logs |
-| Vertex local smoke | **~$0.001896** | token counts in `eval/out/vertex_smoke.json` (gitignored) |
+| Cloud Build / AR / Run | inventory estimate | cents-scale; not scraped invoices |
+| Hosted `/turn` | tokens unavailable in logs | amount unknown |
+| Ten-ws Vertex slice | token-table estimate | ~$0.002963 |
 
 ## Explicitly NOT YET
 
 - Robust LLM extraction on real/consented transcripts
 - Durable memory across restart / multi-instance
-- Authentication; unauthenticated public URL remains a demo boundary
+- Authentication on the public demo URL
 - Organic evaluation; production SLOs
-- Firestore, Vector Search, embeddings batch, 135-call grid
-
-## Remaining product question
-
-**Memory quality and persistence semantics** — not routing. Next work is durable store + extraction quality on consented traffic, not gate retuning.
+- Full 50-turn hosted Vertex evaluation
