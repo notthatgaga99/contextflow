@@ -31,6 +31,13 @@ class ContextCompiler:
         selected_open_loop: str | None = None,
         message: str | None = None,
         open_tasks: list[Task] | None = None,
+        active_decisions: list[str] | None = None,
+        active_constraints: list[str] | None = None,
+        relevant_facts: list[str] | None = None,
+        relevant_entities: list[str] | None = None,
+        excluded_workstreams: list[str] | None = None,
+        memory_item_ids: list[str] | None = None,
+        recent_changes: list[str] | None = None,
     ) -> ContextPackage:
         requested = normalize_context_mode(mode)
         included_texts, included_ids, used_mode = self._select_loops(
@@ -49,10 +56,14 @@ class ContextCompiler:
             selected_open_loop=selected_open_loop,
             context_mode=used_mode,
             included_loop_ids=list(included_ids),
-            active_decisions=list(a.decisions),
-            active_constraints=list(a.constraints),
-            relevant_facts=list(a.entities),
-            source_event_ids=[],
+            active_decisions=list(active_decisions if active_decisions is not None else a.decisions),
+            active_constraints=list(active_constraints if active_constraints is not None else a.constraints),
+            relevant_facts=list(relevant_facts if relevant_facts is not None else a.entities),
+            relevant_entities=list(relevant_entities or []),
+            excluded_workstreams=list(excluded_workstreams or []),
+            memory_item_ids=list(memory_item_ids or []),
+            recent_changes=list(recent_changes or []),
+            source_event_ids=list(memory_item_ids or []),
         )
         pkg.decision_text = self._decision_text(pkg, task, message, open_tasks)
         pkg.answer_text = self._answer_text(pkg)
@@ -132,6 +143,7 @@ class ContextCompiler:
         parts.extend(pkg.active_decisions)
         parts.extend(pkg.active_constraints)
         parts.extend(pkg.relevant_facts)
+        parts.extend(pkg.relevant_entities)
         return " ".join(p for p in parts if p)
 
     def _merged_text(self, pkg: ContextPackage) -> str:
@@ -154,4 +166,6 @@ class ContextCompiler:
             lines.append("CONSTRAINTS: " + "; ".join(pkg.active_constraints))
         if pkg.relevant_facts:
             lines.append("FACTS: " + "; ".join(pkg.relevant_facts))
+        if pkg.relevant_entities:
+            lines.append("ENTITIES: " + "; ".join(pkg.relevant_entities))
         return "\n".join(lines)

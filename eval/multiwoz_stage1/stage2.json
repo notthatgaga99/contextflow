@@ -1,0 +1,170 @@
+{
+  "model": "llama3.1:8b",
+  "cases": [
+    {
+      "id": "PMUL0079",
+      "class": "interruption",
+      "target": "Before we do that, what is the name of the guesthouse? And also, do they have free parking?",
+      "transition": "CLARIFY",
+      "task_id": null,
+      "referent": "T1.loop4",
+      "conditions": {
+        "full_history": {
+          "context_tokens": 166,
+          "answer": "I didn't mention the name of the guesthouse, I'm afraid. As for free parking, I don't recall mentioning that either.",
+          "latency_s": 59.33,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "guest",
+            "parking"
+          ],
+          "bad": []
+        },
+        "full_task": {
+          "context_tokens": 7,
+          "answer": "I didn't mention a guesthouse or provide any information about it. I'm happy to help with your visit to Cambridge, but I don't have any prior information to clarify. Would you like to start fresh and ask about something specific?",
+          "latency_s": 103.92,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "guest",
+            "don't have"
+          ],
+          "bad": []
+        },
+        "referent_compact": {
+          "context_tokens": 8,
+          "answer": "I didn't mention a guesthouse or provide any information about one. I'm happy to help with your questions, but I need to start from the beginning.",
+          "latency_s": 70.93,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "guest"
+          ],
+          "bad": []
+        }
+      }
+    },
+    {
+      "id": "MUL2423",
+      "class": "ambiguous",
+      "target": "I need the taxi to pick me up at the theatre. But I suppose we should figure out exactly which theatre that is. You mentioned one in the centre?",
+      "transition": "CLARIFY",
+      "task_id": null,
+      "referent": "T1.loop2",
+      "conditions": {
+        "full_history": {
+          "context_tokens": 282,
+          "answer": "There is one theatre in the centre of town, the Cambridge Arts Theatre.",
+          "latency_s": 77.44,
+          "answer_correct": true,
+          "note": "CLARIFY ok",
+          "bad": [],
+          "ok": []
+        },
+        "full_task": {
+          "context_tokens": 7,
+          "answer": "Do you mean the Yes, I am looking for a place to dine. I would prefer the city centre and am looking for halal food.?",
+          "latency_s": 0.0,
+          "answer_correct": true,
+          "note": "CLARIFY ok",
+          "bad": [],
+          "ok": []
+        },
+        "referent_compact": {
+          "context_tokens": 8,
+          "answer": "Do you mean the Yes, I am looking for a place to dine. I would prefer the city centre and am looking for halal food.?",
+          "latency_s": 0.0,
+          "answer_correct": true,
+          "note": "CLARIFY ok",
+          "bad": [],
+          "ok": []
+        }
+      }
+    },
+    {
+      "id": "MUL0810",
+      "class": "genuine_return",
+      "target": "I forgot to ask; what is the postcode for the Cambridge Museum of Technology that you mentioned earlier?",
+      "transition": "CONTINUE",
+      "task_id": "T1",
+      "referent": "T1.loop3",
+      "conditions": {
+        "full_history": {
+          "context_tokens": 260,
+          "answer": "I didn't mention the postcode for the Cambridge Museum of Technology earlier.",
+          "latency_s": 70.72,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "museum",
+            "technology"
+          ],
+          "bad": []
+        },
+        "full_task": {
+          "context_tokens": 215,
+          "answer": "I didn't mention the postcode for the Cambridge Museum of Technology earlier.",
+          "latency_s": 55.05,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "museum",
+            "technology"
+          ],
+          "bad": []
+        },
+        "referent_compact": {
+          "context_tokens": 112,
+          "answer": "I'm afraid I didn't mention a postcode earlier.",
+          "latency_s": 75.83,
+          "answer_correct": false,
+          "note": "miss_or_bad",
+          "ok": [],
+          "bad": []
+        }
+      }
+    },
+    {
+      "id": "MUL2053",
+      "class": "copy_from_prior",
+      "target": "On the same day as the hotel stay.",
+      "transition": "CONTINUE",
+      "task_id": "T2",
+      "referent": "T2.loop3",
+      "conditions": {
+        "full_history": {
+          "context_tokens": 315,
+          "answer": "You'll be traveling on Tuesday, the same day you're checking in to the hotel. I can help you find a train from Peterborough to Cambridge.",
+          "latency_s": 71.07,
+          "answer_correct": true,
+          "note": "ok",
+          "ok": [
+            "tuesday",
+            "tue"
+          ],
+          "bad": []
+        },
+        "full_task": {
+          "context_tokens": 181,
+          "answer": "Yes, it includes internet.",
+          "latency_s": 80.8,
+          "answer_correct": false,
+          "note": "miss_or_bad",
+          "ok": [],
+          "bad": []
+        },
+        "referent_compact": {
+          "context_tokens": 99,
+          "answer": "I'm afraid that information is not provided in the context.",
+          "latency_s": 66.1,
+          "answer_correct": false,
+          "note": "miss_or_bad",
+          "ok": [],
+          "bad": []
+        }
+      }
+    }
+  ]
+}

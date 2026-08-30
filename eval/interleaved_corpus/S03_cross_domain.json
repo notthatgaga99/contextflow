@@ -1,0 +1,95 @@
+{
+  "session_id": "S03",
+  "archetype": "cross-domain",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "interleaving": "cross-domain",
+  "domains_present": ["software_engineering", "clothing_fashion", "work_planning"],
+  "workstreams": [
+    {
+      "id": "AUTH",
+      "title": "JWT / OAuth",
+      "domain": "software_engineering",
+      "loops": [
+        {"id": "AUTH.loop1", "text": "JWT refresh still returning 401"},
+        {"id": "AUTH.loop2", "text": "OAuth redirect on staging"}
+      ]
+    },
+    {
+      "id": "EVENT",
+      "title": "Friday corporate event outfit",
+      "domain": "work_planning",
+      "loops": [{"id": "EVENT.loop1", "text": "what to wear Friday; venue is more cocktail than jeans"}]
+    },
+    {
+      "id": "DRESS",
+      "title": "Navy vs black dress",
+      "domain": "clothing_fashion",
+      "loops": [
+        {"id": "DRESS.loop1", "text": "navy dress vs black for the event"},
+        {"id": "DRESS.loop2", "text": "shoes / less formal"}
+      ]
+    }
+  ],
+  "construction_notes": "Required pattern: technical → clothing → technical. Unannounced 'black or navy'. Later 'fix that' after mixed history. Includes return to dress after OAuth. Not tuned so semantic similarity to AUTH always loses or wins.",
+  "abrupt_domain_switches": [
+    {"after_turn": 8, "from_domain": "software_engineering", "to_domain": "clothing_fashion", "announced": false},
+    {"after_turn": 20, "from_domain": "clothing_fashion", "to_domain": "software_engineering", "announced": true},
+    {"after_turn": 28, "from_domain": "software_engineering", "to_domain": "clothing_fashion", "announced": false}
+  ],
+  "turns": [
+    {"turn_id": 1, "role": "user", "text": "The JWT refresh is still returning 401. I didn't change the client."},
+    {"turn_id": 2, "role": "assistant", "text": "If the client didn't change, look at cookie domain, secret rotation, or a gateway stripping Set-Cookie."},
+    {"turn_id": 3, "role": "user", "text": "gateway... possible. we put auth behind the new mesh yesterday."},
+    {"turn_id": 4, "role": "assistant", "text": "Mesh sidecars sometimes drop Set-Cookie unless you explicitly allow it. Check the filter config before rewriting JWT code."},
+    {"turn_id": 5, "role": "user", "text": "I'll grep the envoy filter. also oauth redirect is still wrong on staging but that's later."},
+    {"turn_id": 6, "role": "assistant", "text": "Two tracks: refresh 401 (cookie/mesh), and staging redirect_uri. Don't debug them as one error."},
+    {"turn_id": 7, "role": "user", "text": "envoy has cookie_pass_through false. that might be it."},
+    {"turn_id": 8, "role": "assistant", "text": "That's a strong candidate for refresh 401 with an otherwise healthy issuer."},
+    {"turn_id": 9, "role": "user", "text": "do you think black or navy would look better?"},
+    {"turn_id": 10, "role": "assistant", "text": "For what? I don't have an event or a dress in this thread yet — black vs navy depends on lighting and how formal it is."},
+    {"turn_id": 11, "role": "user", "text": "oh right. corporate thing next Friday. not a wedding. like drinks + a talk in a hotel ballroom."},
+    {"turn_id": 12, "role": "assistant", "text": "Then navy usually reads a bit less severe than black under hotel lighting, but black is safer if you already know it's cocktail."},
+    {"turn_id": 13, "role": "user", "text": "Would a navy dress work?"},
+    {"turn_id": 14, "role": "assistant", "text": "Yes if the cut isn't beachy. Knee or midi, closed shoe. I'd skip anything that looks like a sundress."},
+    {"turn_id": 15, "role": "user", "text": "it's midi, long sleeves. I was going to wear the gold sandals"},
+    {"turn_id": 16, "role": "assistant", "text": "Gold sandals can undercut a ballroom. Block heel or a simple pump if you have one."},
+    {"turn_id": 17, "role": "user", "text": "Make it a little less formal."},
+    {"turn_id": 18, "role": "assistant", "text": "Navy midi + a structured flat or a less shiny heel. Drop the gold sandal if the room is chandeliers."},
+    {"turn_id": 19, "role": "user", "text": "ok. less shiny. I might still wear the navy one."},
+    {"turn_id": 20, "role": "assistant", "text": "Navy + quieter shoe is a coherent plan for a hotel drinks/talk, not a wedding."},
+    {"turn_id": 21, "role": "user", "text": "Okay, let's go back to OAuth."},
+    {"turn_id": 22, "role": "assistant", "text": "Staging redirect_uri. You hadn't pasted the exact callback path yet — mismatch is usually slash or /oauth vs /callback."},
+    {"turn_id": 23, "role": "user", "text": "it's /oauth/callback. console still has /callback from a year ago."},
+    {"turn_id": 24, "role": "assistant", "text": "Add the exact `/oauth/callback` origin+path. Leave the JWT/mesh cookie issue as a separate change."},
+    {"turn_id": 25, "role": "user", "text": "added. trying now. still 401 though wait that's the jwt one not oauth"},
+    {"turn_id": 26, "role": "assistant", "text": "OAuth mismatch usually isn't a 401 on refresh. If you're seeing 401, you're back on the cookie/mesh thread."},
+    {"turn_id": 27, "role": "user", "text": "yeah the oauth screen actually succeeded. refresh still 401. cookie_pass_through I haven't flipped yet."},
+    {"turn_id": 28, "role": "assistant", "text": "Then the refresh 401 is still the mesh cookie setting. OAuth was the allowlist path."},
+    {"turn_id": 29, "role": "user", "text": "And what about that dress we discussed?"},
+    {"turn_id": 30, "role": "assistant", "text": "Navy midi, long sleeves; quieter shoe, not the gold sandals; slightly less formal than a pump-and-pearl look."},
+    {"turn_id": 31, "role": "user", "text": "not that, the other dress. I also mentioned a black one at the start."},
+    {"turn_id": 32, "role": "assistant", "text": "We didn't really specify a black dress beyond 'black or navy'. If you have a specific black dress, I don't have the cut."},
+    {"turn_id": 33, "role": "user", "text": "it's just a black sheath. nvm. fix that"},
+    {"turn_id": 34, "role": "assistant", "text": "Fix what — mesh cookie_pass_through for JWT 401, the oauth path (already added), or the shoe/dress plan?"},
+    {"turn_id": 35, "role": "user", "text": "the authentication issue — what did we find?"},
+    {"turn_id": 36, "role": "assistant", "text": "Refresh 401: envoy cookie_pass_through false after the mesh put. OAuth staging was a separate redirect path typo, and you said the oauth screen succeeded."},
+    {"turn_id": 37, "role": "user", "text": "what about that one?"},
+    {"turn_id": 38, "role": "assistant", "text": "Still ambiguous — cookie flag vs shoes vs black sheath vs navy."},
+    {"turn_id": 39, "role": "user", "text": "the shoes"},
+    {"turn_id": 40, "role": "assistant", "text": "Quieter than gold sandals; structured flat or less shiny heel with the navy midi."},
+    {"turn_id": 41, "role": "user", "text": "back to that. the 401."},
+    {"turn_id": 42, "role": "assistant", "text": "JWT refresh 401, mesh cookie_pass_through. Not the oauth callback, not the outfit."}
+  ],
+  "probe_candidates": [
+    {"turn_id": 9, "why_interesting": "unannounced clothing question; no transition", "reference_kind_guess": "explicit_new_domain"},
+    {"turn_id": 17, "why_interesting": "elliptical 'less formal' on dress/shoes", "reference_kind_guess": "elliptical"},
+    {"turn_id": 21, "why_interesting": "announced return to OAuth, not JWT", "reference_kind_guess": "explicit"},
+    {"turn_id": 29, "why_interesting": "cross-domain resume of dress while AUTH is hot", "reference_kind_guess": "explicit"},
+    {"turn_id": 31, "why_interesting": "correction: other dress; may be under-specified", "reference_kind_guess": "correction"},
+    {"turn_id": 33, "why_interesting": "fix that after mixed dress/auth; likely CLARIFY", "reference_kind_guess": "deictic"},
+    {"turn_id": 37, "why_interesting": "what about that one — multi-domain", "reference_kind_guess": "deictic"},
+    {"turn_id": 41, "why_interesting": "back to that + the 401 after shoes", "reference_kind_guess": "elliptical+partial"}
+  ]
+}

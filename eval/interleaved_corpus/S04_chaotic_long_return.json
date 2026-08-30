@@ -1,0 +1,128 @@
+{
+  "session_id": "S04",
+  "archetype": "chaotic+long-return",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "interleaving": "cross-domain",
+  "domains_present": [
+    "work_planning",
+    "travel",
+    "software_engineering",
+    "shopping",
+    "restaurants_food",
+    "personal_scheduling"
+  ],
+  "workstreams": [
+    {
+      "id": "DECK",
+      "title": "Q3 planning deck",
+      "domain": "work_planning",
+      "loops": [
+        {"id": "DECK.loop1", "text": "slide on headcount vs hiring freeze"},
+        {"id": "DECK.loop2", "text": "whether to include the Lisbon pilot as a win"}
+      ]
+    },
+    {
+      "id": "TRIP",
+      "title": "Lisbon trip",
+      "domain": "travel",
+      "loops": [
+        {"id": "TRIP.loop1", "text": "hotel near the office vs Alfama"},
+        {"id": "TRIP.loop2", "text": "flight landing Tuesday 9:10 vs too tight for 11am meeting"}
+      ]
+    },
+    {
+      "id": "TEST",
+      "title": "Flaky pytest",
+      "domain": "software_engineering",
+      "loops": [{"id": "TEST.loop1", "text": "test_invoice_total flakes on CI only"}]
+    },
+    {
+      "id": "CART",
+      "title": "Home kettle",
+      "domain": "shopping",
+      "loops": [{"id": "CART.loop1", "text": "blue kettle vs the cheaper steel one"}]
+    },
+    {
+      "id": "DINNER",
+      "title": "Thursday dinner",
+      "domain": "restaurants_food",
+      "loops": [{"id": "DINNER.loop1", "text": "book somewhere quiet, not spicy"}]
+    },
+    {
+      "id": "KIDS",
+      "title": "Saturday pickup",
+      "domain": "personal_scheduling",
+      "loops": [{"id": "KIDS.loop1", "text": "soccer pickup 11:40 vs in-laws visiting"}]
+    }
+  ],
+  "construction_notes": "Required mix: work planning → travel → debugging → shopping. Long return to DECK and to TRIP.hotel after many unrelated turns. Shared word 'Lisbon' on DECK and TRIP. 'the hotel' vs deck 'win'. Not a success-only set.",
+  "abrupt_domain_switches": [
+    {"after_turn": 10, "from_domain": "work_planning", "to_domain": "travel", "announced": false},
+    {"after_turn": 20, "from_domain": "travel", "to_domain": "software_engineering", "announced": false},
+    {"after_turn": 28, "from_domain": "software_engineering", "to_domain": "shopping", "announced": false}
+  ],
+  "turns": [
+    {"turn_id": 1, "role": "user", "text": "need to finish the Q3 deck tonight. the headcount slide still looks like we're hiring 12 people and we are not."},
+    {"turn_id": 2, "role": "assistant", "text": "Replace the +12 with the freeze language your VP used, or split 'approved reqs' vs 'paused'. A fake ramp will get you questions."},
+    {"turn_id": 3, "role": "user", "text": "paused. also do I even mention Lisbon? it slipped, it's not a win yet."},
+    {"turn_id": 4, "role": "assistant", "text": "If leadership already knows it slipped, a 'pilot in progress' footnote is safer than a green check. Or drop the slide."},
+    {"turn_id": 5, "role": "user", "text": "I'll footnote it. the freeze bullet is still too soft, they want numbers."},
+    {"turn_id": 6, "role": "assistant", "text": "One line: 3 reqs filled, 9 paused, 0 new opens. Don't narrate the politics."},
+    {"turn_id": 7, "role": "user", "text": "ok. wait I never booked the hotel"},
+    {"turn_id": 8, "role": "assistant", "text": "For Lisbon? Near the office you'll pay more; Alfama is nicer evenings and a tram ride. Dates?"},
+    {"turn_id": 9, "role": "user", "text": "Tue–Thu week after next. meeting is Tuesday 11 at the office in Parque."},
+    {"turn_id": 10, "role": "assistant", "text": "Then a Parque/Saldanha hotel saves the Tuesday morning. Alfama is a bad idea if the flight is tight."},
+    {"turn_id": 11, "role": "user", "text": "flight lands 9:10. I keep thinking that's fine."},
+    {"turn_id": 12, "role": "assistant", "text": "9:10 arrival for an 11:00 is not fine if you're clearing immigration with a bag. I'd move the meeting or take a Monday night flight."},
+    {"turn_id": 13, "role": "user", "text": "can't move the meeting. monday night is extra hotel night."},
+    {"turn_id": 14, "role": "assistant", "text": "One extra night near Parque is cheaper than being late to a customer. I'd book Monday."},
+    {"turn_id": 15, "role": "user", "text": "maybe. look at a couple hotels near the office, not the cute ones."},
+    {"turn_id": 16, "role": "assistant", "text": "Search Parque/Saldanha, refundable, Monday check-in. I won't invent names I can't verify in this chat."},
+    {"turn_id": 17, "role": "user", "text": "fair. I'll do booking.com later. actually the pytest thing is blocking the invoice release."},
+    {"turn_id": 18, "role": "assistant", "text": "Which test? If it's CI-only, time and locale and leftover DB rows are the usual."},
+    {"turn_id": 19, "role": "user", "text": "test_invoice_total. passes locally, fails on CI like 1/5. total is off by 0.01 sometimes."},
+    {"turn_id": 20, "role": "assistant", "text": "Float money. Use Decimal and freeze the currency rounding in the fixture. The 0.01 is a giveaway."},
+    {"turn_id": 21, "role": "user", "text": "we already use Decimal in the service. the fixture builds a float."},
+    {"turn_id": 22, "role": "assistant", "text": "Then the flake is the fixture, not the service. Cast in the factory, don't 'retry CI'."},
+    {"turn_id": 23, "role": "user", "text": "I'll do that after the deck. ugh."},
+    {"turn_id": 24, "role": "assistant", "text": "Deck freeze numbers and Lisbon footnote are still open; hotel/flight and the float fixture are separate."},
+    {"turn_id": 25, "role": "user", "text": "add the blue kettle to the cart. the steel one looks cheap in photos."},
+    {"turn_id": 26, "role": "assistant", "text": "I can't add to your Amazon cart from here. Blue vs steel is a preference; if you already hated the steel photos, don't wait for a review."},
+    {"turn_id": 27, "role": "user", "text": "it's 40 more. whatever, blue. wait is the kettle 1.7L, we have a small stove."},
+    {"turn_id": 28, "role": "assistant", "text": "1.7L is standard; base size matters more on a small burner. Check the diameter in the listing."},
+    {"turn_id": 29, "role": "user", "text": "never mind the kettle actually. we already have one, I forgot."},
+    {"turn_id": 30, "role": "assistant", "text": "Ok, dropping the kettle. What do you want to finish — deck, Lisbon logistics, or the pytest fixture?"},
+    {"turn_id": 31, "role": "user", "text": "need a restaurant thursday. quiet, my boss hates spice."},
+    {"turn_id": 32, "role": "assistant", "text": "I shouldn't fake a reservation. Look for a place with a separate room or early slot; avoid 'famous for chili' in the blurb."},
+    {"turn_id": 33, "role": "user", "text": "there's a fish place near the office. fine. saturday I have soccer pickup at 11:40 and my in-laws said they might come"},
+    {"turn_id": 34, "role": "assistant", "text": "If pickup is 11:40 you can't do a long brunch with them unless they come to the field. Tell them the constraint; don't hope."},
+    {"turn_id": 35, "role": "user", "text": "I'll text later. ok what did we decide on Lisbon"},
+    {"turn_id": 36, "role": "assistant", "text": "Lisbon is two things: deck footnote (pilot not a win) vs the trip (Parque hotel, 9:10 landing is tight, consider Monday night). Which one?"},
+    {"turn_id": 37, "role": "user", "text": "the hotel"},
+    {"turn_id": 38, "role": "assistant", "text": "Near the office (Parque/Saldanha), not Alfama, because of the Tuesday 11:00. Flight 9:10 is still risky."},
+    {"turn_id": 39, "role": "user", "text": "continue where we left off on the deck"},
+    {"turn_id": 40, "role": "assistant", "text": "Headcount: 3 filled, 9 paused. Lisbon: footnote in progress, not a win slide."},
+    {"turn_id": 41, "role": "user", "text": "fix that"},
+    {"turn_id": 42, "role": "assistant", "text": "The last deck items were those two bullets. If you meant the flight, that's the other Lisbon thread."},
+    {"turn_id": 43, "role": "user", "text": "no, the other one"},
+    {"turn_id": 44, "role": "assistant", "text": "Other than the headcount slide, the open deck piece was whether Lisbon is a win. Other 'ones' include hotel, flight, pytest, dinner, pickup."},
+    {"turn_id": 45, "role": "user", "text": "I meant the deployment— wait we don't have deployment. I meant the test."},
+    {"turn_id": 46, "role": "assistant", "text": "test_invoice_total: float in the fixture vs Decimal in the service; 0.01 CI flake. Not the deck."},
+    {"turn_id": 47, "role": "user", "text": "and the hotel still. book the one near the office I guess"},
+    {"turn_id": 48, "role": "assistant", "text": "I can't book it. Decision on the table: Parque-area, Monday night if you can eat the extra night, because 9:10 Tuesday is tight."}
+  ],
+  "probe_candidates": [
+    {"turn_id": 7, "why_interesting": "hotel with no 'travel' preface; Lisbon word also on DECK", "reference_kind_guess": "explicit_new"},
+    {"turn_id": 17, "why_interesting": "abrupt pytest", "reference_kind_guess": "explicit_new"},
+    {"turn_id": 25, "why_interesting": "abrupt shopping", "reference_kind_guess": "explicit_new"},
+    {"turn_id": 29, "why_interesting": "abandon kettle", "reference_kind_guess": "abandon"},
+    {"turn_id": 35, "why_interesting": "Lisbon collision deck vs trip", "reference_kind_guess": "partial"},
+    {"turn_id": 37, "why_interesting": "the hotel after the collision was named", "reference_kind_guess": "partial"},
+    {"turn_id": 39, "why_interesting": "long-ish return to DECK", "reference_kind_guess": "elliptical"},
+    {"turn_id": 41, "why_interesting": "fix that on deck with two loops", "reference_kind_guess": "deictic"},
+    {"turn_id": 43, "why_interesting": "no, the other one — many remain", "reference_kind_guess": "correction"},
+    {"turn_id": 47, "why_interesting": "return to hotel after test correction", "reference_kind_guess": "explicit"}
+  ]
+}

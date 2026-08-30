@@ -1,0 +1,75 @@
+{
+  "session_id": "S01",
+  "archetype": "focused",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "interleaving": "same-domain",
+  "domains_present": ["software_engineering", "work_planning"],
+  "workstreams": [
+    {
+      "id": "AUTH",
+      "title": "JWT refresh / session",
+      "domain": "software_engineering",
+      "loops": [
+        {"id": "AUTH.loop1", "text": "JWT still returns 401 after refresh"},
+        {"id": "AUTH.loop2", "text": "access token expires while the tab is backgrounded"}
+      ]
+    },
+    {
+      "id": "STANDUP",
+      "title": "Standup time",
+      "domain": "work_planning",
+      "loops": [{"id": "STANDUP.loop1", "text": "whether standup moved to 10:15"}]
+    }
+  ],
+  "construction_notes": "Control: mostly one technical thread. One brief calendar interruption. Not optimized for any resolver. Includes a second AUTH loop so later probes can be loop-ambiguous without cross-domain noise.",
+  "abrupt_domain_switches": [
+    {"after_turn": 22, "from_domain": "software_engineering", "to_domain": "work_planning", "announced": false}
+  ],
+  "turns": [
+    {"turn_id": 1, "role": "user", "text": "hey — the refresh call is still giving me 401. same payload we used last week."},
+    {"turn_id": 2, "role": "assistant", "text": "Ok. Is this the `/auth/refresh` path with the rotating refresh cookie, or the old body-token one?"},
+    {"turn_id": 3, "role": "user", "text": "rotating cookie. access token looks fine for ~12 min then boom, 401, refresh returns 401 too."},
+    {"turn_id": 4, "role": "assistant", "text": "That's a different smell than a dead access token. If refresh itself 401s, cookie reuse or family-id mismatch is more likely than expiry."},
+    {"turn_id": 5, "role": "user", "text": "i did see the access token go stale if I leave the tab in the background. that's maybe a second thing."},
+    {"turn_id": 6, "role": "assistant", "text": "Splitting them: (1) refresh 401, (2) backgrounded tab / expired access token. Don't mix the logs."},
+    {"turn_id": 7, "role": "user", "text": "yeah. for the 401 after refresh — Set-Cookie on the refresh response looks empty in chrome."},
+    {"turn_id": 8, "role": "assistant", "text": "Empty Set-Cookie often means SameSite / Secure / wrong domain. Check whether the API is on `api.` and the app on apex."},
+    {"turn_id": 9, "role": "user", "text": "api.internal.example, app is app.internal.example. we set Domain=.internal.example"},
+    {"turn_id": 10, "role": "assistant", "text": "Then look at whether refresh is going through a gateway that strips Set-Cookie. I've seen nginx proxy_cookie_path eat these."},
+    {"turn_id": 11, "role": "user", "text": "ugh maybe. the 401 body says `refresh_reuse_detected` sometimes, not always."},
+    {"turn_id": 12, "role": "assistant", "text": "Reuse detection firing intermittently is consistent with two tabs racing refresh."},
+    {"turn_id": 13, "role": "user", "text": "I did have staging open in another window. damn."},
+    {"turn_id": 14, "role": "assistant", "text": "Close one, retry with a single tab, and paste the refresh request/response headers (redact the cookie value)."},
+    {"turn_id": 15, "role": "user", "text": "single tab now. still 401. wait, different code: `invalid_refresh`."},
+    {"turn_id": 16, "role": "assistant", "text": "So not reuse this time. Cookie not arriving, or server rotated already. Network tab: is the cookie attached on the refresh request?"},
+    {"turn_id": 17, "role": "user", "text": "it's attached. httponly. length looks right."},
+    {"turn_id": 18, "role": "assistant", "text": "Then server-side store vs JWT refresh. If you persist jti in redis, check TTL vs cookie max-age."},
+    {"turn_id": 19, "role": "user", "text": "redis ttl is 7d, cookie is 7d. i'm going to dump the jti from the cookie vs redis."},
+    {"turn_id": 20, "role": "assistant", "text": "Good. Keep the background-tab expiry as a separate note so we don't 'fix' it by accident."},
+    {"turn_id": 21, "role": "user", "text": "jti is in redis. so why 401"},
+    {"turn_id": 22, "role": "assistant", "text": "Clock skew, or you're hashing a different secret on the refresh service than issue. Compare kid."},
+    {"turn_id": 23, "role": "user", "text": "did standup move to 10:15 or are we still 9:45"},
+    {"turn_id": 24, "role": "assistant", "text": "I don't have the calendar. Last you told me it was 9:45; I wouldn't treat that as source of truth."},
+    {"turn_id": 25, "role": "user", "text": "whatever, I'll ping Priya. kid is the same on both services actually"},
+    {"turn_id": 26, "role": "assistant", "text": "Back on refresh 401: next is audience/issuer claim. Easy to mismatch after a gateway rewrite."},
+    {"turn_id": 27, "role": "user", "text": "iss is https://auth.internal.example on both. this is annoying."},
+    {"turn_id": 28, "role": "assistant", "text": "Try issuing a refresh from curl with the same cookie the browser has. Isolates chrome vs API."},
+    {"turn_id": 29, "role": "user", "text": "curl works. so it's the browser. what the hell"},
+    {"turn_id": 30, "role": "assistant", "text": "Then look at fetch credentials and CSRF. A working curl + failing SPA is often `credentials: 'omit'` on one client path."},
+    {"turn_id": 31, "role": "user", "text": "there's a fetch wrapper for 'silent refresh' that might not pass credentials"},
+    {"turn_id": 32, "role": "assistant", "text": "That would 401 refresh in the app and succeed in curl. Check that wrapper before more redis archaeology."},
+    {"turn_id": 33, "role": "user", "text": "ok found it. credentials omit on the silent path. the 'normal' login path is include."},
+    {"turn_id": 34, "role": "assistant", "text": "That's enough to explain the refresh 401. The backgrounded access-token expiry is still open."},
+    {"turn_id": 35, "role": "user", "text": "we can leave the background one. remind me what we actually changed for the 401"},
+    {"turn_id": 36, "role": "assistant", "text": "You hadn't patched yet in this thread — you found silent refresh using credentials omit vs include on login. That's the candidate fix, not redis TTL."},
+    {"turn_id": 37, "role": "user", "text": "right. and the other one we just parked"},
+    {"turn_id": 38, "role": "assistant", "text": "Parked: access token dying when the tab is backgrounded. Separate from the refresh 401."}
+  ],
+  "probe_candidates": [
+    {"turn_id": 23, "why_interesting": "unannounced domain hop to standup; not a recap of AUTH", "reference_kind_guess": "explicit"},
+    {"turn_id": 35, "why_interesting": "resumption of the 401 thread after the calendar blip", "reference_kind_guess": "partial"},
+    {"turn_id": 37, "why_interesting": "the other one — two AUTH loops; may need CLARIFY or AUTH.loop2", "reference_kind_guess": "correction_or_elliptical"}
+  ]
+}

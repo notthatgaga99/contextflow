@@ -1,0 +1,37 @@
+{
+  "corpus_id": "interleaved_pilot_0",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "contextflow_run": false,
+  "notes": "Inspect dialogue realism only. Do not treat as gold. Do not run ContextFlow on this corpus yet.",
+  "sessions": [
+    {
+      "file": "S01_focused.json",
+      "session_id": "S01",
+      "archetype": "focused"
+    },
+    {
+      "file": "S02_multitask.json",
+      "session_id": "S02",
+      "archetype": "multi-task"
+    },
+    {
+      "file": "S03_cross_domain.json",
+      "session_id": "S03",
+      "archetype": "cross-domain",
+      "required_pattern": "technical → clothing → technical"
+    },
+    {
+      "file": "S04_chaotic_long_return.json",
+      "session_id": "S04",
+      "archetype": "chaotic+long-return",
+      "required_pattern": "work planning → travel → debugging → shopping"
+    },
+    {
+      "file": "S05_humanlike_ambiguous.json",
+      "session_id": "S05",
+      "archetype": "human-like+ambiguous"
+    }
+  ]
+}

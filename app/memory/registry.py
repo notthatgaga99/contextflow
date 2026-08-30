@@ -23,6 +23,12 @@ class InMemoryRegistry:
     def open_tasks(self) -> list[Task]:
         return [t for t in self._tasks.values() if t.status in ("active", "paused")]
 
+    def mark_abandoned(self, task_id: str) -> None:
+        """Close a workstream for routing/retrieval. Memory items remain for audit."""
+        t = self._tasks.get(task_id)
+        if t is not None:
+            t.status = "abandoned"
+
     def active(self) -> Task | None:
         for t in self._tasks.values():
             if t.status == "active":

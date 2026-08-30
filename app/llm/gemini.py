@@ -41,5 +41,9 @@ class GeminiClient:
         return r.text
 
     def embed(self, texts: list[str]) -> list[np.ndarray]:
+        # Opt out of Vertex embeddings API for tiny smokes / cost control.
+        if os.getenv("CF_EMBED_LOCAL") == "1":
+            from app.llm.mock import MockLLM
+            return MockLLM(dim=SETTINGS.EMBED_DIM).embed(texts)
         r = self._client.models.embed_content(model=self.EMBED_MODEL, contents=texts)
         return [np.array(e.values, dtype=np.float32) for e in r.embeddings]

@@ -16,6 +16,9 @@ from app.router.referent import (
 )
 from app.retrieval.scorer import score_candidates
 from app.context.compiler import ContextCompiler
+from app.context.working_set import WorkingContextBuilder
+from app.memory.retriever import OpenWorkstreamRetriever, Retriever
+from app.memory.store import MemoryStore
 
 NewTaskFactory = Callable[[str, int], Optional[Task]]
 
@@ -62,18 +65,48 @@ class Engine:
 
     def __init__(self, llm: LLM, registry: Registry, settings=SETTINGS,
                  mode: str = "split", platt: tuple[float, float] | None = None,
-                 new_task_factory: NewTaskFactory | None = None):
+                 new_task_factory: NewTaskFactory | None = None,
+                 retriever: Retriever | None = None,
+                 memory_store: MemoryStore | None = None,
+                 working_context_builder: WorkingContextBuilder | None = None):
         self.llm = llm
         self.reg = registry
         self.settings = settings
         self.mode = mode
         self.platt = platt
         self.compiler = ContextCompiler()
-        # Optional card body for NEW. Gate still decides NEW; this only materializes state.
         self.new_task_factory = new_task_factory
+        self.retriever = retriever or OpenWorkstreamRetriever()
+        self.memory_store = memory_store
+        self.working_context_builder = working_context_builder or WorkingContextBuilder()
+
+    def _make_package(self, task, pred_ref, loop_text, message, open_tasks):
+        extra = {}
+        if self.memory_store is not None and self.memory_store.asserted(task.id):
+            proj = self.working_context_builder.project(
+                task, pred_ref, self.memory_store, open_tasks,
+            )
+            extra = {
+                "active_decisions": proj.decisions,
+                "active_constraints": proj.constraints,
+                "relevant_facts": proj.facts,
+                "relevant_entities": proj.entities,
+                "excluded_workstreams": proj.excluded_workstreams,
+                "memory_item_ids": proj.item_ids,
+                "recent_changes": proj.recent_changes,
+            }
+        pkg = self.compiler.build(
+            task, self.mode,
+            selected_referent_id=pred_ref,
+            selected_open_loop=loop_text,
+            message=message,
+            open_tasks=list(open_tasks),
+            **extra,
+        )
+        return pkg
 
     def handle_turn(self, message: str, turn: int) -> TurnResult:
-        open_tasks = self.reg.open_tasks()
+        open_tasks = self.retriever.candidates(message, self.reg)
         active = self.reg.active()
         active_id = active.id if active else None
         open_ids = {t.id for t in open_tasks}
@@ -148,15 +181,9 @@ class Engine:
         self.reg.set_last_selected_referent(pred_ref)
         task = self.reg.get(task_id)
         loop_text = _loop_text(task, pred_ref)
-        pkg = self.compiler.build(
-            task, self.mode,
-            selected_referent_id=pred_ref,
-            selected_open_loop=loop_text,
-            message=message,
-            open_tasks=list(open_tasks),
-        )
+        pkg = self._make_package(task, pred_ref, loop_text, message, open_tasks)
         answer = self.llm.generate(self.compiler.render(pkg))
-        self.reg.apply_update(task_id, {})  # no-op delta in MVP; state extraction added later
+        self.reg.apply_update(task_id, {})  # legacy no-op; MemoryWriter is the production path
         return TurnResult(
             decision.transition, task_id, answer, None, pkg, decision,
             task_id, pred_ref, evidence,
@@ -195,13 +222,7 @@ class Engine:
         self.reg.record_mention(task.id, turn, ref_id)
         self.reg.set_last_selected_referent(ref_id)
         loop_text = _loop_text(task, ref_id)
-        pkg = self.compiler.build(
-            task, self.mode,
-            selected_referent_id=ref_id,
-            selected_open_loop=loop_text,
-            message=message,
-            open_tasks=self.reg.open_tasks(),
-        )
+        pkg = self._make_package(task, ref_id, loop_text, message, self.reg.open_tasks())
         answer = self.llm.generate(self.compiler.render(pkg))
         return TurnResult(
             Transition.NEW, task.id, answer, None, pkg, decision,

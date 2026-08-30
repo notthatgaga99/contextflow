@@ -1,0 +1,89 @@
+{
+  "session_id": "S02",
+  "archetype": "multi-task",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "interleaving": "same-domain",
+  "domains_present": ["software_engineering"],
+  "workstreams": [
+    {
+      "id": "AUTH",
+      "title": "Authentication",
+      "domain": "software_engineering",
+      "loops": [
+        {"id": "AUTH.loop1", "text": "JWT 401 after refresh"},
+        {"id": "AUTH.loop2", "text": "401 from missing Authorization header on /me"}
+      ]
+    },
+    {
+      "id": "FE",
+      "title": "Checkout UI",
+      "domain": "software_engineering",
+      "loops": [{"id": "FE.loop1", "text": "checkout component still renders twice"}]
+    },
+    {
+      "id": "CI",
+      "title": "Docker / CI",
+      "domain": "software_engineering",
+      "loops": [{"id": "CI.loop1", "text": "CI failing on the Docker step"}]
+    },
+    {
+      "id": "OAUTH",
+      "title": "OAuth redirect",
+      "domain": "software_engineering",
+      "loops": [{"id": "OAUTH.loop1", "text": "OAuth redirect_uri mismatch on staging"}]
+    }
+  ],
+  "construction_notes": "Same product, high lexical overlap (401 twice). Switches are related-work, not life-admin. Includes 'fix that' after CI was last talked about, and a sibling 401 probe. Not written so mention-clocks always win.",
+  "abrupt_domain_switches": [],
+  "turns": [
+    {"turn_id": 1, "role": "user", "text": "jwt refresh still 401s after we rotated secrets. I hate this week."},
+    {"turn_id": 2, "role": "assistant", "text": "After a secret rotation, old refresh cookies will 401 until users re-login. Is this all users or just you?"},
+    {"turn_id": 3, "role": "user", "text": "just me on staging. prod is fine. also /me sometimes 401s with missing Authorization even when I'm 'logged in' in the UI."},
+    {"turn_id": 4, "role": "assistant", "text": "That's two 401s. Refresh cookie vs the SPA not attaching the header on /me. Don't collapse them."},
+    {"turn_id": 5, "role": "user", "text": "yeah yeah. the checkout page is also still rendering twice, unrelated but it's driving QA nuts."},
+    {"turn_id": 6, "role": "assistant", "text": "Double mount usually StrictMode or a key on the route that changes. I can look after we pin which 401 you want."},
+    {"turn_id": 7, "role": "user", "text": "look at the double render first actually, they're blocked on a screenshot."},
+    {"turn_id": 8, "role": "assistant", "text": "If Checkout is wrapped in React.StrictMode in staging only, you'll see double effects. Check `main.tsx` vs prod build flags."},
+    {"turn_id": 9, "role": "user", "text": "strict mode is on in both. the parent CheckoutShell remounts because `cartId` flickers null→id→null."},
+    {"turn_id": 10, "role": "assistant", "text": "Then it's a state flicker, not StrictMode theater. Who writes cartId?"},
+    {"turn_id": 11, "role": "user", "text": "useCart() plus a query that refetches on window focus. wait — CI is red, docker step. I forgot I merged a Dockerfile change."},
+    {"turn_id": 12, "role": "assistant", "text": "Need the failing step log. COPY path vs build context is the usual after a Dockerfile tweak."},
+    {"turn_id": 13, "role": "user", "text": "failed on `COPY app/package.json`. we moved it to `frontend/package.json` and nobody updated CI."},
+    {"turn_id": 14, "role": "assistant", "text": "That's a one-line fix in the pipeline. Want me to draft the COPY/workdir change or stay on checkout?"},
+    {"turn_id": 15, "role": "user", "text": "draft the docker thing, I'll paste it. then we have oauth too — staging redirect_uri is still localhost."},
+    {"turn_id": 16, "role": "assistant", "text": "redirect_uri localhost on staging will bounce every social login. That's a console config, not the Dockerfile."},
+    {"turn_id": 17, "role": "user", "text": "I know. the allowed list has https://staging.example.com/callback missing. I can add it after lunch."},
+    {"turn_id": 18, "role": "assistant", "text": "Noted. Open items still include refresh 401, /me missing Authorization, checkout remount, docker COPY, oauth redirect."},
+    {"turn_id": 19, "role": "user", "text": "fix that"},
+    {"turn_id": 20, "role": "assistant", "text": "I need you to pick which — last we specified was adding the staging redirect_uri, but 'fix that' is not unique among the five."},
+    {"turn_id": 21, "role": "user", "text": "the docker copy. sorry."},
+    {"turn_id": 22, "role": "assistant", "text": "Update CI COPY to `frontend/package.json` (and WORKDIR if needed). I wouldn't touch oauth in the same PR."},
+    {"turn_id": 23, "role": "user", "text": "k. still getting the 401 btw"},
+    {"turn_id": 24, "role": "assistant", "text": "Which 401 — refresh, or /me with missing Authorization?"},
+    {"turn_id": 25, "role": "user", "text": "uh. the header one I think? the network tab shows /me with no Authorization."},
+    {"turn_id": 26, "role": "assistant", "text": "Then the interceptor isn't attaching the access token on that client. Different from refresh-cookie 401."},
+    {"turn_id": 27, "role": "user", "text": "can you look at the refresh one anyway? I pasted logs in the other channel. wait you can't see that."},
+    {"turn_id": 28, "role": "assistant", "text": "I only have this thread. Refresh 401 after secret rotation on staging, you, not prod."},
+    {"turn_id": 29, "role": "user", "text": "continue where we left off on checkout. the cartId flicker."},
+    {"turn_id": 30, "role": "assistant", "text": "Find the focus refetch that sets cartId null. If the query returns empty before hydrate, gate the Shell until cartId is stable."},
+    {"turn_id": 31, "role": "user", "text": "there's also a `key={user.id}` on the route. if user flickers that's another remount."},
+    {"turn_id": 32, "role": "assistant", "text": "Yes — combining a nulling cartId with a changing user key will double-render even after StrictMode is ruled out."},
+    {"turn_id": 33, "role": "user", "text": "oauth — I added the redirect. still broken. error is redirect_uri_mismatch still."},
+    {"turn_id": 34, "role": "assistant", "text": "Exact string match. trailing slash, http vs https, /callback vs /auth/callback. Diff the request vs the console allowlist character by character."},
+    {"turn_id": 35, "role": "user", "text": "request is /oauth/callback, I added /callback. god."},
+    {"turn_id": 36, "role": "assistant", "text": "That's the mismatch. Align them; docker COPY is a separate PR."},
+    {"turn_id": 37, "role": "user", "text": "what did we decide about the 401"},
+    {"turn_id": 38, "role": "assistant", "text": "We didn't pick one 401 as 'the' 401. Refresh-after-rotation vs /me missing header are both still open."},
+    {"turn_id": 39, "role": "user", "text": "I meant the deployment one"},
+    {"turn_id": 40, "role": "assistant", "text": "If you mean CI/Docker: COPY path after moving package.json to frontend. That's not a 401."}
+  ],
+  "probe_candidates": [
+    {"turn_id": 19, "why_interesting": "pure deixis with many open technical loops", "reference_kind_guess": "deictic"},
+    {"turn_id": 23, "why_interesting": "partial 'the 401' with two 401 loops", "reference_kind_guess": "partial"},
+    {"turn_id": 29, "why_interesting": "elliptical resume of FE while other tasks are hotter", "reference_kind_guess": "elliptical"},
+    {"turn_id": 37, "why_interesting": "what did we decide — 401 collision", "reference_kind_guess": "elliptical"},
+    {"turn_id": 39, "why_interesting": "correction toward deployment/CI, not a 401", "reference_kind_guess": "correction"}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConsentedContextFlowSession",
+  "type": "object",
+  "required": ["session_id", "consent", "turns"],
+  "properties": {
+    "session_id": { "type": "string" },
+    "consent": { "type": "string" },
+    "sanitized": { "type": "boolean" },
+    "notes": { "type": "string" },
+    "turns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["i", "role", "text"],
+        "properties": {
+          "i": { "type": "integer", "minimum": 0 },
+          "role": { "enum": ["user", "assistant"] },
+          "text": { "type": "string" }
+        }
+      }
+    }
+  }
+}

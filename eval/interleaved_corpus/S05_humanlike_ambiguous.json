@@ -1,0 +1,120 @@
+{
+  "session_id": "S05",
+  "archetype": "human-like+ambiguous",
+  "label_status": "unlabeled",
+  "source": "synthetic_author",
+  "human_behavior": false,
+  "interleaving": "cross-domain",
+  "domains_present": [
+    "writing_email",
+    "research_learning",
+    "finance_admin",
+    "home_lifestyle",
+    "software_engineering",
+    "creative_projects"
+  ],
+  "workstreams": [
+    {
+      "id": "EMAIL",
+      "title": "Note to hiring manager",
+      "domain": "writing_email",
+      "loops": [
+        {"id": "EMAIL.loop1", "text": "tone of the 'thanks for the chat' email — less stiff"},
+        {"id": "EMAIL.loop2", "text": "whether to attach the one-pager"}
+      ]
+    },
+    {
+      "id": "PAPER",
+      "title": "Paper / lit notes",
+      "domain": "research_learning",
+      "loops": [
+        {"id": "PAPER.loop1", "text": "what the authors actually claim about memory vs retrieval"},
+        {"id": "PAPER.loop2", "text": "draft of my paragraph that cites them"}
+      ]
+    },
+    {
+      "id": "TAX",
+      "title": "Receipt pile (synthetic)",
+      "domain": "finance_admin",
+      "loops": [{"id": "TAX.loop1", "text": "which coffee receipts are personal vs the offsite"}]
+    },
+    {
+      "id": "HOME",
+      "title": "Leaky tap",
+      "domain": "home_lifestyle",
+      "loops": [{"id": "HOME.loop1", "text": "washer vs calling the building"}]
+    },
+    {
+      "id": "BUG",
+      "title": "Token in the URL",
+      "domain": "software_engineering",
+      "loops": [{"id": "BUG.loop1", "text": "access token showing up in query string on share links"}]
+    },
+    {
+      "id": "ZINE",
+      "title": "Weekend zine",
+      "domain": "creative_projects",
+      "loops": [{"id": "ZINE.loop1", "text": "cover: photo vs a drawing"}]
+    }
+  ],
+  "construction_notes": "Messier: typos, actually/wait/never mind. Shared vocabulary: draft (email vs paper paragraph), token (gift language vs access token). Not every probe is solvable. Includes a coding blip in a mostly life/writing session.",
+  "abrupt_domain_switches": [
+    {"after_turn": 12, "from_domain": "writing_email", "to_domain": "research_learning", "announced": false},
+    {"after_turn": 24, "from_domain": "finance_admin", "to_domain": "software_engineering", "announced": false},
+    {"after_turn": 32, "from_domain": "home_lifestyle", "to_domain": "creative_projects", "announced": false}
+  ],
+  "turns": [
+    {"turn_id": 1, "role": "user", "text": "can you make this less stiff? 'Dear Alex, Thank you for taking the time to speak with me yesterday regarding the role.' ugh"},
+    {"turn_id": 2, "role": "assistant", "text": "Try: 'Hi Alex — thanks for the conversation yesterday, I enjoyed hearing how the team actually ships.' Still a thank-you, less annual-review."},
+    {"turn_id": 3, "role": "user", "text": "better. do I attach the one pager? feels thirsty"},
+    {"turn_id": 4, "role": "assistant", "text": "If they didn't ask, a link in the last line is lighter than an attachment. Attachment says 'please print me'."},
+    {"turn_id": 5, "role": "user", "text": "link then. wait, they asked for it in the call. I forgot."},
+    {"turn_id": 6, "role": "assistant", "text": "Then attach it, one file, filename that isn't FINAL_v7. Mention it in one sentence so it doesn't look like a stealth add."},
+    {"turn_id": 7, "role": "user", "text": "k. the draft is still too long after the thanks."},
+    {"turn_id": 8, "role": "assistant", "text": "Cut the paragraph about your 'passion for collaboration'. Keep one concrete thing you talked about."},
+    {"turn_id": 9, "role": "user", "text": "we talked about oncall. I can say I'm not scared of it. that's dumb tho"},
+    {"turn_id": 10, "role": "assistant", "text": "Say you liked how they rotate oncall and you'd want to learn their runbooks. Not bravado."},
+    {"turn_id": 11, "role": "user", "text": "ok. actually can you look at this sentence from the paper I'm citing: they say 'memory is not retrieval'. I keep misquoting it."},
+    {"turn_id": 12, "role": "assistant", "text": "I don't have the PDF. If that's a paraphrase, don't put it in quotes. If it's a claim, cite the section, don't decorate it."},
+    {"turn_id": 13, "role": "user", "text": "section 3. they contrast a store with a pointer. my paragraph currently says we 'retrieve memories like files'."},
+    {"turn_id": 14, "role": "assistant", "text": "That's the opposite of their contrast if they mean memory ≠ dumping files. Rewrite your sentence to match section 3 or drop the citation."},
+    {"turn_id": 15, "role": "user", "text": "I'll rewrite. the draft is a mess."},
+    {"turn_id": 16, "role": "assistant", "text": "Which draft — the hiring email or the paragraph that cites section 3?"},
+    {"turn_id": 17, "role": "user", "text": "hm. both. start with the paper one."},
+    {"turn_id": 18, "role": "assistant", "text": "Replace 'retrieve like files' with something that admits a pointer/store distinction, then say what *you* do. Don't force their slogan."},
+    {"turn_id": 19, "role": "user", "text": "need to sort receipts. some of the cafe ones are just me, some were the offsite. I don't want to expense sandwiches I ate alone lol"},
+    {"turn_id": 20, "role": "assistant", "text": "If the offsite had a calendar invite and a group, keep those. Solo cafe before standup is personal. When unsure, don't expense it."},
+    {"turn_id": 21, "role": "user", "text": "there's a 14.60 from tuesday with no note. I think that was us"},
+    {"turn_id": 22, "role": "assistant", "text": "Without a note it's a guess. Ask one person who was there before it hits the report."},
+    {"turn_id": 23, "role": "user", "text": "later. the tap in the kitchen is dripping again. washer or building?"},
+    {"turn_id": 24, "role": "assistant", "text": "If it's the spout washer it's a cheap ring. If it's the handle packing, stop tightening and tell the building — you can strip it."},
+    {"turn_id": 25, "role": "user", "text": "it's the spout I think. also we are leaking the access token in the share URL again, QA sent a screenshot"},
+    {"turn_id": 26, "role": "assistant", "text": "That's a security bug, not the kitchen. Strip tokens from query strings; use a one-time fragment or a server-side share id."},
+    {"turn_id": 27, "role": "user", "text": "I thought we did. must be the new share sheet. tokne in the query. typo token."},
+    {"turn_id": 28, "role": "assistant", "text": "New share sheet likely copied an old helper. Search `access_token=` and `hashHistory` on that path."},
+    {"turn_id": 29, "role": "user", "text": "k I'll grep. never mind I'll do it tomorrow, if QA is the only one who saw it"},
+    {"turn_id": 30, "role": "assistant", "text": "If a token hit a URL it may also have hit logs or referrers. Don't wait on 'only QA' as a threat model."},
+    {"turn_id": 31, "role": "user", "text": "fine. what did we decide?"},
+    {"turn_id": 32, "role": "assistant", "text": "About which — email attachment, paper sentence, 14.60 receipt, tap, or the token in the share URL?"},
+    {"turn_id": 33, "role": "user", "text": "cover for the zine. photo or should I draw it. totally different thing sorry"},
+    {"turn_id": 34, "role": "assistant", "text": "Photo if you already have a strong one; drawing if the issue is handmade on purpose. I wouldn't mix a stock photo with a xerox look."},
+    {"turn_id": 35, "role": "user", "text": "drawing. ok go back to the draft"},
+    {"turn_id": 36, "role": "assistant", "text": "Email draft or the citation paragraph? You used 'draft' for both."},
+    {"turn_id": 37, "role": "user", "text": "the other one"},
+    {"turn_id": 38, "role": "assistant", "text": "Still two. Last selected in this thread was the zine cover (drawing). 'The other one' from there isn't unique."},
+    {"turn_id": 39, "role": "user", "text": "the token thing then. not a gift token, the url."},
+    {"turn_id": 40, "role": "assistant", "text": "Access token on the new share-sheet query string. Strip it; don't treat it as the expense 'note' or a zine token."},
+    {"turn_id": 41, "role": "user", "text": "continue where we left off"},
+    {"turn_id": 42, "role": "assistant", "text": "Last specified was the share URL token. Before that, zine cover = drawing, tap = likely spout washer, receipts = don't guess 14.60."}
+  ],
+  "probe_candidates": [
+    {"turn_id": 7, "why_interesting": "the draft — later collides with paper", "reference_kind_guess": "partial"},
+    {"turn_id": 11, "why_interesting": "abrupt paper", "reference_kind_guess": "explicit_new"},
+    {"turn_id": 15, "why_interesting": "the draft is a mess — collision", "reference_kind_guess": "partial"},
+    {"turn_id": 25, "why_interesting": "token URL vs later language", "reference_kind_guess": "explicit_new"},
+    {"turn_id": 31, "why_interesting": "what did we decide — many threads", "reference_kind_guess": "elliptical"},
+    {"turn_id": 35, "why_interesting": "go back to the draft after zine", "reference_kind_guess": "elliptical"},
+    {"turn_id": 37, "why_interesting": "the other one after a clarify", "reference_kind_guess": "correction"},
+    {"turn_id": 41, "why_interesting": "continue where we left off", "reference_kind_guess": "elliptical"}
+  ]
+}

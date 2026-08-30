@@ -8,3 +8,10 @@ __pycache__/
 CONTEXTFLOW_AGENT_NOTES.md
 eval/out/*
 !eval/out/POC_RESULTS.md
+eval/consented_case/interpretation.json
+data/longmemeval/
+data/multiwoz/
+data/wildchat/
+data/consented/*
+!data/consented/README.md
+!data/consented/session.schema.json

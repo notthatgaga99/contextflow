@@ -1,0 +1,2165 @@
+{
+  "n_dialogues": 512,
+  "n_multi_service": 409,
+  "utterance_class_counts": {
+    "unclassified": 2696,
+    "sequential": 224,
+    "unsuitable": 846,
+    "correction": 12,
+    "deictic": 37,
+    "copy_from_prior": 22,
+    "interruption": 1,
+    "genuine_return": 4
+  },
+  "flagged_n": 76,
+  "dst_distinct_domain_hist": {
+    "1": 105,
+    "2": 325,
+    "3": 82
+  },
+  "dst_switch_hist": {
+    "0": 105,
+    "1": 278,
+    "2": 91,
+    "3": 26,
+    "4": 10,
+    "5": 2
+  },
+  "dst_aba_return_hist": {
+    "0": 450,
+    "1": 31,
+    "2": 26,
+    "3": 4,
+    "4": 1
+  },
+  "max_dst_return_gap_mean": 0.359375,
+  "max_dst_return_gap_max": 6,
+  "flagged": [
+    {
+      "dialogue_id": "PMUL0320.json",
+      "turn_id": 10,
+      "label": "correction",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "I'm sorry. I actually need a restaurant in the centre.",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2155.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Does it have free wifi?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0079.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Okay. now could you help me find a restaurant in the expensive price range that is in the same area as the hotel?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0079.json",
+      "turn_id": 8,
+      "label": "interruption",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Before we do that, what is the name of the guesthouse? And also, do they have free parking?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0089.json",
+      "turn_id": 2,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Does it have a star rating of 2?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2859.json",
+      "turn_id": 8,
+      "label": "correction",
+      "dst_service": "hotel",
+      "services": [
+        "attraction",
+        "hotel"
+      ],
+      "utt": "I really need a hotel in the west please.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2009.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "We are looking for a place to dine, preferably expensive Italian food in the same area as the attraction. What do you suggest? I need an address and postcode please.",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2089.json",
+      "turn_id": 2,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Is that located in the north. I really want to stay somewhere in the north.",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "SNG02172.json",
+      "turn_id": 2,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "hotel"
+      ],
+      "utt": "I don't have a preference, actually. Which one do you recommend?",
+      "dst_depth": {
+        "n_user_turns": 5,
+        "n_distinct_dst_domains": 1,
+        "n_dst_switches": 0,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1248.json",
+      "turn_id": 18,
+      "label": "correction",
+      "dst_service": "taxi",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "I actually need to have the taxi pick me up from the hotel to get to the restaurant. I want to leave the hotel by 07:15, please.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4643.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "The hotel should be in the same area as the restaurant and should include free wifi.",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4693.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "I'm also looking for a train. The train should be on the same day as the hotel booking.",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2477.json",
+      "turn_id": 4,
+      "label": "correction",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "I actually need some places to go in the centre area.",
+      "dst_depth": {
+        "n_user_turns": 6,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0197.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "I'm also looking for a place to stay. It needs to include free wifi and parking, be 3 star, and in the same area as the restaurant.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2053.json",
+      "turn_id": 14,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "train",
+        "hotel"
+      ],
+      "utt": "On the same day as the hotel stay.",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "hotel",
+          "train",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3044.json",
+      "turn_id": 14,
+      "label": "deictic",
+      "dst_service": "attraction",
+      "services": [
+        "attraction",
+        "hotel"
+      ],
+      "utt": "Haha, I'm not familiar with Cambridge. What part of town is that in?",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2634.json",
+      "turn_id": 8,
+      "label": "genuine_return",
+      "dst_service": "attraction",
+      "services": [
+        "attraction",
+        "hotel"
+      ],
+      "utt": "I'm sorry, I forgot. I am also looking for museums to see.",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2272.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "I am also looking for place to visit in the same area as the restaurant.",
+      "dst_depth": {
+        "n_user_turns": 6,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "SNG01353.json",
+      "turn_id": 12,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "hotel"
+      ],
+      "utt": "Sounds good. Can you try and book that one please.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 1,
+        "n_dst_switches": 0,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4186.json",
+      "turn_id": 8,
+      "label": "correction",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "You didn't answer my question. I need the postcode for The Cambridge Belfry and I need to know if they have free parking or not.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 3,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0006.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "You just gave me the address. Does it have free parking?",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0006.json",
+      "turn_id": 8,
+      "label": "correction",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "I really need that to be in the south.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2882.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "taxi",
+        "attraction",
+        "hotel"
+      ],
+      "utt": "I'm also looking for some places to go in the same area as the hotel. Can you make some suggestions? I need the address, postcode, and entrance fee if any.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 5,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 3,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "taxi",
+          "attraction",
+          "hotel",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2882.json",
+      "turn_id": 18,
+      "label": "genuine_return",
+      "dst_service": "taxi",
+      "services": [
+        "taxi",
+        "attraction",
+        "hotel"
+      ],
+      "utt": "I would like to leave the museum by 23:15 to head back to the guesthouse.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 5,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 3,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "taxi",
+          "attraction",
+          "hotel",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0798.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Is that a hotel or a guesthouse?",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4231.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "What price range is that in?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "attraction",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4231.json",
+      "turn_id": 12,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "Are there any swimming pools in the same area as the restaurant?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "attraction",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2423.json",
+      "turn_id": 12,
+      "label": "genuine_return",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "I need the taxi to pick me up at the theatre. But I suppose we should figure out exactly which theatre that is. You mentioned one in the centre?",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 3,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "taxi",
+          "restaurant",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1491.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Whichever ever one has 11:00 for two people on the same day available, that one would be fine.",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2746.json",
+      "turn_id": 10,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "attraction",
+        "hotel"
+      ],
+      "utt": "The same as the hotel please",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "hotel",
+          "attraction",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1527.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Could I have the travel time and departure time for that one? Also I'm looking for a chinese restaurant that is expensive.",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1552.json",
+      "turn_id": 8,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "What area is that in?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0919.json",
+      "turn_id": 8,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Wait, is that curry garden or a different restaurant you've booked for me?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "train",
+          "restaurant",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1376.json",
+      "turn_id": 2,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Is that a guesthouse?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2294.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Does it have free parking?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "train",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0367.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Yes please, I need a place to stay. Preferably a cheaply priced guesthouse in the same area as the restaurant",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0832.json",
+      "turn_id": 8,
+      "label": "correction",
+      "dst_service": "train",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "I actually need to leave on Saturday, sometime after 18:45.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4317.json",
+      "turn_id": 14,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Does it have at least 4 stars?",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "train",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0814.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "I would also like to find an attraction to go to after the meal in the same part of town.",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0148.json",
+      "turn_id": 8,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Does it have free parking? And internet?",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2194.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "I am looking for some places to go in the same area as the restaurant.",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2116.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "train",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "You can book that one. I need the booking for 8 people. Could I get a reference number?",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0204.json",
+      "turn_id": 14,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Is that located in the south?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 3,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0204.json",
+      "turn_id": 16,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Does it have free parking?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 3,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3933.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Well how many stars does it have?",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel",
+          "taxi",
+          "hotel",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3734.json",
+      "turn_id": 6,
+      "label": "copy_from_prior",
+      "dst_service": "train",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "same day as the hotel booking",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train",
+          "train",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2195.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Let's book that one then! Super excited! Same group of people, same day, 3 nights!",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0692.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "train",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Ok. You can book that one for 4 people.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0810.json",
+      "turn_id": 4,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "Sure. also could you help me find a restaurant serving unusual food in the same part of town?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0810.json",
+      "turn_id": 12,
+      "label": "genuine_return",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "I forgot to ask; what is the postcode for the Cambridge Museum of Technology that you mentioned earlier?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0088.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Does it have internet?",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4610.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "give me the address of the one you recommend",
+      "dst_depth": {
+        "n_user_turns": 5,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL4946.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Which one of them has free parking?",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3336.json",
+      "turn_id": 4,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "attraction"
+      ],
+      "utt": "Yeah, I need a restaurant. They need to serve Indian food and be in the same area as Funky Fun House.",
+      "dst_depth": {
+        "n_user_turns": 6,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1254.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "No, which one would you recommend?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0789.json",
+      "turn_id": 20,
+      "label": "correction",
+      "dst_service": "train",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "No on the hotel. What is the train id for that one, and how long is the travel time.",
+      "dst_depth": {
+        "n_user_turns": 18,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 3,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "train",
+          "train",
+          "train",
+          "hotel",
+          "train",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1554.json",
+      "turn_id": 8,
+      "label": "deictic",
+      "dst_service": "train",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Yes that sounds good, albeit a bit early. Can you book tickets for 4 people on that one, please?",
+      "dst_depth": {
+        "n_user_turns": 8,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0624.json",
+      "turn_id": 10,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "train",
+        "hotel"
+      ],
+      "utt": "Is that at the Home From Home. That is where I want to stay.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0072.json",
+      "turn_id": 2,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Is that in the center of town? I do need to be in the center.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0230.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "train",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "I think so. How much is that train? And can you tell me the travel time?",
+      "dst_depth": {
+        "n_user_turns": 6,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0388.json",
+      "turn_id": 12,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "I would like to book a Chinese restaurant is that clear?",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0912.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "Yes, can you please find me a good Indian restaurant in the same area as the attraction? Money is no object.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL0450.json",
+      "turn_id": 14,
+      "label": "deictic",
+      "dst_service": "attraction",
+      "services": [
+        "attraction",
+        "train"
+      ],
+      "utt": "I don't care which one you recommend, but can you tell me the entrance fee and address?",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "train",
+          "attraction",
+          "attraction",
+          "attraction",
+          "attraction"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL1172.json",
+      "turn_id": 8,
+      "label": "correction",
+      "dst_service": "train",
+      "services": [
+        "attraction",
+        "train"
+      ],
+      "utt": "I actually need to book 7 seats. Can you add 5 more?",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "train",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1392.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "The same area as the restaurant and I prefer a guesthouse.",
+      "dst_depth": {
+        "n_user_turns": 12,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1211.json",
+      "turn_id": 10,
+      "label": "copy_from_prior",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "I want one that is in the same area as Bedouin, please.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3145.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "hotel"
+      ],
+      "utt": "Lets see what is available cheap, same area as the restaurant makes most sense but i am open to any area.",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 4,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL2491.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "I would also like to go to some attractions in the same area as the restaurant.",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 4,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 2,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "attraction",
+          "restaurant",
+          "attraction",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3495.json",
+      "turn_id": 8,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "attraction"
+      ],
+      "utt": "Is that in the centre area?",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "attraction",
+          "attraction",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0982.json",
+      "turn_id": 4,
+      "label": "correction",
+      "dst_service": "train",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "I actually need a train going to London Kings Cross leaving Cambridge after 14:45. For six people.",
+      "dst_depth": {
+        "n_user_turns": 7,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "train",
+          "train",
+          "train",
+          "train",
+          "restaurant",
+          "restaurant"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "MUL1350.json",
+      "turn_id": 0,
+      "label": "correction",
+      "dst_service": "hotel",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Hello. I really need to find a cheap place to stay in the east. Is there anything like that?",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL3742.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "train"
+      ],
+      "utt": "Which one do you recommend?",
+      "dst_depth": {
+        "n_user_turns": 11,
+        "n_distinct_dst_domains": 2,
+        "n_dst_switches": 1,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "train",
+          "train",
+          "train",
+          "train",
+          "train"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL0095.json",
+      "turn_id": 2,
+      "label": "correction",
+      "dst_service": "restaurant",
+      "services": [
+        "restaurant",
+        "taxi",
+        "hotel"
+      ],
+      "utt": "Is that an expensive restaraunt? I really need someplace expensive, it is a special occasion for me.",
+      "dst_depth": {
+        "n_user_turns": 9,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 3,
+        "max_dst_return_gap_user_turns": 2,
+        "n_dst_aba_returns": 1,
+        "dst_domain_seq": [
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "restaurant",
+          "hotel",
+          "restaurant",
+          "restaurant",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "PMUL2708.json",
+      "turn_id": 8,
+      "label": "copy_from_prior",
+      "dst_service": "attraction",
+      "services": [
+        "taxi",
+        "attraction",
+        "hotel"
+      ],
+      "utt": "Yes, I am interested in places to go while I am in town. Perhaps a museum in the same area as the hotel.",
+      "dst_depth": {
+        "n_user_turns": 10,
+        "n_distinct_dst_domains": 3,
+        "n_dst_switches": 2,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel",
+          "attraction",
+          "attraction",
+          "taxi",
+          "taxi",
+          "taxi"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "SNG0897.json",
+      "turn_id": 4,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "hotel"
+      ],
+      "utt": "Does it have a four star rating? I need free parking, too.",
+      "dst_depth": {
+        "n_user_turns": 5,
+        "n_distinct_dst_domains": 1,
+        "n_dst_switches": 0,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    },
+    {
+      "dialogue_id": "SNG0897.json",
+      "turn_id": 6,
+      "label": "deictic",
+      "dst_service": "hotel",
+      "services": [
+        "hotel"
+      ],
+      "utt": "No, could you just tell me the phone number? And what area of town is that in?",
+      "dst_depth": {
+        "n_user_turns": 5,
+        "n_distinct_dst_domains": 1,
+        "n_dst_switches": 0,
+        "max_dst_return_gap_user_turns": 0,
+        "n_dst_aba_returns": 0,
+        "dst_domain_seq": [
+          "hotel",
+          "hotel",
+          "hotel",
+          "hotel"
+        ]
+      }
+    }
+  ],
+  "note": "Utterance classes are heuristic. DST histograms are auxiliary dataset structure, not ContextFlow gold, not manufactured returns."
+}

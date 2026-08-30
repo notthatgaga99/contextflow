@@ -1,0 +1,831 @@
+{
+  "settings": {
+    "TAU": 0.2,
+    "DELTA": 0.08,
+    "HYST": 0.05
+  },
+  "proposer": "eval LexicalCardProposer (not production Mock default-NEW)",
+  "n_cases": 7,
+  "n_selection_match": 6,
+  "cases": [
+    {
+      "id": "PMUL0079",
+      "dialogue_id": "PMUL0079.json",
+      "target_turn_id": 8,
+      "class": "interruption",
+      "also": [
+        "genuine_return"
+      ],
+      "intended": "hotel",
+      "note": "Before we do that \u2192 guesthouse name/parking. Restaurant already started.",
+      "target": "Before we do that, what is the name of the guesthouse? And also, do they have free parking?",
+      "selection_match": false,
+      "failure": "clarify_not_auto_wrong",
+      "transition": "CLARIFY",
+      "task_id": null,
+      "predicted_task_id": "T1",
+      "predicted_referent_id": "T1.loop4",
+      "clarify": "Do you mean the Where is a 4 star hotel located in North Cambridge?, or the Sure , that could be nice?",
+      "top_raw": 0.607321745414104,
+      "raw_margin": 0.39633629645301416,
+      "candidate_count": 3,
+      "open_task_count": 2,
+      "predicted_domain": null,
+      "selected_blob": "",
+      "return_distance": null,
+      "concurrent_workstreams": 2,
+      "n_history_turns": 8,
+      "full_history_tokens": 166,
+      "answer_tokens_compact": 0,
+      "answer_tokens_full_task": 0,
+      "decision_tokens": 0,
+      "compiled_compact": "",
+      "compiled_full_task": "",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "NEW",
+          "task_id": "T2"
+        },
+        {
+          "turn_id": 4,
+          "transition": "RETURN",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CLARIFY",
+          "task_id": null
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "Where is a 4 star hotel located in North Cambrid",
+          "status": "active",
+          "goal": "Where is a 4 star hotel located in North Cambridge?",
+          "n_loops": 4,
+          "mention_turn": 5,
+          "last_active_turn": 5
+        },
+        {
+          "id": "T2",
+          "title": "Sure , that could be nice",
+          "status": "paused",
+          "goal": "Sure , that could be nice",
+          "n_loops": 2,
+          "mention_turn": 3,
+          "last_active_turn": 3
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": null,
+        "lexical": [
+          [
+            "T1.loop4",
+            1,
+            0
+          ],
+          [
+            "T2.loop2",
+            1,
+            0
+          ],
+          [
+            "T2.loop1",
+            0,
+            3
+          ],
+          [
+            "T1.loop1",
+            0,
+            1
+          ],
+          [
+            "T1.loop2",
+            0,
+            0
+          ],
+          [
+            "T1.loop3",
+            0,
+            0
+          ]
+        ],
+        "rule": "lexical_tie"
+      },
+      "last_active_turn": null
+    },
+    {
+      "id": "MUL0810",
+      "dialogue_id": "MUL0810.json",
+      "target_turn_id": 12,
+      "class": "genuine_return",
+      "also": [
+        "explicit_named"
+      ],
+      "intended": "attraction",
+      "note": "Forgot to ask museum postcode after restaurant.",
+      "target": "I forgot to ask; what is the postcode for the Cambridge Museum of Technology that you mentioned earlier?",
+      "selection_match": true,
+      "failure": "none",
+      "transition": "CONTINUE",
+      "task_id": "T1",
+      "predicted_task_id": "T1",
+      "predicted_referent_id": "T1.loop3",
+      "clarify": null,
+      "top_raw": 0.7395243837268572,
+      "raw_margin": 0.7395243837268572,
+      "candidate_count": 2,
+      "open_task_count": 1,
+      "predicted_domain": "restaurant",
+      "selected_blob": "I am looking for some places to go, do you have  I am looking for some places to go, do you have any attractions in the east? I am looking for some places to go, do you have any attractions in the east? SYSTEM: I have several places that may interest you on that side of town. What type of place are you looking for? SYSTEM: Well, we have camboats and the cambridge museum of technology, both of which are interesting places. Would you like information about either of these? SYSTEM: There doesn't seem to be any restaurants in that area that serve unusual food. Do you have another food preference? SYSTEM: Yes I have the Pizza Hut fen Ditton on the east side serving Italian food and it is moderately priced. SYSTEM: Their postcode is cb58wr and phone number is 01223323737 SYSTEM: You're very welc",
+      "return_distance": 4,
+      "concurrent_workstreams": 1,
+      "n_history_turns": 12,
+      "full_history_tokens": 260,
+      "answer_tokens_compact": 61,
+      "answer_tokens_full_task": 206,
+      "decision_tokens": 72,
+      "compiled_compact": "TASK: I am looking for some places to go, do you have any attractions in the east?\nREFERENT: T1.loop3\nSELECTED LOOP: SYSTEM: Well, we have camboats and the cambridge museum of technology, both of which are interesting places. Would you like information about either of these?\nOPEN LOOPS: SYSTEM: Well, we have camboats and the cambridge museum of technology, both of which are interesting places. Would you like information about either of these?",
+      "compiled_full_task": "TASK: I am looking for some places to go, do you have any attractions in the east?\nREFERENT: T1.loop3\nOPEN LOOPS: I am looking for some places to go, do you have any attractions in the east?; SYSTEM: I have several places that may interest you on that side of town. What type of place are you looking for?; SYSTEM: Well, we have camboats and the cambridge museum of technology, both of which are interesting places. Would you like information about either of these?; SYSTEM: There doesn't seem to be any restaurants in that area that serve unusual food. Do you have another food preference?; SYSTEM: Yes I have the Pizza Hut fen Ditton on the east side serving Italian food and it is moderately priced.; SYSTEM: Their postcode is cb58wr and phone number is 01223323737; SYSTEM: You're very welcome. Is there anything else at all that I could assist you with?",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "CLARIFY",
+          "task_id": null
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 8,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 10,
+          "transition": "CLARIFY",
+          "task_id": null
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "I am looking for some places to go, do you have ",
+          "status": "active",
+          "goal": "I am looking for some places to go, do you have any attractions in the east?",
+          "n_loops": 7,
+          "mention_turn": 9,
+          "last_active_turn": 9
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": null,
+        "lexical": [
+          [
+            "T1.loop3",
+            4,
+            0
+          ],
+          [
+            "T1.loop2",
+            2,
+            5
+          ],
+          [
+            "T1.loop6",
+            2,
+            0
+          ],
+          [
+            "T1.loop1",
+            1,
+            1
+          ],
+          [
+            "T1.loop4",
+            1,
+            0
+          ],
+          [
+            "T1.loop5",
+            1,
+            0
+          ],
+          [
+            "T1.loop7",
+            1,
+            0
+          ]
+        ],
+        "rule": "lexical"
+      },
+      "last_active_turn": 9
+    },
+    {
+      "id": "MUL2423",
+      "dialogue_id": "MUL2423.json",
+      "target_turn_id": 12,
+      "class": "ambiguous",
+      "also": [
+        "genuine_return",
+        "deictic"
+      ],
+      "intended": "attraction",
+      "note": "Taxi started; which theatre. None named yet. CLARIFY legal.",
+      "clarify_ok": true,
+      "target": "I need the taxi to pick me up at the theatre. But I suppose we should figure out exactly which theatre that is. You mentioned one in the centre?",
+      "selection_match": true,
+      "failure": "legitimate_ambiguity_or_clarify",
+      "transition": "CLARIFY",
+      "task_id": null,
+      "predicted_task_id": "T1",
+      "predicted_referent_id": "T1.loop2",
+      "clarify": "Do you mean the Yes, I am looking for a place to dine. I would prefer the city centre and am looking for halal food.?",
+      "top_raw": 0.632321745414104,
+      "raw_margin": 0.632321745414104,
+      "candidate_count": 2,
+      "open_task_count": 1,
+      "predicted_domain": null,
+      "selected_blob": "",
+      "return_distance": null,
+      "concurrent_workstreams": 1,
+      "n_history_turns": 12,
+      "full_history_tokens": 282,
+      "answer_tokens_compact": 0,
+      "answer_tokens_full_task": 0,
+      "decision_tokens": 0,
+      "compiled_compact": "",
+      "compiled_full_task": "",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 8,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 10,
+          "transition": "CLARIFY",
+          "task_id": null
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "Yes, I am looking for a place to dine. I would p",
+          "status": "active",
+          "goal": "Yes, I am looking for a place to dine. I would prefer the city centre and am looking for halal food.",
+          "n_loops": 7,
+          "mention_turn": 9,
+          "last_active_turn": 9
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": "T1.loop4",
+        "lexical": [
+          [
+            "T1.loop2",
+            2,
+            3
+          ],
+          [
+            "T1.loop5",
+            2,
+            0
+          ],
+          [
+            "T1.loop6",
+            2,
+            0
+          ],
+          [
+            "T1.loop7",
+            2,
+            0
+          ],
+          [
+            "T1.loop4",
+            1,
+            9
+          ],
+          [
+            "T1.loop3",
+            1,
+            5
+          ],
+          [
+            "T1.loop1",
+            1,
+            1
+          ]
+        ],
+        "rule": "lexical_tie"
+      },
+      "last_active_turn": null
+    },
+    {
+      "id": "PMUL4186",
+      "dialogue_id": "PMUL4186.json",
+      "target_turn_id": 8,
+      "class": "correction",
+      "also": [
+        "genuine_return"
+      ],
+      "intended": "hotel",
+      "note": "Wizard answered Nando's; user re-asks Belfry. Named in target.",
+      "target": "You didn't answer my question. I need the postcode for The Cambridge Belfry and I need to know if they have free parking or not.",
+      "selection_match": true,
+      "failure": "none",
+      "transition": "CONTINUE",
+      "task_id": "T1",
+      "predicted_task_id": "T1",
+      "predicted_referent_id": "T1.loop4",
+      "clarify": null,
+      "top_raw": 0.7111227331022577,
+      "raw_margin": 0.7111227331022577,
+      "candidate_count": 2,
+      "open_task_count": 1,
+      "predicted_domain": null,
+      "selected_blob": "I'm looking for a restaurant called nandos. Are  I'm looking for a restaurant called nandos. Are you aware of it? I'm looking for a restaurant called nandos. Are you aware of it? SYSTEM: I am. It is a great portuguese place. They have two locations in town. One in the South and on in the city centre. SYSTEM: Nandos in the south is at Cambridge Leisure Park Clifton Way. Nandos City Centre is at 33-34 Saint Andrews Street. Do you need additional information? SYSTEM: The cambridge belfry 4 star hotel is a hotel in the west part of town in the cheap price range. Would you like any more information? SYSTEM: The postcode for the nandos is cb17dy",
+      "return_distance": 2,
+      "concurrent_workstreams": 1,
+      "n_history_turns": 8,
+      "full_history_tokens": 189,
+      "answer_tokens_compact": 54,
+      "answer_tokens_full_task": 152,
+      "decision_tokens": 74,
+      "compiled_compact": "TASK: I'm looking for a restaurant called nandos. Are you aware of it?\nREFERENT: T1.loop4\nSELECTED LOOP: SYSTEM: The cambridge belfry 4 star hotel is a hotel in the west part of town in the cheap price range. Would you like any more information?\nOPEN LOOPS: SYSTEM: The cambridge belfry 4 star hotel is a hotel in the west part of town in the cheap price range. Would you like any more information?",
+      "compiled_full_task": "TASK: I'm looking for a restaurant called nandos. Are you aware of it?\nREFERENT: T1.loop4\nOPEN LOOPS: I'm looking for a restaurant called nandos. Are you aware of it?; SYSTEM: I am. It is a great portuguese place. They have two locations in town. One in the South and on in the city centre.; SYSTEM: Nandos in the south is at Cambridge Leisure Park Clifton Way. Nandos City Centre is at 33-34 Saint Andrews Street. Do you need additional information?; SYSTEM: The cambridge belfry 4 star hotel is a hotel in the west part of town in the cheap price range. Would you like any more information?; SYSTEM: The postcode for the nandos is cb17dy",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "I'm looking for a restaurant called nandos. Are ",
+          "status": "active",
+          "goal": "I'm looking for a restaurant called nandos. Are you aware of it?",
+          "n_loops": 5,
+          "mention_turn": 7,
+          "last_active_turn": 7
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": null,
+        "lexical": [
+          [
+            "T1.loop4",
+            3,
+            0
+          ],
+          [
+            "T1.loop3",
+            2,
+            5
+          ],
+          [
+            "T1.loop5",
+            2,
+            0
+          ],
+          [
+            "T1.loop2",
+            1,
+            3
+          ],
+          [
+            "T1.loop1",
+            1,
+            1
+          ]
+        ],
+        "rule": "lexical"
+      },
+      "last_active_turn": 7
+    },
+    {
+      "id": "MUL2053",
+      "dialogue_id": "MUL2053.json",
+      "target_turn_id": 14,
+      "class": "copy_from_prior",
+      "also": [],
+      "intended": "hotel",
+      "intended_note": "Not a return-to-hotel Q&A. Need Tuesday from hotel stay.",
+      "note": "On the same day as the hotel stay.",
+      "target": "On the same day as the hotel stay.",
+      "selection_match": true,
+      "failure": "none",
+      "transition": "CONTINUE",
+      "task_id": "T2",
+      "predicted_task_id": "T2",
+      "predicted_referent_id": "T2.loop3",
+      "clarify": null,
+      "top_raw": 0.532321745414104,
+      "raw_margin": 0.3639532811761568,
+      "candidate_count": 3,
+      "open_task_count": 2,
+      "predicted_domain": "hotel",
+      "selected_blob": "Does that include wifi? Does that include wifi? Does that include wifi? SYSTEM: yes it includes internet. would you like for me to book that for you? SYSTEM: Ok perfect. Before I book, how many people will be staying at the hotel, what day you will be checking in, and how long you will be staying for please? SYSTEM: I completed your booking. Your reference number is 35W3XEDL . Is there anything else I could do to help? SYSTEM: Ashley is on the north, there is an option in the east express holiday inn by cambridge, which one would you prefer? SYSTEM: Yes, I was able to book you. Your reference number is RMIBUHDE . Is there anything else I can do for you? SYSTEM: Which day would you be traveling?",
+      "return_distance": 4,
+      "concurrent_workstreams": 2,
+      "n_history_turns": 14,
+      "full_history_tokens": 315,
+      "answer_tokens_compact": 48,
+      "answer_tokens_full_task": 172,
+      "decision_tokens": 70,
+      "compiled_compact": "TASK: Does that include wifi?\nREFERENT: T2.loop3\nSELECTED LOOP: SYSTEM: Ok perfect. Before I book, how many people will be staying at the hotel, what day you will be checking in, and how long you will be staying for please?\nOPEN LOOPS: SYSTEM: Ok perfect. Before I book, how many people will be staying at the hotel, what day you will be checking in, and how long you will be staying for please?",
+      "compiled_full_task": "TASK: Does that include wifi?\nREFERENT: T2.loop3\nOPEN LOOPS: Does that include wifi?; SYSTEM: yes it includes internet. would you like for me to book that for you?; SYSTEM: Ok perfect. Before I book, how many people will be staying at the hotel, what day you will be checking in, and how long you will be staying for please?; SYSTEM: I completed your booking. Your reference number is 35W3XEDL . Is there anything else I could do to help?; SYSTEM: Ashley is on the north, there is an option in the east express holiday inn by cambridge, which one would you prefer?; SYSTEM: Yes, I was able to book you. Your reference number is RMIBUHDE . Is there anything else I can do for you?; SYSTEM: Which day would you be traveling?",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "NEW",
+          "task_id": "T2"
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T2"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T2"
+        },
+        {
+          "turn_id": 8,
+          "transition": "CLARIFY",
+          "task_id": null
+        },
+        {
+          "turn_id": 10,
+          "transition": "CONTINUE",
+          "task_id": "T2"
+        },
+        {
+          "turn_id": 12,
+          "transition": "CLARIFY",
+          "task_id": null
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "Hi there. Can you help me find a 2-star rated ho",
+          "status": "paused",
+          "goal": "Hi there. Can you help me find a 2-star rated hotel or guesthouse?",
+          "n_loops": 2,
+          "mention_turn": 1,
+          "last_active_turn": 1
+        },
+        {
+          "id": "T2",
+          "title": "Does that include wifi?",
+          "status": "active",
+          "goal": "Does that include wifi?",
+          "n_loops": 7,
+          "mention_turn": 11,
+          "last_active_turn": 11
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T2",
+        "prior_referent": "T2.loop5",
+        "lexical": [
+          [
+            "T2.loop3",
+            2,
+            7
+          ],
+          [
+            "T1.loop1",
+            1,
+            1
+          ],
+          [
+            "T1.loop2",
+            1,
+            0
+          ],
+          [
+            "T2.loop7",
+            1,
+            0
+          ],
+          [
+            "T2.loop5",
+            0,
+            11
+          ],
+          [
+            "T2.loop2",
+            0,
+            5
+          ],
+          [
+            "T2.loop1",
+            0,
+            3
+          ],
+          [
+            "T2.loop4",
+            0,
+            0
+          ],
+          [
+            "T2.loop6",
+            0,
+            0
+          ]
+        ],
+        "rule": "lexical"
+      },
+      "last_active_turn": 11
+    },
+    {
+      "id": "PMUL2746",
+      "dialogue_id": "PMUL2746.json",
+      "target_turn_id": 10,
+      "class": "copy_from_prior",
+      "also": [],
+      "intended": "hotel",
+      "note": "The same as the hotel please (area). Attraction is current ask.",
+      "target": "The same as the hotel please",
+      "selection_match": true,
+      "failure": "none",
+      "transition": "CONTINUE",
+      "task_id": "T1",
+      "predicted_task_id": "T1",
+      "predicted_referent_id": null,
+      "clarify": null,
+      "top_raw": 0.5153520924017752,
+      "raw_margin": 0.5153520924017752,
+      "candidate_count": 2,
+      "open_task_count": 1,
+      "predicted_domain": "hotel",
+      "selected_blob": "I'm looking for a places to stay in south Cambri I'm looking for a places to stay in south Cambridge that offer free parking for guests. I'm looking for a places to stay in south Cambridge that offer free parking for guests. SYSTEM: There are several that offer that. Do you have a price range you would like or area of town you'd like to stay in? SYSTEM: Aylesbray Lodge Guest House is in South and moderate. It has four stars. Would you like to book? SYSTEM: Ok, you're booking was successful! Here is your reference number: C73ZMM0G SYSTEM: Do you mean at the Aylesbray? Yes, they have free parking. SYSTEM: Okay, I'm showing 79 available attractions around town. Is there a certain type you're interested in?",
+      "return_distance": 2,
+      "concurrent_workstreams": 1,
+      "n_history_turns": 10,
+      "full_history_tokens": 214,
+      "answer_tokens_compact": 166,
+      "answer_tokens_full_task": 166,
+      "decision_tokens": 55,
+      "compiled_compact": "TASK: I'm looking for a places to stay in south Cambridge that offer free parking for guests.\nOPEN LOOPS: I'm looking for a places to stay in south Cambridge that offer free parking for guests.; SYSTEM: There are several that offer that. Do you have a price range you would like or area of town you'd like to stay in?; SYSTEM: Aylesbray Lodge Guest House is in South and moderate. It has four stars. Would you like to book?; SYSTEM: Ok, you're booking was successful! Here is your reference number: C73ZMM0G; SYSTEM: Do you mean at the Aylesbray? Yes, they have free parking.; SYSTEM: Okay, I'm showing 79 available attractions around town. Is there a certain type you're interested in?",
+      "compiled_full_task": "TASK: I'm looking for a places to stay in south Cambridge that offer free parking for guests.\nOPEN LOOPS: I'm looking for a places to stay in south Cambridge that offer free parking for guests.; SYSTEM: There are several that offer that. Do you have a price range you would like or area of town you'd like to stay in?; SYSTEM: Aylesbray Lodge Guest House is in South and moderate. It has four stars. Would you like to book?; SYSTEM: Ok, you're booking was successful! Here is your reference number: C73ZMM0G; SYSTEM: Do you mean at the Aylesbray? Yes, they have free parking.; SYSTEM: Okay, I'm showing 79 available attractions around town. Is there a certain type you're interested in?",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 8,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "I'm looking for a places to stay in south Cambri",
+          "status": "active",
+          "goal": "I'm looking for a places to stay in south Cambridge that offer free parking for guests.",
+          "n_loops": 6,
+          "mention_turn": 9,
+          "last_active_turn": 9
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": "T1.loop2",
+        "lexical": [
+          [
+            "T1.loop2",
+            0,
+            9
+          ],
+          [
+            "T1.loop3",
+            0,
+            5
+          ],
+          [
+            "T1.loop1",
+            0,
+            1
+          ],
+          [
+            "T1.loop4",
+            0,
+            0
+          ],
+          [
+            "T1.loop5",
+            0,
+            0
+          ],
+          [
+            "T1.loop6",
+            0,
+            0
+          ]
+        ],
+        "lexical_miss": true
+      },
+      "last_active_turn": 9
+    },
+    {
+      "id": "MUL0088",
+      "dialogue_id": "MUL0088.json",
+      "target_turn_id": 10,
+      "class": "deictic",
+      "also": [
+        "interruption"
+      ],
+      "intended": "hotel",
+      "note": "Does it have internet? after restaurant named and lodge offered.",
+      "target": "Does it have internet?",
+      "selection_match": true,
+      "failure": "none",
+      "transition": "CONTINUE",
+      "task_id": "T1",
+      "predicted_task_id": "T1",
+      "predicted_referent_id": null,
+      "clarify": null,
+      "top_raw": 0.5111227331022576,
+      "raw_margin": 0.5111227331022576,
+      "candidate_count": 2,
+      "open_task_count": 1,
+      "predicted_domain": null,
+      "selected_blob": "I am looking for a cheap hotel with free parking I am looking for a cheap hotel with free parking near Cambridge. I am looking for a cheap hotel with free parking near Cambridge. SYSTEM: I have multiple cheap hotels with free parking. What part of town are you interested in staying in? SYSTEM: We do not have any hotels that match your search. Do you want to try something else? SYSTEM: We have 3 entries that match your preferences. Would you prefer north, south, or west? SYSTEM: Before I book your restaurant would you like to book your lodging? I think you will like Hamilton Lodge. It meets your needs.",
+      "return_distance": 2,
+      "concurrent_workstreams": 1,
+      "n_history_turns": 10,
+      "full_history_tokens": 225,
+      "answer_tokens_compact": 140,
+      "answer_tokens_full_task": 140,
+      "decision_tokens": 47,
+      "compiled_compact": "TASK: I am looking for a cheap hotel with free parking near Cambridge.\nOPEN LOOPS: I am looking for a cheap hotel with free parking near Cambridge.; SYSTEM: I have multiple cheap hotels with free parking. What part of town are you interested in staying in?; SYSTEM: We do not have any hotels that match your search. Do you want to try something else?; SYSTEM: We have 3 entries that match your preferences. Would you prefer north, south, or west?; SYSTEM: Before I book your restaurant would you like to book your lodging? I think you will like Hamilton Lodge. It meets your needs.",
+      "compiled_full_task": "TASK: I am looking for a cheap hotel with free parking near Cambridge.\nOPEN LOOPS: I am looking for a cheap hotel with free parking near Cambridge.; SYSTEM: I have multiple cheap hotels with free parking. What part of town are you interested in staying in?; SYSTEM: We do not have any hotels that match your search. Do you want to try something else?; SYSTEM: We have 3 entries that match your preferences. Would you prefer north, south, or west?; SYSTEM: Before I book your restaurant would you like to book your lodging? I think you will like Hamilton Lodge. It meets your needs.",
+      "replay_log": [
+        {
+          "turn_id": 0,
+          "transition": "NEW",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 2,
+          "transition": "CLARIFY",
+          "task_id": null
+        },
+        {
+          "turn_id": 4,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 6,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        },
+        {
+          "turn_id": 8,
+          "transition": "CONTINUE",
+          "task_id": "T1"
+        }
+      ],
+      "cards_before_target": [
+        {
+          "id": "T1",
+          "title": "I am looking for a cheap hotel with free parking",
+          "status": "active",
+          "goal": "I am looking for a cheap hotel with free parking near Cambridge.",
+          "n_loops": 5,
+          "mention_turn": 9,
+          "last_active_turn": 9
+        }
+      ],
+      "evidence": {
+        "kind": "explicit",
+        "llm_task_soft": "T1",
+        "prior_referent": "T1.loop4",
+        "lexical": [
+          [
+            "T1.loop4",
+            0,
+            9
+          ],
+          [
+            "T1.loop3",
+            0,
+            5
+          ],
+          [
+            "T1.loop1",
+            0,
+            1
+          ],
+          [
+            "T1.loop2",
+            0,
+            0
+          ],
+          [
+            "T1.loop5",
+            0,
+            0
+          ]
+        ],
+        "lexical_miss": true
+      },
+      "last_active_turn": 9
+    }
+  ]
+}

@@ -17,6 +17,7 @@ class Task:
     title: str
     status: str = "active"  # active | paused | resolved
     retrieval_cues: list[str] = field(default_factory=list)
+    item_ids: list[str] = field(default_factory=list)
     anchor: TaskAnchor = field(default_factory=TaskAnchor)
     last_active_turn: int = 0
     mention_turn: int = 0  # last user mention of this task; independent of last_active_turn

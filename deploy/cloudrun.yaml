@@ -1,0 +1,27 @@
+# Smallest Cloud Run service. In-memory state. Not Firestore.
+# Deploy is optional; this file is readiness, not a claim that it is live.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: contextflow
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "1"
+    spec:
+      containerConcurrency: 8
+      containers:
+        - image: IMAGE
+          ports:
+            - containerPort: 8080
+          env:
+            - name: CF_MODE
+              value: split
+            - name: CF_SMOKE_FIXTURE
+              value: "1"
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"

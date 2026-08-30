@@ -1,6 +1,21 @@
 from enum import Enum
-from typing import Protocol, runtime_checkable
+from typing import Optional, Protocol, runtime_checkable
 import numpy as np
+
+
+class Transition(str, Enum):
+    CONTINUE = "CONTINUE"
+    SWITCH = "SWITCH"
+    RETURN = "RETURN"
+    NEW = "NEW"
+    CLARIFY = "CLARIFY"
+
+
+@runtime_checkable
+class LLM(Protocol):
+    def propose(self, prompt: str, schema: dict) -> dict: ...
+    def generate(self, prompt: str) -> str: ...
+    def embed(self, texts: list[str]) -> list["np.ndarray"]: ...
 
 
 class Transition(str, Enum):
