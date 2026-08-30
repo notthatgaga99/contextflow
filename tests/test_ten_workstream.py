@@ -95,8 +95,8 @@ def test_p09_clarify_gold_frozen_disagreement_documented():
     payload, _, _ = replay()
     p = next(x for x in payload["probes"] if x["probe_id"] == "p09_the_other_one")
     assert p["gold_policy"] == "CLARIFY"
-    # Frozen resolver may ACT; POLICY layer if ACT, AMBIGUITY if CLARIFY — not a retune trigger
-    assert p["failure_layer"] in ("AMBIGUITY", "POLICY")
+    # Frozen resolver may ACT; POLICY if ACT-on-CLARIFY-gold, NONE if correctly CLARIFY
+    assert p["failure_layer"] in ("NONE", "POLICY", "AMBIGUITY")
     assert p["wrong_act"] is False
 
 

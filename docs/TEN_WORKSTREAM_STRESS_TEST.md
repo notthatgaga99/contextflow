@@ -47,7 +47,7 @@ Each probe may declare: `expected_task` / `expected_referent` / `expected_policy
 
 CLARIFY with no package is **not** scored as thin-context failure (`package_absent_because_clarify`).
 
-Failure layers: `CANDIDATE_MISS` · `RESOLUTION` · `POLICY` · `EXTRACTION` · `PERSISTENCE` · `RECONSTRUCTION` · `CONTAMINATION` · `ANSWER` · `AMBIGUITY` · `OTHER`.
+Failure layers: `CANDIDATE_MISS` · `RESOLUTION` · `POLICY` · `EXTRACTION` · `PERSISTENCE` · `RECONSTRUCTION` · `CONTAMINATION` · `ANSWER` · `AMBIGUITY` · `OTHER` · `NONE` (success).
 
 ## Coverage
 

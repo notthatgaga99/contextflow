@@ -33,8 +33,9 @@ def _make_llm():
         return OllamaLLM()
     from app.llm.mock import MockLLM
     # Smoke-only: scripted proposals for ABCD fixture. Does not change gate/resolver.
+    # Scripts live in app/ — runtime must not import eval gold/probes.
     if os.getenv("CF_SMOKE_FIXTURE") == "1":
-        from eval.memory_lifecycle.fixture import LLM_SCRIPTS
+        from app.memory.demo_smoke import LLM_SCRIPTS
         return MockLLM(LLM_SCRIPTS)
     return MockLLM()
 
@@ -46,7 +47,7 @@ def _make_extractor():
     if os.getenv("CF_LLM_EXTRACT") == "1":
         return LlmMemoryExtractor(store.llm)
     if os.getenv("CF_SMOKE_FIXTURE") == "1":
-        from eval.memory_lifecycle.fixture import EXTRACT_SCRIPTS
+        from app.memory.demo_smoke import EXTRACT_SCRIPTS
         return MockMemoryExtractor(EXTRACT_SCRIPTS)
     return MockMemoryExtractor()
 
@@ -290,6 +291,29 @@ def list_memory(conversation_id: str):
         "conversation_id": conversation_id,
         "workstreams": by_ws,
         "items": items,
+        # Product-facing inspector shape (not a debug dump).
+        "views": {
+            "CURRENT": [
+                {
+                    "workstream": w["title"],
+                    "decisions": w["decisions"],
+                    "constraints": w["constraints"],
+                    "facts": w["facts"],
+                }
+                for w in by_ws if w["decisions"] or w["constraints"] or w["facts"]
+            ],
+            "HISTORY": [
+                {
+                    "workstream": w["title"],
+                    "lines": [
+                        f"{h['text']} → superseded"
+                        + (f" by {h['superseded_by']}" if h.get("superseded_by") else "")
+                        for h in w["history"]
+                    ],
+                }
+                for w in by_ws if w["history"]
+            ],
+        },
         "demo_only": DEMO_ONLY,
         "memory_backend": MEMORY_BACKEND,
         "memory_durable": False,

@@ -35,7 +35,7 @@ def test_clarify_policy_correct_without_package():
     assert row["working_context_sufficient"] is None
     assert row["critical_thin_context"] is False
     assert row["package_absent_because_clarify"] is True
-    assert row["failure_layer"] == "AMBIGUITY"
+    assert row["failure_layer"] == "NONE"
 
 
 def test_correct_task_missing_state_is_critical_thin():

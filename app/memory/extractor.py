@@ -298,5 +298,9 @@ class LlmMemoryExtractor:
             row.setdefault("proposer", "extractor")
             if req.conversation_id:
                 row.setdefault("conversation_id", req.conversation_id)
+            # Model may mark a row uncertain — never promote to asserted memory.
+            if bool(row.get("uncertain")):
+                notes.append("dropped_uncertain_row")
+                continue
             patches.append(patch_from_dict(row))
         return ExtractResult(patches=patches, notes=notes, uncertain=not patches)

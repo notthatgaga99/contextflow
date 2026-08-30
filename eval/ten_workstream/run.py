@@ -29,6 +29,10 @@ from eval.consented_case.contexts import (
 from eval.memory_lifecycle.score import condition_score, winner
 from eval.ten_workstream.load import extract_scripts, llm_scripts, load_fixture, load_probes
 from eval.ten_workstream.metrics import score_probe_row, summarize as summarize_metrics
+from eval.ten_workstream.answer_usability import (
+    context_package_winner_label,
+    score_three_conditions,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "eval" / "out" / "ten_workstream.json"
@@ -111,9 +115,9 @@ def _isolation_smoke(fx: dict) -> bool:
     )
 
 
-def replay() -> dict:
+def replay(probes: list[dict] | None = None) -> dict:
     fx = load_fixture()
-    probes = load_probes()
+    probes = list(probes) if probes is not None else load_probes()
     probe_by_turn = {p["turn"]: p for p in probes}
     reg = make_registry(fx)
     store = InMemoryMemoryStore(conversation_id=fx["meta"]["conversation_id"])
@@ -161,25 +165,6 @@ def replay() -> dict:
         if et in probe_by_turn:
             probe = probe_by_turn[et]
             rendered = compiler.render(pipe.turn.package) if pipe.turn.package else ""
-            full_p = full_history_prompt(history, msg)
-            rec_p = recent_prompt(history, msg, RECENT_K)
-            jac_p = jaccard_prompt(history, msg)
-            full_s = condition_score(full_p, probe)
-            rec_s = condition_score(rec_p, probe)
-            jac_s = condition_score(jac_p, probe)
-            cf_s = condition_score(rendered, probe)
-            full_s["stale_present"] = []
-            rec_s["stale_present"] = []
-            jac_s["stale_present"] = []
-            full_s["sufficient_no_leak"] = (
-                full_s["sufficient_for_continuation"] and not full_s["leaks"]
-            )
-            rec_s["sufficient_no_leak"] = (
-                rec_s["sufficient_for_continuation"] and not rec_s["leaks"]
-            )
-            jac_s["sufficient_no_leak"] = (
-                jac_s["sufficient_for_continuation"] and not jac_s["leaks"]
-            )
             gold = probe.get("gold_task_id")
             gold_ref = probe.get("gold_referent_id")
             gold_policy = probe.get("gold_policy")
@@ -205,6 +190,22 @@ def replay() -> dict:
                 )
             pkg = pipe.turn.package
             open_ids = [t.id for t in reg.open_tasks()]
+            three = score_three_conditions(
+                history=history,
+                message=msg,
+                cf_rendered=rendered,
+                probe=probe,
+                acted=acted,
+            )
+            # Prefer CONTEXTFLOW usability for primary answer metric; keep baselines.
+            cf_s = three["CONTEXTFLOW"]
+            full_s = three["FULL"]
+            rec_s = three["RECENT"]
+            full_p = full_history_prompt(history, msg)
+            rec_p = recent_prompt(history, msg, RECENT_K)
+            # Retain jaccard as diagnostic baseline (not a third answer interface claim).
+            jac_p = jaccard_prompt(history, msg)
+            jac_s = condition_score(jac_p, probe)
             metrics = score_probe_row(
                 gold_task=gold,
                 gold_ref=gold_ref,
@@ -220,16 +221,19 @@ def replay() -> dict:
                 supersession_ok=not bool(cf_s.get("stale_present")),
                 persist_ok=persist_ok,
                 extract_status=elog["status"],
+                answer_usability=cf_s.get("usability") if acted else None,
             )
             # Declared vs observed open count / gap (diagnostic; not a retune signal)
             exp_open = probe.get("expected_open_workstream_count")
             open_ok = (len(open_ids) == exp_open) if exp_open is not None else None
             exp_gap = probe.get("expected_gap")
             gap_ok = (gap == exp_gap) if exp_gap is not None and gap is not None else None
+            winner_code = winner(full_s, rec_s, cf_s) if acted else "n/a_clarify"
             probes_out.append({
                 "probe_id": probe["id"],
                 "turn": et,
                 "category": probe.get("category"),
+                "gap_category": probe.get("gap_category"),
                 "utterance_kind": probe.get("utterance_kind"),
                 "intended_workstream": gold,
                 "intended_referent": gold_ref,
@@ -247,6 +251,7 @@ def replay() -> dict:
                 "task_match": metrics["task_match"],
                 "referent_match": metrics["referent_match"],
                 "policy_match": metrics["policy_match"],
+                "clarify_correct": metrics["clarify_correct"],
                 "wrong_ACT": metrics["wrong_act"],
                 "wrong_act": metrics["wrong_act"],
                 "candidate_miss": metrics["candidate_miss"],
@@ -259,11 +264,15 @@ def replay() -> dict:
                 "superseded_excluded": metrics["supersession_correct"],
                 "persistence_correct": metrics["persistence_correct"],
                 "package_absent_because_clarify": metrics["package_absent_because_clarify"],
+                "answer_usability": metrics["answer_usability"],
+                "package_usability": metrics["package_usability"],
+                "layers": metrics["layers"],
                 "extracted_patches": elog.get("accepted"),
                 "extract_status": elog["status"],
                 "extract_errors": elog["errors"],
                 "working_context_items": list(pkg.memory_item_ids) if pkg else [],
                 "required_state": probe.get("needed_state") or probe.get("required_working_state"),
+                "forbidden_state": probe.get("forbidden_state") or probe.get("should_not_carry"),
                 "missing_state": (cf_s.get("missing") or {}).get("needed_state") if acted else [],
                 "stale_present": cf_s.get("stale_present") if acted else [],
                 "answer_output": (pipe.turn.answer or "")[:400],
@@ -280,6 +289,7 @@ def replay() -> dict:
                 "failure_layer": metrics["failure_layer"],
                 "FULL": full_s,
                 "RECENT": rec_s,
+                "CONTEXTFLOW": cf_s,
                 "JACCARD": jac_s,
                 "CF": cf_s if acted else {
                     "sufficient_no_leak": None,
@@ -287,7 +297,8 @@ def replay() -> dict:
                     "leaks": [],
                     "note": "no_package_clarify",
                 },
-                "winner": winner(full_s, rec_s, cf_s) if acted else "n/a_clarify",
+                "winner": winner_code,
+                "context_package_winner": context_package_winner_label(winner_code),
                 "excluded_workstreams": list(proj.excluded_workstreams) if proj else [],
                 "open_workstream_count": len(open_ids),
                 "open_workstream_count_ok": open_ok,

@@ -199,14 +199,14 @@
         const inc = (f.working && f.working.included) || {decisions:[],constraints:[],facts:[]};
         const ex = (f.working && f.working.excluded) || [];
         el.innerHTML = `
-          <div class="ok"><strong>Included in current working context</strong></div>
+          <div class="ok"><strong>CURRENT (working context)</strong></div>
           <ul class="list">
             ${(inc.decisions||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
             ${(inc.constraints||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
             ${(inc.facts||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
             ${!(inc.decisions||[]).length && !(inc.constraints||[]).length && !(inc.facts||[]).length ? "<li>—</li>" : ""}
           </ul>
-          <div class="ex"><strong>Excluded from current working context</strong></div>
+          <div class="ex"><strong>EXCLUDED</strong></div>
           <ul class="list">
             ${ex.slice(0,8).map(e => `<li>× ${escapeHtml(e.workstream)}${e.samples&&e.samples[0] ? ": " + escapeHtml(e.samples[0]) : ""}</li>`).join("") || "<li>—</li>"}
           </ul>
@@ -230,15 +230,21 @@
           <h3>${escapeHtml(focus.title)}</h3>
           <div class="row"><div class="k">Status</div><div class="v">${escapeHtml(focus.status_label || focus.status)}</div></div>
           <div class="row"><div class="k">Goal</div><div class="v">${escapeHtml(focus.goal || "—")}</div></div>
-          <div class="row"><div class="k">Current decisions</div><div class="v"><ul class="list">${(focus.decisions||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">Constraints</div><div class="v"><ul class="list">${(focus.constraints||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">Facts</div><div class="v"><ul class="list">${(focus.facts||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">Corrections</div><div class="v"><ul class="list">${(focus.corrections||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">History</div><div class="v"><ul class="list">${(focus.history_lines||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <div class="row"><div class="k">CURRENT</div><div class="v"><ul class="list">
+            ${(focus.decisions||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
+            ${(focus.constraints||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
+            ${(focus.facts||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
+            ${!(focus.decisions||[]).length && !(focus.constraints||[]).length && !(focus.facts||[]).length ? "<li>—</li>" : ""}
+          </ul></div></div>
+          <div class="row"><div class="k">HISTORY</div><div class="v"><ul class="list">${(focus.history_lines||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <div class="row"><div class="k">EXCLUDED</div><div class="v"><ul class="list">${excl.slice(0,8).map(d=>`<li>× ${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
           <div class="row"><div class="k">Last active</div><div class="v">turn ${focus.last_active_turn}</div></div>
-          <div class="row"><div class="k">Excluded from current working context</div><div class="v"><ul class="list">${excl.slice(0,8).map(d=>`<li>× ${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <details><summary>Provenance / audit detail</summary>
-            <pre>${escapeHtml(JSON.stringify(focus.superseded || [], null, 2))}</pre>
+          <details><summary>PROVENANCE</summary>
+            <pre>${escapeHtml(JSON.stringify((focus.superseded || []).map(s => ({
+              text: s.text, slot: s.slot, source_turn: s.source_turn,
+              status: "superseded", superseded_by: s.superseded_by,
+              provenance: s.provenance, kind: "decision"
+            })), null, 2))}</pre>
           </details>
         </div>`;
     }

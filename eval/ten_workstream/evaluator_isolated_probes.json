@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "note": "RUNTIME-BLIND / EVALUATOR-ISOLATED probe set. Scoring-only. Never imported by app runtime. CONTROLLED ADVERSARIAL ENGINEERING FIXTURE — NOT NATURAL HUMAN CHAT. Derived from the same controlled primary probes (parent=probes.json). NOT an unseen statistical/generalization holdout. Purpose: keep gold out of runtime and allow scoring from an evaluator-only file. Must not be presented as generalization evidence.",
+    "kind": "evaluator_isolated_probe_set",
+    "statistical_holdout": false,
+    "derived_from_primary": true,
+    "parent": "probes.json"
+  },
+  "probes": [
+    {
+      "id": "p15_full_history_has_extra",
+      "turn": 48,
+      "category": "full_history_legitimately_larger",
+      "gold_task_id": "H",
+      "gold_referent_id": "H.loop1",
+      "gold_policy": "ACT",
+      "utterance_kind": "explicit_return",
+      "required_facts": [
+        "12 slides"
+      ],
+      "required_decisions": [],
+      "required_constraints": [
+        "chart not the trip"
+      ],
+      "needed_state": [
+        "12 slides",
+        "chart"
+      ],
+      "should_not_carry": [
+        "hotel needs parking",
+        "Saturday morning flight",
+        "navy"
+      ],
+      "stale_excluded": [],
+      "note": "FULL HISTORY contains F Lisbon trip parking. CF should exclude it. Product-correct exclusion, not a CF defect.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "F"
+      ],
+      "expected_task": "H",
+      "expected_referent": "H.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "12 slides",
+        "chart"
+      ],
+      "forbidden_state": [
+        "hotel needs parking",
+        "Saturday morning flight",
+        "navy"
+      ],
+      "expected_gap": 19
+    },
+    {
+      "id": "p18_uncertain_navy_probe",
+      "turn": 46,
+      "category": "uncertain_must_not_enter_working_set",
+      "gold_task_id": "E",
+      "gold_referent_id": "E.loop1",
+      "gold_policy": "ACT",
+      "utterance_kind": "uncertain",
+      "required_facts": [],
+      "required_decisions": [
+        "navy"
+      ],
+      "required_constraints": [
+        "formal"
+      ],
+      "needed_state": [
+        "navy"
+      ],
+      "should_not_carry": [
+        "401",
+        "Docker"
+      ],
+      "stale_excluded": [
+        "black"
+      ],
+      "note": "Extractor uncertain; writer must not add a new item this turn.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "E",
+      "expected_referent": "E.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "navy"
+      ],
+      "forbidden_state": [
+        "401",
+        "Docker"
+      ],
+      "expected_gap": 8,
+      "frozen_behavior_note": "Gold ACT E; product may CLARIFY on underspecified maybe. Document, do not retune."
+    },
+    {
+      "id": "p19_return_j_trivia",
+      "turn": 52,
+      "category": "return_trivia_after_technical",
+      "gold_task_id": "J",
+      "gold_referent_id": "J.loop1",
+      "gold_policy": "ACT",
+      "expected_task": "J",
+      "expected_referent": "J.loop1",
+      "expected_policy": "ACT",
+      "utterance_kind": "explicit_return",
+      "required_facts": [],
+      "required_decisions": [
+        "Celesteela"
+      ],
+      "required_constraints": [],
+      "needed_state": [
+        "Celesteela",
+        "Pokémon"
+      ],
+      "required_working_state": [
+        "Celesteela",
+        "Pokémon"
+      ],
+      "should_not_carry": [
+        "401",
+        "navy",
+        "Docker",
+        "JWT"
+      ],
+      "forbidden_state": [
+        "401",
+        "navy",
+        "Docker",
+        "JWT"
+      ],
+      "stale_excluded": [
+        "Wailord"
+      ],
+      "competing_similar": [],
+      "expected_open_workstream_count": 10,
+      "expected_gap": 10,
+      "note": "Return to trivia workstream J after technical activity."
+    },
+    {
+      "id": "p20_ordinal_out_of_range_clarify",
+      "turn": 51,
+      "category": "ambiguous_ordinal_clarify",
+      "gold_task_id": null,
+      "gold_referent_id": null,
+      "gold_policy": "CLARIFY",
+      "expected_task": null,
+      "expected_referent": null,
+      "expected_policy": "CLARIFY",
+      "utterance_kind": "ambiguous",
+      "required_facts": [],
+      "required_decisions": [],
+      "required_constraints": [],
+      "needed_state": [],
+      "required_working_state": [],
+      "should_not_carry": [],
+      "forbidden_state": [],
+      "stale_excluded": [],
+      "competing_similar": [
+        "A",
+        "C",
+        "D"
+      ],
+      "expected_open_workstream_count": 10,
+      "expected_gap": null,
+      "note": "Ordinal #4 on active C (1 loop) is out of range. Frozen conflict path should CLARIFY. Policy success if CLARIFY; no package expected."
+    }
+  ]
+}

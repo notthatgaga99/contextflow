@@ -1,7 +1,9 @@
 """Project asserted MemoryItems into ContextPackage fields. Not a second prompt type.
 
 Does not extract memory. Does not choose the workstream (ContextFlow already did).
-Superseded/retracted items are excluded from the working set.
+Superseded/retracted/uncertain items are excluded from the working set.
+Sibling loops on the same workstream are excluded when a referent is selected
+(referent_id must match, or the item must be workstream-scoped with no referent).
 """
 
 from __future__ import annotations
