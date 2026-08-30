@@ -1,9 +1,13 @@
 # Smallest Cloud Run service. In-memory state. Not Firestore.
+# Demo-shaped defaults. Do not claim public production auth.
 # Deploy is optional; this file is readiness, not a claim that it is live.
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: contextflow
+  annotations:
+    # Explicit: unauthenticated invoke is demo-only territory.
+    contextflow.dev/demo-only: "true"
 spec:
   template:
     metadata:
@@ -20,6 +24,8 @@ spec:
             - name: CF_MODE
               value: split
             - name: CF_SMOKE_FIXTURE
+              value: "1"
+            - name: CF_DEMO_ONLY
               value: "1"
           resources:
             limits:

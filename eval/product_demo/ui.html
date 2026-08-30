@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ContextFlow — working memory demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,650;1,9..40,500&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #12100e; --bg1: #1c1916; --panel: #221f1b; --ink: #f3eee6;
+      --muted: #a39a8c; --line: #3a342c; --mint: #6fcf9c; --copper: #d4a574;
+      --rose: #e07a6a; --sky: #7eb6d9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--ink); font-family: "DM Sans", sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #2a241c 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #1a2a24 0%, transparent 50%),
+        var(--bg0);
+      min-height: 100vh;
+    }
+    header { padding: 1.15rem 1.5rem 0.85rem; border-bottom: 1px solid var(--line); }
+    .brand { font-family: "Fraunces", serif; font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; }
+    .tagline { color: var(--muted); max-width: 54rem; font-size: 0.95rem; line-height: 1.45; margin-top: 0.35rem; }
+    .banner { margin-top: 0.45rem; font-size: 0.72rem; color: var(--copper); letter-spacing: 0.04em; text-transform: uppercase; }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      padding: 0.7rem 1.5rem; border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.25);
+    }
+    button {
+      font: inherit; cursor: pointer; border: 1px solid var(--line);
+      background: var(--panel); color: var(--ink); border-radius: 8px; padding: 0.45rem 0.85rem;
+    }
+    button.primary { background: #2a3d34; border-color: #3d5c4c; color: var(--mint); }
+    button:disabled { opacity: 0.4; cursor: default; }
+    .step-meta { color: var(--muted); font-size: 0.82rem; margin-left: auto; }
+    .caption { width: 100%; color: var(--copper); font-size: 0.85rem; margin-top: 0.15rem; }
+    .layout {
+      display: grid; grid-template-columns: 16.5rem 1.05fr 1.2fr;
+      gap: 0.75rem; padding: 0.75rem 1rem 1.25rem; min-height: calc(100vh - 10rem);
+    }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+    .col {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      overflow: hidden; display: flex; flex-direction: column; min-height: 18rem;
+    }
+    .col h2 {
+      margin: 0; padding: 0.7rem 0.9rem; font-size: 0.7rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,0.2);
+    }
+    .body { padding: 0.85rem 0.95rem; overflow: auto; flex: 1; font-size: 0.88rem; }
+    .ws { display: flex; align-items: center; gap: 0.5rem; padding: 0.38rem 0; border-bottom: 1px solid rgba(58,52,44,0.55); }
+    .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+    .ws.active .dot { background: var(--mint); box-shadow: 0 0 0 3px rgba(111,207,156,0.2); }
+    .ws.active { color: var(--mint); font-weight: 650; }
+    .ws .st { margin-left: auto; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .hero { font-family: "Fraunces", serif; font-size: 1.2rem; margin: 0 0 0.55rem; }
+    .user {
+      background: #2a2621; border-left: 3px solid var(--sky);
+      padding: 0.65rem 0.75rem; border-radius: 0 10px 10px 0; margin-bottom: 0.75rem;
+    }
+    .pill {
+      display: inline-block; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--mint); border: 1px solid #3d5c4c; border-radius: 999px; padding: 0.15rem 0.55rem; margin-bottom: 0.5rem;
+    }
+    .pill.warn { color: var(--copper); border-color: #6a5438; }
+    .ok { color: var(--mint); } .ex { color: var(--rose); }
+    .list { margin: 0.35rem 0 0.8rem; padding-left: 1.1rem; }
+    .list li { margin: 0.2rem 0; }
+    .compare { display: grid; gap: 0.55rem; }
+    .card { border: 1px solid var(--line); border-radius: 10px; padding: 0.65rem 0.75rem; background: #1a1714; }
+    .card.win { border-color: #3d5c4c; background: #1a2420; }
+    .card h3 { margin: 0 0 0.25rem; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--copper); }
+    .card.win h3 { color: var(--mint); }
+    .tok { color: var(--muted); font-size: 0.75rem; }
+    pre {
+      white-space: pre-wrap; word-break: break-word; margin: 0.4rem 0 0;
+      font-size: 0.72rem; color: #cfc5b6; max-height: 7rem; overflow: auto;
+    }
+    .life { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; margin: 0.5rem 0 0.85rem; font-family: "Fraunces", serif; }
+    .life .node { padding: 0.35rem 0.65rem; border-radius: 8px; border: 1px solid var(--line); }
+    .life .now { border-color: #3d5c4c; color: var(--mint); }
+    .life .old { color: var(--muted); text-decoration: line-through; }
+    .life .arrow { color: var(--muted); padding-left: 0.85rem; font-family: "DM Sans", sans-serif; font-size: 0.75rem; }
+    .insp h3 { margin: 0 0 0.45rem; font-family: "Fraunces", serif; font-size: 1.05rem; }
+    .insp .row { margin: 0.55rem 0; }
+    .insp .k { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+    .insp .v { margin-top: 0.15rem; }
+    details { margin-top: 0.65rem; color: var(--muted); font-size: 0.78rem; }
+    details summary { cursor: pointer; }
+    .tabs { display: flex; gap: 0.35rem; margin-bottom: 0.55rem; flex-wrap: wrap; }
+    .tabs button { font-size: 0.75rem; padding: 0.3rem 0.55rem; }
+    .tabs button.on { border-color: #3d5c4c; color: var(--mint); }
+    footer { padding: 0.5rem 1.5rem 1rem; color: var(--muted); font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">ContextFlow</div>
+    <div class="tagline" id="tagline">Loading…</div>
+    <div class="banner" id="banner">Demo-only</div>
+  </header>
+  <div class="controls">
+    <button id="prev" type="button">← Prev</button>
+    <button id="next" class="primary" type="button">Next beat →</button>
+    <button id="play" type="button">Auto-play</button>
+    <span class="step-meta" id="meta"></span>
+    <div class="caption" id="caption"></div>
+  </div>
+  <div class="layout">
+    <section class="col">
+      <h2>Active work</h2>
+      <div class="body" id="ws"></div>
+    </section>
+    <section class="col">
+      <h2>Moment</h2>
+      <div class="body" id="moment"></div>
+    </section>
+    <section class="col">
+      <h2>Working set vs everything else</h2>
+      <div class="body">
+        <div class="tabs">
+          <button type="button" class="on" data-tab="working">Working context</button>
+          <button type="button" data-tab="compare">FULL / RECENT / CF</button>
+          <button type="button" data-tab="inspector">Memory inspector</button>
+        </div>
+        <div id="panel"></div>
+      </div>
+    </section>
+  </div>
+  <footer>
+    python -m eval.product_demo --serve · CONTROLLED ADVERSARIAL ENGINEERING FIXTURE ·
+    FULL HISTORY ≠ WORKING MEMORY · DEMO-READY / RESEARCH-PRODUCT CHECKPOINT — not production-ready
+  </footer>
+  <script>
+    let data = null, idx = 0, tab = "working", timer = null;
+
+    async function load() {
+      const r = await fetch("/api/demo");
+      data = await r.json();
+      document.getElementById("tagline").textContent = data.tagline;
+      document.getElementById("banner").textContent = data.disclaimer;
+      render();
+    }
+
+    function frame() { return data.frames[idx]; }
+    function escapeHtml(s) {
+      return String(s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function renderWs(f) {
+      document.getElementById("ws").innerHTML = (f.workstreams || []).map(w => `
+        <div class="ws ${w.active_now ? "active" : ""}">
+          <span class="dot"></span>
+          <span>${escapeHtml(w.title)}</span>
+          <span class="st">${escapeHtml(w.status_label || w.status || "")}</span>
+        </div>`).join("");
+    }
+
+    function renderMoment(f) {
+      const isClarify = f.transition === "CLARIFY" || !!f.clarify;
+      const route = isClarify
+        ? `<div class="pill warn">CLARIFY — refuse to guess</div>
+           <div class="hero">I’m not confident which continuation you mean.</div>
+           <p>${escapeHtml(f.clarify || "")}</p>`
+        : `<div class="pill">${escapeHtml(f.transition || "—")} → ${escapeHtml((f.workstream_title || "").toUpperCase())}</div>
+           <div class="hero">${escapeHtml(f.workstream_title || "—")}</div>`;
+      let life = "";
+      const lifeData = f.lifecycle || {};
+      const old = (lifeData.superseded || []);
+      const cur = (lifeData.current || []);
+      if (old.length || cur.length) {
+        life = `<div class="life">
+          ${old.map(s => `<div class="node old">${escapeHtml(s.text)}</div><div class="arrow">↓ superseded</div>`).join("")}
+          ${cur.map(t => `<div class="node now">${escapeHtml(t)}</div>`).join("")}
+        </div>`;
+      }
+      document.getElementById("moment").innerHTML = `
+        <div class="user"><strong>USER</strong><div>${escapeHtml(f.message)}</div></div>
+        ${route}
+        ${life}
+        <p style="color:var(--muted);font-size:0.8rem">Turn ${f.turn}</p>
+      `;
+    }
+
+    function focusInspector(f) {
+      const insp = f.inspector || [];
+      const id = f.focus_workstream_id || f.task_id || "E";
+      return insp.find(x => x.id === id) || insp[0];
+    }
+
+    function renderPanel(f) {
+      const el = document.getElementById("panel");
+      if (tab === "working") {
+        const inc = (f.working && f.working.included) || {decisions:[],constraints:[],facts:[]};
+        const ex = (f.working && f.working.excluded) || [];
+        el.innerHTML = `
+          <div class="ok"><strong>Included in current working context</strong></div>
+          <ul class="list">
+            ${(inc.decisions||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
+            ${(inc.constraints||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
+            ${(inc.facts||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
+            ${!(inc.decisions||[]).length && !(inc.constraints||[]).length && !(inc.facts||[]).length ? "<li>—</li>" : ""}
+          </ul>
+          <div class="ex"><strong>Excluded from current working context</strong></div>
+          <ul class="list">
+            ${ex.slice(0,8).map(e => `<li>× ${escapeHtml(e.workstream)}${e.samples&&e.samples[0] ? ": " + escapeHtml(e.samples[0]) : ""}</li>`).join("") || "<li>—</li>"}
+          </ul>
+        `;
+        return;
+      }
+      if (tab === "compare" && f.compare) {
+        const c = f.compare;
+        el.innerHTML = `<div class="compare">
+          <div class="card"><h3>${c.full.label}</h3><div class="tok">${c.full.tokens} tok · ${escapeHtml(c.full.blurb || c.qualitative.full)}</div><pre>${escapeHtml(c.full.preview)}</pre></div>
+          <div class="card"><h3>${c.recent.label}</h3><div class="tok">${c.recent.tokens} tok · ${escapeHtml(c.recent.blurb || c.qualitative.recent)}</div><pre>${escapeHtml(c.recent.preview)}</pre></div>
+          <div class="card win"><h3>${c.contextflow.label}</h3><div class="tok">${c.contextflow.tokens} tok · ${escapeHtml(c.contextflow.blurb || c.qualitative.contextflow)}</div><pre>${escapeHtml(c.contextflow.preview)}</pre></div>
+        </div>`;
+        return;
+      }
+      const focus = focusInspector(f);
+      if (!focus) { el.innerHTML = "—"; return; }
+      const excl = ((f.working && f.working.excluded) || []).map(e => e.workstream);
+      el.innerHTML = `
+        <div class="insp">
+          <h3>${escapeHtml(focus.title)}</h3>
+          <div class="row"><div class="k">Status</div><div class="v">${escapeHtml(focus.status_label || focus.status)}</div></div>
+          <div class="row"><div class="k">Goal</div><div class="v">${escapeHtml(focus.goal || "—")}</div></div>
+          <div class="row"><div class="k">Current decisions</div><div class="v"><ul class="list">${(focus.decisions||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <div class="row"><div class="k">Constraints</div><div class="v"><ul class="list">${(focus.constraints||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <div class="row"><div class="k">History</div><div class="v"><ul class="list">${(focus.history_lines||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <div class="row"><div class="k">Last active</div><div class="v">turn ${focus.last_active_turn}</div></div>
+          <div class="row"><div class="k">Excluded from current working context</div><div class="v"><ul class="list">${excl.slice(0,8).map(d=>`<li>× ${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
+          <details><summary>Provenance / audit detail</summary>
+            <pre>${escapeHtml(JSON.stringify(focus.superseded || [], null, 2))}</pre>
+          </details>
+        </div>`;
+    }
+
+    function render() {
+      if (!data) return;
+      const f = frame();
+      document.getElementById("meta").textContent = `Beat ${idx + 1} / ${data.frames.length}`;
+      document.getElementById("caption").textContent = f.caption || "";
+      document.getElementById("prev").disabled = idx <= 0;
+      document.getElementById("next").disabled = idx >= data.frames.length - 1;
+      if (f.beat === "return" || f.beat === "clarify") tab = f.beat === "clarify" ? "working" : (tab === "inspector" ? "inspector" : "working");
+      if (f.beat === "return") {
+        // Prefer working context on the killer return beat the first time we land.
+      }
+      renderWs(f); renderMoment(f); renderPanel(f);
+      document.querySelectorAll(".tabs button").forEach(b => {
+        b.classList.toggle("on", b.dataset.tab === tab);
+      });
+    }
+
+    document.getElementById("prev").onclick = () => { idx = Math.max(0, idx - 1); render(); };
+    document.getElementById("next").onclick = () => {
+      idx = Math.min(data.frames.length - 1, idx + 1);
+      const f = frame();
+      if (f.beat === "return") tab = "working";
+      if (f.beat === "clarify") tab = "working";
+      if (f.beat === "correct") tab = "inspector";
+      render();
+    };
+    document.getElementById("play").onclick = () => {
+      if (timer) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Auto-play"; return; }
+      document.getElementById("play").textContent = "Pause";
+      timer = setInterval(() => {
+        if (idx >= data.frames.length - 1) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Auto-play"; return; }
+        idx += 1;
+        const f = frame();
+        if (f.beat === "return") tab = "working";
+        if (f.beat === "clarify") tab = "working";
+        if (f.beat === "correct") tab = "inspector";
+        render();
+      }, 2800);
+    };
+    document.querySelectorAll(".tabs button").forEach(b => {
+      b.onclick = () => { tab = b.dataset.tab; render(); };
+    });
+    load().catch(e => { document.getElementById("tagline").textContent = "Failed to load demo: " + e; });
+  </script>
+</body>
+</html>

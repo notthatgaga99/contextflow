@@ -15,7 +15,7 @@ from eval.ten_workstream.run import make_registry, replay
 def test_fixture_has_ten_workstreams_and_fifty_turns():
     fx = load_fixture()
     assert len(fx["workstreams"]) == 10
-    assert len(fx["turns"]) == 50
+    assert len(fx["turns"]) == 52
     assert {w["id"] for w in fx["workstreams"]} == set("ABCDEFGHIJ")
 
 
@@ -90,11 +90,14 @@ def test_working_set_excludes_contamination_on_fashion_return():
         leaks = " ".join(p.get("contamination_state") or []).lower()
         assert "401" not in leaks
 
+
+def test_p09_clarify_gold_frozen_disagreement_documented():
     payload, _, _ = replay()
     p = next(x for x in payload["probes"] if x["probe_id"] == "p09_the_other_one")
     assert p["gold_policy"] == "CLARIFY"
-    # Frozen resolver may ACT; either CLARIFY or RESOLUTION layer — not a retune trigger
-    assert p["failure_layer"] in ("AMBIGUITY", "RESOLUTION")
+    # Frozen resolver may ACT; POLICY layer if ACT, AMBIGUITY if CLARIFY — not a retune trigger
+    assert p["failure_layer"] in ("AMBIGUITY", "POLICY")
+    assert p["wrong_act"] is False
 
 
 def test_repeated_return_same_workstream():

@@ -23,10 +23,11 @@ Outputs under `eval/out/` are gitignored.
 
 | File | Role |
 |---|---|
-| `fixture.json` | 10 cards, 50 user turns, extract/LLM scripts |
-| `probes.json` | Expected interpretation for scoring (not runtime prompts) |
+| `fixture.json` | 10 cards, 52 user turns, extract/LLM scripts |
+| `probes.json` | Expected interpretation + Phase-2 metadata (scoring only) |
+| `metrics.py` | Separated metric definitions |
 | `load.py` | Loaders |
 | `run.py` | Mock replay + baselines |
-| `vertex_slice.py` | Five-probe Vertex integration harness |
+| `vertex_slice.py` | Five-probe Vertex harness (Phase 5; not run in Phase 2) |
 
 See `docs/TEN_WORKSTREAM_STRESS_TEST.md` and `docs/TEN_WORKSTREAM_RESULTS.md`.

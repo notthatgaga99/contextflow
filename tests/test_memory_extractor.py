@@ -330,5 +330,8 @@ def test_llm_extractor_clears_invalid_referent():
         message="navy", source_turn=1, open_workstreams=abcd_black()[0].open_tasks(),
     ))
     assert out.patches and out.patches[0].referent_id is None
-    assert any("dropped_invalid_referent" in n for n in out.notes)
+    assert any(
+        "omitted_unknown_referent" in n or "dropped_invalid_referent" in n
+        for n in out.notes
+    )
 

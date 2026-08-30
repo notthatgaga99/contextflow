@@ -2,16 +2,24 @@ import logging
 import os
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.config import SETTINGS
+from app.context.working_set import WorkingContextBuilder
 from app.memory.extractor import LlmMemoryExtractor, MockMemoryExtractor
 from app.memory.sessions import ConversationStore
 from app.obs import correlation_id, decision_event, emit_decision
 from app.turn_pipeline import run_turn
 
 logging.basicConfig(level=logging.INFO)
-app = FastAPI(title="ContextFlow")
+log = logging.getLogger("contextflow")
+app = FastAPI(
+    title="ContextFlow",
+    description=(
+        "Working-memory routing for multi-thread assistants. "
+        "Public unauthenticated deployments are demo-only unless separately hardened."
+    ),
+)
 
 
 def _make_llm():
@@ -43,11 +51,13 @@ def _make_extractor():
 
 extractor = _make_extractor()
 
+DEMO_ONLY = os.getenv("CF_DEMO_ONLY", "1" if os.getenv("CF_SMOKE_FIXTURE") == "1" else "0") == "1"
+
 
 class TurnIn(BaseModel):
-    conversation_id: str
-    message: str
-    turn: int
+    conversation_id: str = Field(..., min_length=1, max_length=128)
+    message: str = Field(..., min_length=1, max_length=8000)
+    turn: int = Field(..., ge=0, le=1_000_000)
 
 
 class TurnOut(BaseModel):
@@ -67,12 +77,24 @@ class TurnOut(BaseModel):
     total_context_tokens: int | None = None
     correlation_id: str | None = None
     extract_ok: bool | None = None
+    demo_only: bool | None = None
 
 
 def _title_and_loop(r) -> tuple[str | None, str | None]:
     if r.package is None:
         return None, None
     return r.package.task_summary, r.package.selected_open_loop
+
+
+def _config_ok() -> dict:
+    issues = []
+    if os.getenv("CF_USE_GEMINI") == "1" and not (
+        os.getenv("GEMINI_API_KEY") or os.getenv("CF_USE_VERTEX") == "1"
+    ):
+        issues.append("gemini_enabled_without_credentials")
+    if SETTINGS.TAU < 0 or SETTINGS.DELTA < 0:
+        issues.append("invalid_gate_thresholds")
+    return {"ok": not issues, "issues": issues}
 
 
 @app.middleware("http")
@@ -82,19 +104,34 @@ async def add_correlation_id(request: Request, call_next):
     try:
         response = await call_next(request)
     except Exception:
-        logging.getLogger("contextflow").exception("unhandled")
+        log.exception("unhandled correlation_id=%s", cid)
         return JSONResponse(
             status_code=500,
             content={"error": "internal_error", "correlation_id": cid},
         )
     response.headers["x-request-id"] = cid
+    if DEMO_ONLY:
+        response.headers["x-contextflow-demo-only"] = "1"
     return response
 
 
 @app.get("/health")
 @app.get("/healthz")
 def health():
-    return {"status": "ok", "service": "contextflow"}
+    cfg = _config_ok()
+    return {
+        "status": "ok" if cfg["ok"] else "degraded",
+        "service": "contextflow",
+        "demo_only": DEMO_ONLY,
+        "config_ok": cfg["ok"],
+        "config_issues": cfg["issues"],
+        "llm": (
+            "gemini" if os.getenv("CF_USE_GEMINI") == "1"
+            else "ollama" if os.getenv("CF_USE_OLLAMA") == "1"
+            else "mock"
+        ),
+        "extract": "llm" if os.getenv("CF_LLM_EXTRACT") == "1" else "mock",
+    }
 
 
 @app.post("/turn", response_model=TurnOut)
@@ -112,7 +149,11 @@ def turn(t: TurnIn, request: Request):
             message=t.message, turn=t.turn,
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="turn_failed") from exc
+        log.exception("turn_failed correlation_id=%s", corr)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "turn_failed", "correlation_id": corr},
+        ) from exc
     r = pipe.turn
     title, loop = _title_and_loop(r)
     emit_decision(decision_event(
@@ -141,6 +182,7 @@ def turn(t: TurnIn, request: Request):
         total_context_tokens=r.package.total_context_tokens if r.package else None,
         correlation_id=corr,
         extract_ok=pipe.extract.ok,
+        demo_only=DEMO_ONLY,
     )
 
 
@@ -158,16 +200,42 @@ def list_tasks(conversation_id: str):
             "status": t.status,
             "goal": t.anchor.goal,
             "open_loops": list(t.anchor.open_loops),
+            "last_active_turn": t.last_active_turn,
         })
-    return {"conversation_id": conversation_id, "tasks": out}
+    return {"conversation_id": conversation_id, "tasks": out, "demo_only": DEMO_ONLY}
 
 
 @app.get("/conversations/{conversation_id}/memory")
 def list_memory(conversation_id: str):
+    """Working-memory inspector (not a raw dump of chat history)."""
     try:
+        eng = store.engine(conversation_id)
         mem = store.memory_store(conversation_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    by_ws = []
+    for t in eng.reg.all():
+        asserted = mem.asserted(t.id)
+        hist = mem.historical(t.id)
+        by_ws.append({
+            "id": t.id,
+            "title": t.title,
+            "status": t.status,
+            "goal": t.anchor.goal,
+            "open_loops": list(t.anchor.open_loops),
+            "last_active_turn": t.last_active_turn,
+            "decisions": [i.text for i in asserted if i.kind in ("decision", "correction")],
+            "constraints": [i.text for i in asserted if i.kind == "constraint"],
+            "facts": [i.text for i in asserted if i.kind in ("fact", "preference", "event")],
+            "superseded": [
+                {
+                    "id": i.id, "text": i.text, "slot": i.slot,
+                    "superseded_by": i.superseded_by, "source_turn": i.source_turn,
+                    "provenance": i.provenance,
+                }
+                for i in hist if i.status == "superseded"
+            ],
+        })
     items = []
     for i in mem.all():
         items.append({
@@ -176,10 +244,49 @@ def list_memory(conversation_id: str):
             "text": i.text,
             "status": i.status,
             "workstream_id": i.workstream_id,
+            "referent_id": i.referent_id,
             "slot": i.slot,
             "source_turn": i.source_turn,
+            "provenance": i.provenance,
+            "superseded_by": i.superseded_by,
         })
-    return {"conversation_id": conversation_id, "items": items}
+    return {
+        "conversation_id": conversation_id,
+        "workstreams": by_ws,
+        "items": items,
+        "demo_only": DEMO_ONLY,
+    }
+
+
+@app.get("/conversations/{conversation_id}/working-context")
+def working_context(
+    conversation_id: str,
+    task_id: str = Query(..., min_length=1),
+    referent_id: str | None = None,
+):
+    try:
+        eng = store.engine(conversation_id)
+        mem = store.memory_store(conversation_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    task = eng.reg.get(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="task_not_found")
+    ref = referent_id or (f"{task_id}.loop1" if task.anchor.open_loops else task_id)
+    proj = WorkingContextBuilder().project(task, ref, mem, eng.reg.open_tasks())
+    return {
+        "conversation_id": conversation_id,
+        "task_id": task_id,
+        "referent_id": ref,
+        "included": {
+            "decisions": list(proj.decisions),
+            "constraints": list(proj.constraints),
+            "facts": list(proj.facts),
+            "entities": list(proj.entities),
+        },
+        "excluded_workstreams": list(proj.excluded_workstreams),
+        "demo_only": DEMO_ONLY,
+    }
 
 
 @app.get("/task/{task_id}")

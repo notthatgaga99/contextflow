@@ -26,8 +26,9 @@ from eval.consented_case.contexts import (
     full_history_prompt,
     recent_prompt,
 )
-from eval.memory_lifecycle.score import classify_failure, condition_score, winner
+from eval.memory_lifecycle.score import condition_score, winner
 from eval.ten_workstream.load import extract_scripts, llm_scripts, load_fixture, load_probes
+from eval.ten_workstream.metrics import score_probe_row, summarize as summarize_metrics
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "eval" / "out" / "ten_workstream.json"
@@ -78,64 +79,36 @@ def last_turn_for(turns: list[dict], ws: str, before: int) -> int | None:
     return hits[-1] if hits else None
 
 
-def map_failure_layer(
-    *,
-    gold_policy: str | None,
-    acted: bool,
-    task_id: str | None,
-    gold_task: str | None,
-    extract_status: str,
-    persist_ok: bool,
-    recon: dict,
-    store,
-    selected: str | None,
-) -> str:
-    if gold_policy == "CLARIFY":
-        return "AMBIGUITY" if not acted else "RESOLUTION"
-    if acted and gold_task and task_id and task_id != gold_task:
-        return "RESOLUTION"
-    if gold_task and acted and task_id == gold_task and recon.get("thin_context"):
-        if extract_status in ("rejected", "uncertain", "empty"):
-            return "EXTRACTION"
-        if not persist_ok:
-            return "WRITER" if extract_status == "rejected" else "PERSISTENCE"
-        if selected and store.asserted(selected):
-            blob = " ".join(i.text for i in store.asserted(selected)).lower()
-            missing = recon.get("missing") or {}
-            still = [x for xs in missing.values() for x in xs]
-            if still and any(m.lower() in blob for x in still for m in [x]):
-                return "COMPILER"
-        return "COMPILER"
-    if gold_task and not acted and gold_policy == "ACT":
-        return "RESOLUTION"
-    return "OTHER" if recon.get("leaks") else "OTHER"
+def _idempotency_smoke(fx: dict) -> bool:
+    reg = make_registry(fx)
+    store = InMemoryMemoryStore(conversation_id="ten-idemp")
+    writer = MemoryWriter(store, reg)
+    eng = Engine(MockLLM(llm_scripts(fx)), reg, SETTINGS, memory_store=store)
+    ext = MockMemoryExtractor(extract_scripts(fx))
+    msg = fx["turns"][0]["message"]
+    run_turn(eng, writer, ext, conversation_id="ten-idemp", message=msg, turn=1)
+    n, ver = len(store.all()), store.namespace_version()
+    run_turn(eng, writer, ext, conversation_id="ten-idemp", message=msg, turn=1)
+    return len(store.all()) == n and store.namespace_version() == ver
 
 
-def classify_layer(row: dict, store) -> str:
-    gold_policy = row.get("gold_policy")
-    acted = row["transition"] != "CLARIFY"
-    recon = row["CF"]
-    if gold_policy == "CLARIFY":
-        return "AMBIGUITY" if not acted else "RESOLUTION"
-    if row.get("wrong_ACT"):
-        return "RESOLUTION"
-    if row.get("task_match") and recon.get("thin_context"):
-        if row.get("extraction") in ("rejected", "uncertain", "empty"):
-            return "EXTRACTION"
-        if not row.get("persistence"):
-            return "PERSISTENCE"
-        task = row.get("task")
-        if task:
-            store_blob = " ".join(i.text for i in store.asserted(task)).lower()
-            needed = row.get("needed_state") or []
-            if any(n.lower() in store_blob for n in needed) and recon.get("thin_context"):
-                return "COMPILER"
-        return "COMPILER"
-    if gold_policy == "ACT" and not acted:
-        return "RESOLUTION"
-    if recon.get("leaks"):
-        return "COMPILER"
-    return "OTHER"
+def _isolation_smoke(fx: dict) -> bool:
+    from app.models.memory import MemoryPatch
+    a = InMemoryMemoryStore(conversation_id="ten-iso-a")
+    b = InMemoryMemoryStore(conversation_id="ten-iso-b")
+    ra, rb = make_registry(fx), make_registry(fx)
+    MemoryWriter(a, ra).commit([
+        MemoryPatch(kind="fact", text="secret-a", source_turn=1, workstream_id="A",
+                    conversation_id="ten-iso-a"),
+    ], turn=1)
+    MemoryWriter(b, rb).commit([
+        MemoryPatch(kind="decision", text="navy-b", source_turn=1, workstream_id="E",
+                    conversation_id="ten-iso-b", slot="color"),
+    ], turn=1)
+    return (
+        all("navy" not in (i.text or "") for i in a.all())
+        and all("secret-a" not in (i.text or "") for i in b.all())
+    )
 
 
 def replay() -> dict:
@@ -208,88 +181,91 @@ def replay() -> dict:
                 jac_s["sufficient_for_continuation"] and not jac_s["leaks"]
             )
             gold = probe.get("gold_task_id")
+            gold_ref = probe.get("gold_referent_id")
+            gold_policy = probe.get("gold_policy")
             acted = pipe.turn.transition.value != "CLARIFY"
-            wrong_act = bool(acted and gold and pipe.turn.task_id and pipe.turn.task_id != gold)
             persist_ok = all(
                 store.get(i["id"]) is not None for i in elog.get("accepted") or []
             )
-            failure = classify_failure(
-                extract_status=elog["status"],
-                persist_ok=persist_ok,
-                resolution={
-                    "transition": pipe.turn.transition.value,
-                    "task_id": pipe.turn.task_id,
-                },
-                recon=cf_s,
-                gold_task=gold,
-                gold_policy=probe.get("gold_policy"),
-            )
-            layer = classify_layer(
-                {
-                    "gold_policy": probe.get("gold_policy"),
-                    "transition": pipe.turn.transition.value,
-                    "wrong_ACT": wrong_act,
-                    "task_match": pipe.turn.task_id == gold if gold else (
-                        pipe.turn.transition.value == "CLARIFY"
-                    ),
-                    "extraction": elog["status"],
-                    "persistence": persist_ok,
-                    "CF": cf_s,
-                    "needed_state": probe.get("needed_state"),
-                    "task": pipe.turn.task_id,
-                },
-                store,
-            )
-            if probe.get("gold_policy") == "CLARIFY" and not acted:
-                layer = "AMBIGUITY"
-                failure = "clarify_ok"
+            # empty accepted list is still persistence-correct for no-op extracts
+            if not (elog.get("accepted") or []):
+                persist_ok = True
             gap = None
             if gold:
                 prev = last_turn_for(fx["turns"], gold, et)
                 gap = et - prev if prev else None
             active_before = None
-            if route_log:
-                # current already appended; previous route is intended-before
-                if len(route_log) >= 2:
-                    active_before = route_log[-2]["task_id"]
+            if len(route_log) >= 2:
+                active_before = route_log[-2]["task_id"]
             proj = None
             if pipe.turn.task_id and reg.get(pipe.turn.task_id):
                 proj = WorkingContextBuilder().project(
                     reg.get(pipe.turn.task_id), pipe.turn.predicted_referent_id,
                     store, reg.open_tasks(),
                 )
-            critical = bool(
-                gold and acted and pipe.turn.task_id == gold and cf_s.get("thin_context")
-            )
             pkg = pipe.turn.package
+            open_ids = [t.id for t in reg.open_tasks()]
+            metrics = score_probe_row(
+                gold_task=gold,
+                gold_ref=gold_ref,
+                gold_policy=gold_policy,
+                selected_task=pipe.turn.task_id,
+                selected_ref=pipe.turn.predicted_referent_id,
+                acted=acted,
+                open_task_ids=open_ids,
+                cf_sufficient_no_leak=cf_s.get("sufficient_no_leak") if acted else None,
+                thin_context=bool(cf_s.get("thin_context")) if acted else False,
+                has_package=pkg is not None,
+                contamination=cf_s.get("leaks") if acted else [],
+                supersession_ok=not bool(cf_s.get("stale_present")),
+                persist_ok=persist_ok,
+                extract_status=elog["status"],
+            )
+            # Declared vs observed open count / gap (diagnostic; not a retune signal)
+            exp_open = probe.get("expected_open_workstream_count")
+            open_ok = (len(open_ids) == exp_open) if exp_open is not None else None
+            exp_gap = probe.get("expected_gap")
+            gap_ok = (gap == exp_gap) if exp_gap is not None and gap is not None else None
             probes_out.append({
                 "probe_id": probe["id"],
                 "turn": et,
                 "category": probe.get("category"),
                 "utterance_kind": probe.get("utterance_kind"),
                 "intended_workstream": gold,
-                "intended_referent": probe.get("gold_referent_id"),
-                "gold_policy": probe.get("gold_policy"),
+                "intended_referent": gold_ref,
+                "gold_policy": gold_policy,
+                "competing_similar": list(probe.get("competing_similar") or []),
+                "expected_open_workstream_count": exp_open,
+                "expected_gap": exp_gap,
                 "gap_since_relevant": gap,
+                "gap_matches_expected": gap_ok,
                 "active_workstream_before": active_before,
                 "decision": pipe.turn.transition.value,
                 "act_or_clarify": "CLARIFY" if not acted else "ACT",
                 "selected_task": pipe.turn.task_id,
                 "selected_referent": pipe.turn.predicted_referent_id,
-                "task_match": (pipe.turn.task_id == gold) if gold else (
-                    probe.get("gold_policy") == "CLARIFY"
-                    and pipe.turn.transition.value == "CLARIFY"
-                ),
-                "wrong_ACT": wrong_act,
+                "task_match": metrics["task_match"],
+                "referent_match": metrics["referent_match"],
+                "policy_match": metrics["policy_match"],
+                "wrong_ACT": metrics["wrong_act"],
+                "wrong_act": metrics["wrong_act"],
+                "candidate_miss": metrics["candidate_miss"],
+                "working_context_sufficient": metrics["working_context_sufficient"],
+                "critical_thin_context": metrics["critical_thin_context"],
+                "critical_missing_state": metrics["critical_thin_context"],
+                "contamination": metrics["contamination"],
+                "contamination_state": cf_s.get("leaks") if acted else [],
+                "supersession_correct": metrics["supersession_correct"],
+                "superseded_excluded": metrics["supersession_correct"],
+                "persistence_correct": metrics["persistence_correct"],
+                "package_absent_because_clarify": metrics["package_absent_because_clarify"],
                 "extracted_patches": elog.get("accepted"),
                 "extract_status": elog["status"],
                 "extract_errors": elog["errors"],
                 "working_context_items": list(pkg.memory_item_ids) if pkg else [],
-                "required_state": probe.get("needed_state"),
-                "missing_state": (cf_s.get("missing") or {}).get("needed_state"),
-                "contamination_state": cf_s.get("leaks"),
-                "superseded_excluded": not bool(cf_s.get("stale_present")),
-                "stale_present": cf_s.get("stale_present"),
+                "required_state": probe.get("needed_state") or probe.get("required_working_state"),
+                "missing_state": (cf_s.get("missing") or {}).get("needed_state") if acted else [],
+                "stale_present": cf_s.get("stale_present") if acted else [],
                 "answer_output": (pipe.turn.answer or "")[:400],
                 "latency_ms": None,
                 "context_package_size": {
@@ -301,16 +277,21 @@ def replay() -> dict:
                     "full_tokens": count(full_p),
                     "recent_tokens": count(rec_p),
                 },
-                "failure": failure,
-                "failure_layer": layer,
-                "critical_missing_state": critical,
+                "failure_layer": metrics["failure_layer"],
                 "FULL": full_s,
                 "RECENT": rec_s,
                 "JACCARD": jac_s,
-                "CF": cf_s,
-                "winner": winner(full_s, rec_s, cf_s),
+                "CF": cf_s if acted else {
+                    "sufficient_no_leak": None,
+                    "thin_context": None,
+                    "leaks": [],
+                    "note": "no_package_clarify",
+                },
+                "winner": winner(full_s, rec_s, cf_s) if acted else "n/a_clarify",
                 "excluded_workstreams": list(proj.excluded_workstreams) if proj else [],
-                "open_workstream_count": len(reg.open_tasks()),
+                "open_workstream_count": len(open_ids),
+                "open_workstream_count_ok": open_ok,
+                "frozen_behavior_note": probe.get("frozen_behavior_note"),
                 "note": probe.get("note"),
             })
 
@@ -320,36 +301,28 @@ def replay() -> dict:
 
     elapsed = time.perf_counter() - t0
     n_asserted = len(store.asserted())
+    metric_summary = summarize_metrics(probes_out)
+    metric_summary["idempotency_correct"] = _idempotency_smoke(fx)
+    metric_summary["isolation_correct"] = _isolation_smoke(fx)
+    metric_summary["open_workstream_count_ok"] = all(
+        p.get("open_workstream_count_ok") is not False for p in probes_out
+    )
     summary = {
         "user_turns": len(fx["turns"]),
         "workstreams_open": len(reg.open_tasks()),
         "probes": len(probes_out),
-        "routing_correct": sum(
-            1 for p in probes_out
-            if p["gold_policy"] == "ACT" and p["task_match"]
-            or p["gold_policy"] == "CLARIFY" and p["decision"] == "CLARIFY"
-        ),
-        "wrong_ACT": sum(1 for p in probes_out if p["wrong_ACT"]),
-        "clarify_ok": sum(
-            1 for p in probes_out
-            if p["gold_policy"] == "CLARIFY" and p["decision"] == "CLARIFY"
-        ),
-        "working_set_sufficient": sum(
-            1 for p in probes_out if p["CF"].get("sufficient_no_leak")
-        ),
-        "critical_missing_state": sum(1 for p in probes_out if p["critical_missing_state"]),
-        "contamination": sum(1 for p in probes_out if p["contamination_state"]),
-        "supersession_ok": sum(1 for p in probes_out if p["superseded_excluded"]),
         "asserted_items": n_asserted,
         "all_items": len(store.all()),
         "elapsed_s": round(elapsed, 3),
         "mock_generate_calls": len(fx["turns"]),
         "vertex_calls": 0,
+        **metric_summary,
+        # Explicit: do not treat legacy alias as primary quality.
+        "note_metrics": (
+            "Prefer task_match / referent_match / policy_match / "
+            "critical_thin_context over routing_correct_legacy."
+        ),
     }
-    layers: dict[str, int] = {}
-    for p in probes_out:
-        layers[p["failure_layer"]] = layers.get(p["failure_layer"], 0) + 1
-    summary["failure_layers"] = layers
 
     payload = {
         "status": "ran",
@@ -359,7 +332,10 @@ def replay() -> dict:
         "extract_log": extract_log,
         "route_log": route_log,
         "store_snapshot": [_brief(i) for i in store.all()],
-        "note": "Controlled adversarial fixture. Not a human-behavior claim. Routing frozen.",
+        "note": (
+            "Controlled adversarial engineering fixture. Not natural human behavior. "
+            "Not a benchmark. Routing frozen. Probe gold is scoring-only."
+        ),
     }
     return payload, store, fx
 
@@ -450,36 +426,47 @@ def answer_compare(snaps_payload: dict, fx: dict, probes: list[dict]) -> dict:
 def write_results_md(payload: dict) -> None:
     s = payload["summary"]
     lines = [
-        "# Ten-workstream results",
+        "# Ten-workstream results (mock)",
         "",
-        "**Not natural human behavior.** Synthetic adversarial fixture. Frozen routing unchanged.",
+        "**Controlled adversarial engineering fixture** — not natural human behavior, "
+        "not a benchmark, not production accuracy.",
         "",
-        f"**Date:** local mock run. Elapsed **{s['elapsed_s']}s**. Mock generate calls: **{s['mock_generate_calls']}**. Vertex: **0**.",
+        f"**Date:** local mock run. Elapsed **{s['elapsed_s']}s**. "
+        f"Mock generates: **{s['mock_generate_calls']}**. Vertex: **{s['vertex_calls']}**.",
         "",
-        "## Summary",
+        "## Separated metrics",
         "",
         f"- User turns: {s['user_turns']}",
         f"- Open workstreams: {s['workstreams_open']}",
-        f"- Probes: {s['probes']}",
-        f"- Routing correct (ACT match or CLARIFY-ok): {s['routing_correct']}/{s['probes']}",
-        f"- Wrong-ACT: {s['wrong_ACT']}",
-        f"- CLARIFY ok: {s['clarify_ok']}",
-        f"- CF working-set sufficient (no leak): {s['working_set_sufficient']}/{s['probes']}",
-        f"- Critical (correct stream, missing required state): {s['critical_missing_state']}",
-        f"- Contamination probes: {s['contamination']}",
-        f"- Supersession exclusion ok: {s['supersession_ok']}",
+        f"- Probes: {s['probes']} (ACT={s['act_probes']}, CLARIFY={s['clarify_probes']})",
+        f"- task_match: **{s['task_match']}**",
+        f"- referent_match: **{s['referent_match']}**",
+        f"- policy_match: **{s['policy_match']}**",
+        f"- wrong_act: **{s['wrong_act']}**",
+        f"- candidate_miss: **{s['candidate_miss']}**",
+        f"- working_context_sufficient (ACT only): **{s['working_context_sufficient']}**",
+        f"- critical_thin_context: **{s['critical_thin_context']}**",
+        f"- contamination: **{s['contamination']}**",
+        f"- supersession_correct: **{s['supersession_correct']}**",
+        f"- persistence_correct: **{s['persistence_correct']}**",
+        f"- idempotency_correct: **{s['idempotency_correct']}**",
+        f"- isolation_correct: **{s['isolation_correct']}**",
         f"- Failure layers: {s['failure_layers']}",
+        "",
+        "CLARIFY probes are not scored for working-context sufficiency "
+        "(`package_absent_because_clarify`).",
         "",
         "## Probes",
         "",
-        "| id | turn | gold | got | ACT/CLARIFY | CF sufficient | layer | winner |",
-        "|---|---|---|---|---|---|---|---|",
+        "| id | turn | gold | got | policy | task | ref | WC | layer |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for p in payload["probes"]:
         lines.append(
             f"| {p['probe_id']} | {p['turn']} | {p['intended_workstream']}/{p['gold_policy']} "
-            f"| {p['selected_task']}/{p['selected_referent']} | {p['act_or_clarify']} "
-            f"| {p['CF'].get('sufficient_no_leak')} | {p['failure_layer']} | {p['winner']} |"
+            f"| {p['selected_task']}/{p['selected_referent']} | {p['policy_match']} "
+            f"| {p['task_match']} | {p['referent_match']} "
+            f"| {p['working_context_sufficient']} | {p['failure_layer']} |"
         )
     lines += [
         "",
@@ -487,11 +474,11 @@ def write_results_md(payload: dict) -> None:
         "",
         "| Claim | Status |",
         "|---|---|",
-        "| 10-workstream fixture | IMPLEMENTED / TESTED (mock) |",
-        "| Memory persistence across gaps | TESTED (mock) |",
+        "| 10-workstream fixture | TESTED (mock) |",
+        "| Separated eval metrics | IMPLEMENTED / TESTED |",
         "| Working-context reconstruction | TESTED (mock) |",
-        "| Ollama answer consume | see runner skip/ran |",
-        "| Hosted Vertex 10-ws | NOT YET |",
+        "| Hosted Vertex five-probe slice | see TEN_WORKSTREAM_VERTEX_RESULTS.md |",
+        "| Full 50-turn Vertex replay | NOT YET |",
         "",
         "Do not retune the gate from this table.",
         "",

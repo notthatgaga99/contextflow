@@ -1,6 +1,7 @@
 {
   "meta": {
-    "note": "Expected interpretation only. Not runtime. Not a routing gold to retune against."
+    "note": "Expected interpretation only. Not runtime. Not a routing gold to retune against. Phase-2 fields: competing_similar, expected_open_workstream_count, expected_gap, expected_task/referent/policy, required_working_state, forbidden_state.",
+    "metric_note": "Score task_match, referent_match, policy_match, wrong_act, and working-context separately. Do not collapse into a single routing_correct quality score."
   },
   "probes": [
     {
@@ -11,12 +12,42 @@
       "gold_referent_id": "C.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["orders API 401", "Authorization"],
+      "required_facts": [
+        "orders API 401",
+        "Authorization"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["401", "gateway"],
-      "should_not_carry": ["dress", "risotto", "Celesteela", "Stripe"],
-      "stale_excluded": []
+      "needed_state": [
+        "401",
+        "gateway"
+      ],
+      "should_not_carry": [
+        "dress",
+        "risotto",
+        "Celesteela",
+        "Stripe"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "A",
+        "D"
+      ],
+      "expected_task": "C",
+      "expected_referent": "C.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "401",
+        "gateway"
+      ],
+      "forbidden_state": [
+        "dress",
+        "risotto",
+        "Celesteela",
+        "Stripe"
+      ],
+      "expected_gap": 15
     },
     {
       "id": "p02_return_a_amid_bcd_401",
@@ -26,12 +57,42 @@
       "gold_referent_id": "A.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["401 after refresh", "15 minutes"],
+      "required_facts": [
+        "401 after refresh",
+        "15 minutes"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["JWT", "401", "TTL"],
-      "should_not_carry": ["orders API", "checkout", "gateway strips"],
-      "stale_excluded": []
+      "needed_state": [
+        "JWT",
+        "401",
+        "TTL"
+      ],
+      "should_not_carry": [
+        "orders API",
+        "checkout",
+        "gateway strips"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "C",
+        "D"
+      ],
+      "expected_task": "A",
+      "expected_referent": "A.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "JWT",
+        "401",
+        "TTL"
+      ],
+      "forbidden_state": [
+        "orders API",
+        "checkout",
+        "gateway strips"
+      ],
+      "expected_gap": 21
     },
     {
       "id": "p03_return_fashion_after_technical",
@@ -42,11 +103,40 @@
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
       "required_facts": [],
-      "required_decisions": ["black"],
-      "required_constraints": ["formal", "evening"],
-      "needed_state": ["black", "formal", "evening"],
-      "should_not_carry": ["401", "Docker", "Lisbon hotel"],
-      "stale_excluded": []
+      "required_decisions": [
+        "black"
+      ],
+      "required_constraints": [
+        "formal",
+        "evening"
+      ],
+      "needed_state": [
+        "black",
+        "formal",
+        "evening"
+      ],
+      "should_not_carry": [
+        "401",
+        "Docker",
+        "Lisbon hotel"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "E",
+      "expected_referent": "E.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "black",
+        "formal",
+        "evening"
+      ],
+      "forbidden_state": [
+        "401",
+        "Docker",
+        "Lisbon hotel"
+      ],
+      "expected_gap": 18
     },
     {
       "id": "p04_return_travel_after_work",
@@ -56,12 +146,40 @@
       "gold_referent_id": "F.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["parking"],
+      "required_facts": [
+        "parking"
+      ],
       "required_decisions": [],
-      "required_constraints": ["Saturday"],
-      "needed_state": ["Lisbon", "parking"],
-      "should_not_carry": ["JWT", "Docker", "navy"],
-      "stale_excluded": []
+      "required_constraints": [
+        "Saturday"
+      ],
+      "needed_state": [
+        "Lisbon",
+        "parking"
+      ],
+      "should_not_carry": [
+        "JWT",
+        "Docker",
+        "navy"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "H"
+      ],
+      "expected_task": "F",
+      "expected_referent": "F.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "Lisbon",
+        "parking"
+      ],
+      "forbidden_state": [
+        "JWT",
+        "Docker",
+        "navy"
+      ],
+      "expected_gap": 12
     },
     {
       "id": "p05_return_food_after_travel",
@@ -72,11 +190,35 @@
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
       "required_facts": [],
-      "required_decisions": ["pasta"],
-      "required_constraints": ["no dairy"],
-      "needed_state": ["dairy"],
-      "should_not_carry": ["Lisbon", "JWT", "Docker"],
-      "stale_excluded": []
+      "required_decisions": [
+        "pasta"
+      ],
+      "required_constraints": [
+        "no dairy"
+      ],
+      "needed_state": [
+        "dairy"
+      ],
+      "should_not_carry": [
+        "Lisbon",
+        "JWT",
+        "Docker"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "G",
+      "expected_referent": "G.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "dairy"
+      ],
+      "forbidden_state": [
+        "Lisbon",
+        "JWT",
+        "Docker"
+      ],
+      "expected_gap": 18
     },
     {
       "id": "p06_return_e_after_navy_correction",
@@ -87,11 +229,42 @@
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
       "required_facts": [],
-      "required_decisions": ["navy"],
-      "required_constraints": ["formal", "evening"],
-      "needed_state": ["navy", "formal", "evening"],
-      "should_not_carry": ["401", "Lisbon hotel", "Celesteela"],
-      "stale_excluded": ["black"]
+      "required_decisions": [
+        "navy"
+      ],
+      "required_constraints": [
+        "formal",
+        "evening"
+      ],
+      "needed_state": [
+        "navy",
+        "formal",
+        "evening"
+      ],
+      "should_not_carry": [
+        "401",
+        "Lisbon hotel",
+        "Celesteela"
+      ],
+      "stale_excluded": [
+        "black"
+      ],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "E",
+      "expected_referent": "E.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "navy",
+        "formal",
+        "evening"
+      ],
+      "forbidden_state": [
+        "401",
+        "Lisbon hotel",
+        "Celesteela"
+      ],
+      "expected_gap": 6
     },
     {
       "id": "p07_return_b_superseded_builder",
@@ -101,12 +274,41 @@
       "gold_referent_id": "B.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["CI failing"],
-      "required_decisions": ["debian slim"],
+      "required_facts": [
+        "CI failing"
+      ],
+      "required_decisions": [
+        "debian slim"
+      ],
       "required_constraints": [],
-      "needed_state": ["debian slim", "Docker"],
-      "should_not_carry": ["navy", "Stripe", "Celesteela"],
-      "stale_excluded": ["alpine"]
+      "needed_state": [
+        "debian slim",
+        "Docker"
+      ],
+      "should_not_carry": [
+        "navy",
+        "Stripe",
+        "Celesteela"
+      ],
+      "stale_excluded": [
+        "alpine"
+      ],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "B",
+      "expected_referent": "B.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "debian slim",
+        "Docker"
+      ],
+      "forbidden_state": [
+        "navy",
+        "Stripe",
+        "Celesteela"
+      ],
+      "expected_gap": 12,
+      "frozen_behavior_note": "Frozen RESOLUTION: gold ACT B may CLARIFY. Document, do not retune."
     },
     {
       "id": "p08_deictic_fix_that",
@@ -116,13 +318,41 @@
       "gold_referent_id": "C.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "deictic",
-      "required_facts": ["Authorization", "orders"],
+      "required_facts": [
+        "Authorization",
+        "orders"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["gateway", "401"],
-      "should_not_carry": ["dress", "risotto", "signing key"],
+      "needed_state": [
+        "gateway",
+        "401"
+      ],
+      "should_not_carry": [
+        "dress",
+        "risotto",
+        "signing key"
+      ],
       "stale_excluded": [],
-      "note": "LLM lure is Authentication (0.97). Frozen deictic clocks should prefer last-mentioned C."
+      "note": "LLM lure is Authentication (0.97). Frozen deictic clocks should prefer last-mentioned C.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "A",
+        "D"
+      ],
+      "expected_task": "C",
+      "expected_referent": "C.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "gateway",
+        "401"
+      ],
+      "forbidden_state": [
+        "dress",
+        "risotto",
+        "signing key"
+      ],
+      "expected_gap": 1
     },
     {
       "id": "p09_the_other_one",
@@ -138,7 +368,16 @@
       "needed_state": [],
       "should_not_carry": [],
       "stale_excluded": [],
-      "note": "Ten open referents. CLARIFY is legitimate. Frozen correction rule may ACT; do not retune."
+      "note": "Ten open referents. CLARIFY is legitimate. Frozen correction rule may ACT; do not retune.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": null,
+      "expected_referent": null,
+      "expected_policy": "CLARIFY",
+      "required_working_state": [],
+      "forbidden_state": [],
+      "expected_gap": null,
+      "frozen_behavior_note": "Frozen correction often ACTs; gold CLARIFY. Document, do not retune."
     },
     {
       "id": "p11_long_gap_return_a",
@@ -148,12 +387,42 @@
       "gold_referent_id": "A.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["401 after refresh", "5 minutes"],
+      "required_facts": [
+        "401 after refresh",
+        "5 minutes"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["TTL", "401"],
-      "should_not_carry": ["orders API", "checkout toast", "navy"],
-      "stale_excluded": ["15 minutes"]
+      "needed_state": [
+        "TTL",
+        "401"
+      ],
+      "should_not_carry": [
+        "orders API",
+        "checkout toast",
+        "navy"
+      ],
+      "stale_excluded": [
+        "15 minutes"
+      ],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "C",
+        "D"
+      ],
+      "expected_task": "A",
+      "expected_referent": "A.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "TTL",
+        "401"
+      ],
+      "forbidden_state": [
+        "orders API",
+        "checkout toast",
+        "navy"
+      ],
+      "expected_gap": 6
     },
     {
       "id": "p12_short_gap_return_b",
@@ -163,12 +432,36 @@
       "gold_referent_id": "B.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["CI failing"],
-      "required_decisions": ["alpine"],
+      "required_facts": [
+        "CI failing"
+      ],
+      "required_decisions": [
+        "alpine"
+      ],
       "required_constraints": [],
-      "needed_state": ["Docker", "alpine"],
-      "should_not_carry": ["navy", "Stripe"],
-      "stale_excluded": []
+      "needed_state": [
+        "Docker",
+        "alpine"
+      ],
+      "should_not_carry": [
+        "navy",
+        "Stripe"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "B",
+      "expected_referent": "B.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "Docker",
+        "alpine"
+      ],
+      "forbidden_state": [
+        "navy",
+        "Stripe"
+      ],
+      "expected_gap": 15
     },
     {
       "id": "p13_recent_favors_wrong",
@@ -178,12 +471,40 @@
       "gold_referent_id": "C.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["orders API 401", "Authorization"],
+      "required_facts": [
+        "orders API 401",
+        "Authorization"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["orders", "401"],
-      "should_not_carry": ["Celesteela", "navy", "Stripe"],
-      "stale_excluded": []
+      "needed_state": [
+        "orders",
+        "401"
+      ],
+      "should_not_carry": [
+        "Celesteela",
+        "navy",
+        "Stripe"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "A",
+        "D"
+      ],
+      "expected_task": "C",
+      "expected_referent": "C.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "orders",
+        "401"
+      ],
+      "forbidden_state": [
+        "Celesteela",
+        "navy",
+        "Stripe"
+      ],
+      "expected_gap": 13
     },
     {
       "id": "p14_jaccard_trap_401",
@@ -193,12 +514,40 @@
       "gold_referent_id": "D.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["checkout renders twice", "frontend toast API 401"],
+      "required_facts": [
+        "checkout renders twice",
+        "frontend toast API 401"
+      ],
       "required_decisions": [],
       "required_constraints": [],
-      "needed_state": ["checkout", "401"],
-      "should_not_carry": ["JWT refresh", "gateway strips", "navy"],
-      "stale_excluded": []
+      "needed_state": [
+        "checkout",
+        "401"
+      ],
+      "should_not_carry": [
+        "JWT refresh",
+        "gateway strips",
+        "navy"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "A",
+        "C"
+      ],
+      "expected_task": "D",
+      "expected_referent": "D.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "checkout",
+        "401"
+      ],
+      "forbidden_state": [
+        "JWT refresh",
+        "gateway strips",
+        "navy"
+      ],
+      "expected_gap": 13
     },
     {
       "id": "p15_full_history_has_extra",
@@ -208,13 +557,41 @@
       "gold_referent_id": "H.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["12 slides"],
+      "required_facts": [
+        "12 slides"
+      ],
       "required_decisions": [],
-      "required_constraints": ["chart not the trip"],
-      "needed_state": ["12 slides", "chart"],
-      "should_not_carry": ["hotel needs parking", "Saturday morning flight", "navy"],
+      "required_constraints": [
+        "chart not the trip"
+      ],
+      "needed_state": [
+        "12 slides",
+        "chart"
+      ],
+      "should_not_carry": [
+        "hotel needs parking",
+        "Saturday morning flight",
+        "navy"
+      ],
       "stale_excluded": [],
-      "note": "FULL HISTORY contains F Lisbon trip parking. CF should exclude it. Product-correct exclusion, not a CF defect."
+      "note": "FULL HISTORY contains F Lisbon trip parking. CF should exclude it. Product-correct exclusion, not a CF defect.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [
+        "F"
+      ],
+      "expected_task": "H",
+      "expected_referent": "H.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "12 slides",
+        "chart"
+      ],
+      "forbidden_state": [
+        "hotel needs parking",
+        "Saturday morning flight",
+        "navy"
+      ],
+      "expected_gap": 19
     },
     {
       "id": "p16_return_g_after_risotto",
@@ -225,11 +602,39 @@
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
       "required_facts": [],
-      "required_decisions": ["risotto"],
-      "required_constraints": ["no dairy"],
-      "needed_state": ["risotto", "dairy"],
-      "should_not_carry": ["JWT", "Docker", "navy"],
-      "stale_excluded": ["pasta carbonara"]
+      "required_decisions": [
+        "risotto"
+      ],
+      "required_constraints": [
+        "no dairy"
+      ],
+      "needed_state": [
+        "risotto",
+        "dairy"
+      ],
+      "should_not_carry": [
+        "JWT",
+        "Docker",
+        "navy"
+      ],
+      "stale_excluded": [
+        "pasta carbonara"
+      ],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "G",
+      "expected_referent": "G.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "risotto",
+        "dairy"
+      ],
+      "forbidden_state": [
+        "JWT",
+        "Docker",
+        "navy"
+      ],
+      "expected_gap": 9
     },
     {
       "id": "p17_return_i_deadline",
@@ -239,12 +644,38 @@
       "gold_referent_id": "I.loop1",
       "gold_policy": "ACT",
       "utterance_kind": "explicit_return",
-      "required_facts": ["Stripe"],
+      "required_facts": [
+        "Stripe"
+      ],
       "required_decisions": [],
-      "required_constraints": ["Friday"],
-      "needed_state": ["Stripe", "Friday"],
-      "should_not_carry": ["401", "navy", "Docker"],
-      "stale_excluded": []
+      "required_constraints": [
+        "Friday"
+      ],
+      "needed_state": [
+        "Stripe",
+        "Friday"
+      ],
+      "should_not_carry": [
+        "401",
+        "navy",
+        "Docker"
+      ],
+      "stale_excluded": [],
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "I",
+      "expected_referent": "I.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "Stripe",
+        "Friday"
+      ],
+      "forbidden_state": [
+        "401",
+        "navy",
+        "Docker"
+      ],
+      "expected_gap": 16
     },
     {
       "id": "p18_uncertain_navy_probe",
@@ -255,12 +686,109 @@
       "gold_policy": "ACT",
       "utterance_kind": "uncertain",
       "required_facts": [],
-      "required_decisions": ["navy"],
-      "required_constraints": ["formal"],
-      "needed_state": ["navy"],
-      "should_not_carry": ["401", "Docker"],
-      "stale_excluded": ["black"],
-      "note": "Extractor uncertain; writer must not add a new item this turn."
+      "required_decisions": [
+        "navy"
+      ],
+      "required_constraints": [
+        "formal"
+      ],
+      "needed_state": [
+        "navy"
+      ],
+      "should_not_carry": [
+        "401",
+        "Docker"
+      ],
+      "stale_excluded": [
+        "black"
+      ],
+      "note": "Extractor uncertain; writer must not add a new item this turn.",
+      "expected_open_workstream_count": 10,
+      "competing_similar": [],
+      "expected_task": "E",
+      "expected_referent": "E.loop1",
+      "expected_policy": "ACT",
+      "required_working_state": [
+        "navy"
+      ],
+      "forbidden_state": [
+        "401",
+        "Docker"
+      ],
+      "expected_gap": 8,
+      "frozen_behavior_note": "Gold ACT E; product may CLARIFY on underspecified maybe. Document, do not retune."
+    },
+    {
+      "id": "p19_return_j_trivia",
+      "turn": 52,
+      "category": "return_trivia_after_technical",
+      "gold_task_id": "J",
+      "gold_referent_id": "J.loop1",
+      "gold_policy": "ACT",
+      "expected_task": "J",
+      "expected_referent": "J.loop1",
+      "expected_policy": "ACT",
+      "utterance_kind": "explicit_return",
+      "required_facts": [],
+      "required_decisions": [
+        "Celesteela"
+      ],
+      "required_constraints": [],
+      "needed_state": [
+        "Celesteela",
+        "Pokémon"
+      ],
+      "required_working_state": [
+        "Celesteela",
+        "Pokémon"
+      ],
+      "should_not_carry": [
+        "401",
+        "navy",
+        "Docker",
+        "JWT"
+      ],
+      "forbidden_state": [
+        "401",
+        "navy",
+        "Docker",
+        "JWT"
+      ],
+      "stale_excluded": [
+        "Wailord"
+      ],
+      "competing_similar": [],
+      "expected_open_workstream_count": 10,
+      "expected_gap": 10,
+      "note": "Return to trivia workstream J after technical activity."
+    },
+    {
+      "id": "p20_ordinal_out_of_range_clarify",
+      "turn": 51,
+      "category": "ambiguous_ordinal_clarify",
+      "gold_task_id": null,
+      "gold_referent_id": null,
+      "gold_policy": "CLARIFY",
+      "expected_task": null,
+      "expected_referent": null,
+      "expected_policy": "CLARIFY",
+      "utterance_kind": "ambiguous",
+      "required_facts": [],
+      "required_decisions": [],
+      "required_constraints": [],
+      "needed_state": [],
+      "required_working_state": [],
+      "should_not_carry": [],
+      "forbidden_state": [],
+      "stale_excluded": [],
+      "competing_similar": [
+        "A",
+        "C",
+        "D"
+      ],
+      "expected_open_workstream_count": 10,
+      "expected_gap": null,
+      "note": "Ordinal #4 on active C (1 loop) is out of range. Frozen conflict path should CLARIFY. Policy success if CLARIFY; no package expected."
     }
   ]
 }

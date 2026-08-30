@@ -4,7 +4,8 @@
     "not": "natural human behavior",
     "conversation_id": "ten-ws-stress",
     "n_workstreams": 10,
-    "seed": 10
+    "seed": 10,
+    "n_user_turns": 52
   },
   "workstreams": [
     {
@@ -128,7 +129,9 @@
     {"turn": 47, "ws": "A", "message": "JWT still returns 401 after refresh on the auth service."},
     {"turn": 48, "ws": "H", "message": "the 12 slides Lisbon chart on the deck"},
     {"turn": 49, "ws": "A", "message": "no, the other one"},
-    {"turn": 50, "ws": "C", "message": "the token 401 on the orders API still"}
+    {"turn": 50, "ws": "C", "message": "the token 401 on the orders API still"},
+    {"turn": 51, "ws": "C", "message": "fix #4 on the current one"},
+    {"turn": 52, "ws": "J", "message": "back to the tallest Pokémon Celesteela trivia"}
   ],
   "extract_scripts": {
     "JWT still returns 401": {
@@ -308,6 +311,9 @@
     "not Wailord": {"task_id": "J", "is_new_task": false, "confidence": 0.35},
     "Celesteela trivia": {"task_id": "J", "is_new_task": false, "confidence": 0.4},
     "the other one": {"task_id": "A", "is_new_task": false, "confidence": 0.45},
-    "fix that": {"task_id": "A", "is_new_task": false, "confidence": 0.97}
+    "fix that": {"task_id": "A", "is_new_task": false, "confidence": 0.97},
+    "fix #4 on the current": {"task_id": "C", "is_new_task": false, "confidence": 0.4},
+    "tallest Pokémon Celesteela": {"task_id": "J", "is_new_task": false, "confidence": 0.4},
+    "back to the tallest": {"task_id": "J", "is_new_task": false, "confidence": 0.4}
   }
 }
