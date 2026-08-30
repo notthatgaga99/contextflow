@@ -1,25 +1,53 @@
-# Smallest Cloud Run service. In-memory state. Not Firestore.
-# Demo-shaped defaults. Do not claim public production auth.
-# Deploy is optional; this file is readiness, not a claim that it is live.
+# ContextFlow Cloud Run service — DEMO / RESEARCH presentation shape.
+#
+# NOT production-claimed. In-memory ConversationStore is process-local:
+# scaling, restart, or multi-instance requires durable storage (NOT YET).
+#
+# Boundary:
+# - CF_DEMO_ONLY=1 labels responses and logs
+# - maxScale=1 reduces multi-instance confusion for the demo
+# - MockLLM by default (CF_SMOKE_FIXTURE=1); Vertex is optional evidence, not
+#   the deterministic demo mechanism
+# - Public unauthenticated invoke is a DEMO BOUNDARY unless invoker IAM is set
+#
+# Runtime SA: set serviceAccountName to a dedicated least-privilege account
+# (e.g. contextflow-run@PROJECT.iam.gserviceaccount.com) with only:
+#   - roles/logging.logWriter (structured logs)
+#   - roles/monitoring.metricWriter (optional)
+#   - roles/aiplatform.user ONLY if CF_USE_GEMINI/Vertex is enabled
+# Do NOT use Owner/Editor. Do NOT embed credentials in the image or env.
+# Secret Manager: only if a secret is actually required (not for Mock demo).
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: contextflow
+  labels:
+    app: contextflow
+    contextflow.dev/tier: demo
   annotations:
-    # Explicit: unauthenticated invoke is demo-only territory.
     contextflow.dev/demo-only: "true"
+    contextflow.dev/checkpoint: "DEMO-READY / RESEARCH-PRODUCT"
 spec:
   template:
     metadata:
       annotations:
         autoscaling.knative.dev/minScale: "0"
+        # Keep single instance for in-memory demo semantics.
         autoscaling.knative.dev/maxScale: "1"
+        # Optional: run.googleapis.com/cpu-throttling: "false" for warmer latency
+      labels:
+        app: contextflow
+        contextflow.dev/tier: demo
     spec:
+      # Replace with dedicated runtime SA in the target project.
+      # serviceAccountName: contextflow-run@PROJECT_ID.iam.gserviceaccount.com
       containerConcurrency: 8
+      timeoutSeconds: 60
       containers:
         - image: IMAGE
           ports:
-            - containerPort: 8080
+            - name: http1
+              containerPort: 8080
           env:
             - name: CF_MODE
               value: split
@@ -27,7 +55,27 @@ spec:
               value: "1"
             - name: CF_DEMO_ONLY
               value: "1"
+            # Memory backend: in-memory only for this demo revision.
+            - name: CF_MEMORY_BACKEND
+              value: memory
+            # Keep Vertex/Gemini OFF for the deterministic public demo.
+            - name: CF_USE_GEMINI
+              value: "0"
+            - name: CF_LLM_EXTRACT
+              value: "0"
           resources:
             limits:
               memory: 512Mi
               cpu: "1"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 3
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 15
+            failureThreshold: 3

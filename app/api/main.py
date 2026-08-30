@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -16,8 +17,9 @@ log = logging.getLogger("contextflow")
 app = FastAPI(
     title="ContextFlow",
     description=(
-        "Working-memory routing for multi-thread assistants. "
-        "Public unauthenticated deployments are demo-only unless separately hardened."
+        "Working-memory layer for context-switching assistants. "
+        "DEMO/RESEARCH presentation shape — not a production readiness claim. "
+        "Public unauthenticated deployments are a demo boundary unless invoker IAM is set."
     ),
 )
 
@@ -52,6 +54,7 @@ def _make_extractor():
 extractor = _make_extractor()
 
 DEMO_ONLY = os.getenv("CF_DEMO_ONLY", "1" if os.getenv("CF_SMOKE_FIXTURE") == "1" else "0") == "1"
+MEMORY_BACKEND = os.getenv("CF_MEMORY_BACKEND", "memory").strip().lower() or "memory"
 
 
 class TurnIn(BaseModel):
@@ -78,6 +81,7 @@ class TurnOut(BaseModel):
     correlation_id: str | None = None
     extract_ok: bool | None = None
     demo_only: bool | None = None
+    memory_backend: str | None = None
 
 
 def _title_and_loop(r) -> tuple[str | None, str | None]:
@@ -94,6 +98,9 @@ def _config_ok() -> dict:
         issues.append("gemini_enabled_without_credentials")
     if SETTINGS.TAU < 0 or SETTINGS.DELTA < 0:
         issues.append("invalid_gate_thresholds")
+    if MEMORY_BACKEND not in ("memory",):
+        # Durable adapters are NOT YET; refuse unknown backends fail-closed.
+        issues.append(f"unsupported_memory_backend:{MEMORY_BACKEND}")
     return {"ok": not issues, "issues": issues}
 
 
@@ -122,7 +129,11 @@ def health():
     return {
         "status": "ok" if cfg["ok"] else "degraded",
         "service": "contextflow",
+        "ready": cfg["ok"],
         "demo_only": DEMO_ONLY,
+        "memory_backend": MEMORY_BACKEND,
+        "memory_durable": False,
+        "multi_instance_safe": False,
         "config_ok": cfg["ok"],
         "config_issues": cfg["issues"],
         "llm": (
@@ -131,15 +142,21 @@ def health():
             else "mock"
         ),
         "extract": "llm" if os.getenv("CF_LLM_EXTRACT") == "1" else "mock",
+        "boundary": (
+            "Public unauthenticated access is a demo boundary. "
+            "In-memory state is process-local."
+        ),
     }
 
 
 @app.post("/turn", response_model=TurnOut)
 def turn(t: TurnIn, request: Request):
     corr = getattr(request.state, "correlation_id", correlation_id())
+    t0 = time.perf_counter()
     try:
         eng = store.engine(t.conversation_id)
         writer = store.writer(t.conversation_id)
+        mem = store.memory_store(t.conversation_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
@@ -156,6 +173,10 @@ def turn(t: TurnIn, request: Request):
         ) from exc
     r = pipe.turn
     title, loop = _title_and_loop(r)
+    latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+    package_status = "ok" if r.package is not None else (
+        "clarify" if r.transition and r.transition.value == "CLARIFY" else "none"
+    )
     emit_decision(decision_event(
         correlation_id=corr,
         conversation_id=t.conversation_id.strip(),
@@ -166,6 +187,12 @@ def turn(t: TurnIn, request: Request):
         extract_ok=pipe.extract.ok,
         extract_status="ok" if pipe.extract.ok else "rejected",
         message_chars=len(t.message or ""),
+        latency_ms=latency_ms,
+        memory_asserted=len(mem.asserted()),
+        memory_total=len(mem.all()),
+        package_status=package_status,
+        context_mode=r.package.context_mode if r.package else None,
+        demo_only=DEMO_ONLY,
     ))
     return TurnOut(
         conversation_id=t.conversation_id,
@@ -183,6 +210,7 @@ def turn(t: TurnIn, request: Request):
         correlation_id=corr,
         extract_ok=pipe.extract.ok,
         demo_only=DEMO_ONLY,
+        memory_backend=MEMORY_BACKEND,
     )
 
 
@@ -224,9 +252,17 @@ def list_memory(conversation_id: str):
             "goal": t.anchor.goal,
             "open_loops": list(t.anchor.open_loops),
             "last_active_turn": t.last_active_turn,
-            "decisions": [i.text for i in asserted if i.kind in ("decision", "correction")],
+            "decisions": [i.text for i in asserted if i.kind == "decision"],
+            "corrections": [i.text for i in asserted if i.kind == "correction"],
             "constraints": [i.text for i in asserted if i.kind == "constraint"],
             "facts": [i.text for i in asserted if i.kind in ("fact", "preference", "event")],
+            "history": [
+                {
+                    "text": i.text, "slot": i.slot, "status": i.status,
+                    "superseded_by": i.superseded_by, "source_turn": i.source_turn,
+                }
+                for i in hist if i.status == "superseded"
+            ],
             "superseded": [
                 {
                     "id": i.id, "text": i.text, "slot": i.slot,
@@ -255,6 +291,8 @@ def list_memory(conversation_id: str):
         "workstreams": by_ws,
         "items": items,
         "demo_only": DEMO_ONLY,
+        "memory_backend": MEMORY_BACKEND,
+        "memory_durable": False,
     }
 
 

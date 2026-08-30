@@ -1,4 +1,9 @@
-"""In-memory conversation isolation. Not persistence. Does not change routing math."""
+"""In-memory conversation isolation. Process-local only — not durable.
+
+Cloud Run restart / multi-instance does not share this state. A durable
+MemoryStore adapter is NOT YET; do not claim multi-instance memory semantics.
+Does not change routing math.
+"""
 
 from __future__ import annotations
 

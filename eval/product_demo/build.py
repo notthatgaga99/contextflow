@@ -44,7 +44,7 @@ NARRATIVE = [
     {"turn": 32, "beat": "correct", "caption": "Correction: black -> navy (history kept)"},
     {"turn": 35, "beat": "distract", "caption": "Leave the outfit again"},
     {"turn": 37, "beat": "deictic", "caption": "Deictic 'fix that' amid open work"},
-    {"turn": 38, "beat": "return", "caption": "Return - reconstruct navy / formal / evening"},
+    {"turn": 38, "beat": "return", "caption": "Back to the outfit - reconstruct navy / formal / evening"},
     {"turn": 46, "beat": "clarify", "caption": "Underspecified - refuse to guess"},
 ]
 
@@ -67,7 +67,8 @@ def _inspector(reg, store, selected_id: str | None, transition: str | None) -> l
         asserted = store.asserted(t.id)
         hist = store.historical(t.id)
         superseded = [i for i in hist if i.status == "superseded"]
-        decisions = [i.text for i in asserted if i.kind in ("decision", "correction")]
+        decisions = [i.text for i in asserted if i.kind == "decision"]
+        corrections = [i.text for i in asserted if i.kind == "correction"]
         constraints = [i.text for i in asserted if i.kind == "constraint"]
         facts = [i.text for i in asserted if i.kind in ("fact", "preference", "event")]
         history_lines = []
@@ -86,6 +87,7 @@ def _inspector(reg, store, selected_id: str | None, transition: str | None) -> l
             "open_loops": list(t.anchor.open_loops),
             "last_active_turn": t.last_active_turn,
             "decisions": decisions,
+            "corrections": corrections,
             "constraints": constraints,
             "facts": facts,
             "history_lines": history_lines,
@@ -146,27 +148,25 @@ def _compare(history: list[dict], message: str, task, store, reg) -> dict:
         "full": {
             "preview": full[:900], "tokens": count(full),
             "label": "FULL HISTORY",
-            "blurb": "Has the facts, but carries unrelated material.",
+            "blurb": "Everything is available, including unrelated material.",
         },
         "recent": {
             "preview": recent[:900], "tokens": count(recent),
             "label": f"RECENT (last {RECENT_K})",
-            "blurb": "May miss older decisions.",
+            "blurb": "Recent context can miss older working state.",
         },
         "contextflow": {
             "preview": cf[:900], "tokens": count(cf),
             "label": "CONTEXTFLOW WORKING SET",
             "blurb": (
-                "Selected workstream + current decisions/constraints; "
-                "unrelated state excluded."
+                "Only the selected workstream's current working state is projected."
             ),
         },
         "qualitative": {
-            "full": "Has the facts, but carries unrelated material.",
-            "recent": "May miss older decisions.",
+            "full": "Everything is available, including unrelated material.",
+            "recent": "Recent context can miss older working state.",
             "contextflow": (
-                "Selected workstream + current decisions/constraints; "
-                "unrelated state excluded."
+                "Only the selected workstream's current working state is projected."
             ),
         },
     }

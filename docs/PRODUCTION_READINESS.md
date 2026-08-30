@@ -8,14 +8,15 @@ Statuses: **IMPLEMENTED** · **TESTED** · **DEMONSTRATED** · **NOT YET**.
 | Layer | IMPLEMENTED | TESTED | DEMONSTRATED | NOT YET |
 |---|---|---|---|---|
 | Frozen routing | gate / resolver / scorer | pytest + judge demo | controlled PoC + mock product path | organic real chat |
-| MemoryItem → Writer → Store | models + writer + store | store / writer / 10-ws tests (**163** pytest) | mock ABCD + 10-ws supersession | durable restart |
+| MemoryItem → Writer → Store | models + writer + store | store / writer / 10-ws tests (**202** pytest) | mock ABCD + 10-ws supersession | durable restart |
 | Working-context reconstruction | `WorkingContextBuilder` + compiler | ABCD + 10-ws package checks | mock 10-ws returns; 5-probe Vertex packages | organic reconstruction quality |
-| Conversation isolation | `ConversationStore` | pytest + negatives | Mock Cloud Run rev `00001` | cross-instance durability |
-| 10-workstream stress (mock) | fixture + harness | `tests/test_ten_workstream.py` | 50 turns / 17 probes; 0 wrong-ACT; 0 contam | natural-human evaluation |
-| Cloud Run | Dockerfile + deploy | — | rev `00002-95x` `/health`, `/docs`, `/turn` | authn; private invoker |
+| Conversation isolation | `ConversationStore` | pytest + negatives | Mock Cloud Run (process-local) | cross-instance durability |
+| 10-workstream stress (mock) | fixture + harness | `tests/test_ten_workstream*.py` | controlled fixture probes; 0 wrong-ACT; 0 contam | natural-human evaluation |
+| Product demo UI | `eval/product_demo` | build + serve | 12-beat Mock walkthrough | organic demo |
+| Cloud Run | Dockerfile + `deploy/cloudrun.yaml` | — | prior revs + demo-shaped config | authn; durable memory |
 | Hosted HTTP Vertex turn | turn pipeline on Cloud Run | — | **1** `/turn` on `00002-95x` | multi-turn hosted ABCD; full 50-turn hosted replay |
 | Vertex five-probe slice (local) | `eval/ten_workstream/vertex_slice.py` | — | **15** calls; 5/5 route match; 0 wrong-ACT | full 50-turn Vertex; extraction robustness |
-| Durable memory | — | — | — | Firestore / persistence |
+| Durable memory | `MemoryStore` protocol only | — | — | Firestore / persistence adapter |
 | Auth / production SLOs | — | — | — | all |
 
 ## Product path

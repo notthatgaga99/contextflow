@@ -1,4 +1,9 @@
-"""In-memory MemoryStore. Not Firestore. Optimistic namespace versioning only.
+"""In-memory MemoryStore. Not durable. Not Firestore.
+
+Protocol `MemoryStore` is the persistence boundary. This module ships the
+in-memory implementation used for local and Cloud Run demo revisions.
+A durable adapter is optional later and must not change routing or
+working-context semantics.
 
 Namespaced by conversation_id on the store instance (one store per conversation).
 Idempotent retry: same turn + same idempotency keys does not duplicate items.
