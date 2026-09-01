@@ -1,132 +1,100 @@
 # ContextFlow product demo
 
-**DEMO-READY / RESEARCH-PRODUCT CHECKPOINT** — not production-ready.
+## REVIEWER DEMO
 
-**Fixture label:** CONTROLLED ADVERSARIAL ENGINEERING FIXTURE (synthetic). Not organic chat. Not a production accuracy claim.
+**CONTROLLED SYNTHETIC ENGINEERING DEMO** · **NOT A NATURAL-CHAT BENCHMARK**
 
-## Pitch
+Offline. MockLLM. No GCP, Vertex, credentials, internet, or secrets.
 
-> ContextFlow doesn't try to remember everything equally.
-> It maintains multiple open workstreams and reconstructs the working state that matters when you return.
-
-## 1. What is ContextFlow?
-
-ContextFlow is a **working-memory layer for context-switching assistants**.
-
-It does not try to remember everything equally. It keeps multiple open workstreams separate and reconstructs the **minimum useful working state** when the user returns.
-
-## 2. What problem does it solve?
-
-Long assistants lose the thread when users jump among unfinished work. Ordinary approaches flatten everything into:
-
-- a chat history window
-- naive recency
-- RAG over old messages
-- task classification
-- a memory dump
-
-Those are not the same as a **current working set**.
-
-## 3. Why is ordinary long context insufficient?
-
-| View | Meaning |
-|---|---|
-| **FULL** | Everything is available, including unrelated material. |
-| **RECENT** | Recent context can miss older working state. |
-| **CONTEXTFLOW** | Only the selected workstream's current working state is projected. |
-
-Retrieval can also surface similar text from the wrong workstream. ContextFlow selects a workstream, then projects only that thread's current decisions/constraints/facts — and keeps superseded history auditable without presenting it as current.
-
-## Demo architecture
-
-```
-HTTP
-→ extraction / proposal
-→ MemoryWriter (validate + commit)
-→ MemoryStore (in-memory default)
-→ ContextFlow (route: ACT / CLARIFY / SWITCH / RETURN)
-→ WorkingContextBuilder
-→ ContextPackage
-→ answer  (generate does not mutate memory)
-```
-
-## Production boundary
-
-### IMPLEMENTED
-
-- Cloud Run service shape (`deploy/cloudrun.yaml`) with demo labeling
-- Health / readiness endpoint
-- Request correlation IDs (`x-request-id`)
-- Structured redacted decision logs (no raw conversation text)
-- Bounded request validation
-- Predictable error responses with correlation id
-- Memory lifecycle (assert / supersede / retract / abandon)
-- Fail-closed writer validation
-- Extraction contract (omit invented referents; underspecified → no assert)
-- Conversation isolation **within a process**
-- Deterministic local product demo (MockLLM)
-
-### NOT YET
-
-- Durable memory across restart
-- Authenticated users / private invoker as a production default
-- Multi-instance durable state
-- Organic / consented conversation evaluation
-- Production SLO evidence
-- Firestore (or other durable adapter) — **deferred**; `MemoryStore` protocol is the boundary
-
-**Explicit:** in-memory state is process-local. Cloud Run scaling/restart requires durable storage for production multi-instance semantics. Public unauthenticated access is a **demo boundary**.
-
-## 4. What does the demo show?
-
-A ~60–120 second walkthrough of the synthetic ten-workstream fixture:
-
-1. Several workstreams become active
-2. Abrupt switching across unrelated domains
-3. Outfit correction: **black → navy** (black retained as superseded)
-4. **Back to the outfit** after distraction
-5. Working context reconstructs **navy / formal / evening**
-6. Unrelated state (Lisbon, Docker, JWT, dinner, …) stays **excluded**
-7. Underspecified "maybe the navy one?" → **CLARIFY** (refuse to guess)
-8. Side-by-side **FULL / RECENT / ContextFlow** contrast (qualitative, not a leaderboard)
-
-Hero moment: return to outfit → NAVY · FORMAL · EVENING, with BLACK → SUPERSEDED BY NAVY in history.
-
-## 5. What happens with 10 workstreams?
-
-The fixture keeps ten open threads (auth, Docker/CI, orders, checkout, outfit, Lisbon, dinner, deck, Stripe app, trivia). Switching does not erase prior working state. Returning reconstructs the selected thread's current package.
-
-## 6–8. Preserve, exclude, uncertainty
-
-- **Preserve:** extractor proposes → writer commits → store retains asserted + historical items with provenance
-- **Exclude:** `WorkingContextBuilder` projects only the selected workstream; others remain stored but out of package
-- **Uncertainty:** underspecified turns may assert nothing and/or **CLARIFY** under frozen routing (not retuned for the demo)
-
-## 9. Demonstrated vs not demonstrated
-
-| Claim | Status |
-|---|---|
-| Local deterministic product demo (MockLLM) | DEMONSTRATED |
-| Multi-thread persistence / exclusion / supersession / return | DEMONSTRATED (synthetic) |
-| CLARIFY instead of guessing (fixture turn) | DEMONSTRATED (synthetic) |
-| FULL ≠ RECENT ≠ working set (qualitative) | DEMONSTRATED |
-| Production-shaped Cloud Run config + redacted logs | IMPLEMENTED |
-| Organic / consented-chat accuracy | NOT YET |
-| Durable multi-instance persistence | NOT YET |
-| Authenticated production deployment | NOT YET |
-| Benchmark superiority | NOT CLAIMED |
-
-## 10. How do I run the demo?
+### Launch
 
 ```bash
-# from the contextflow package root
-python -m eval.product_demo          # build snapshot (eval/out; gitignored)
-python -m eval.product_demo --serve  # http://127.0.0.1:8766/
+python -m eval.product_demo --serve
 ```
 
-- **Default path:** MockLLM · $0 · no network · no credentials · no private transcripts
-- **Optional Ollama / Vertex:** separate eval harnesses — **not** required for this demo
-- **Cloud Run:** see `deploy/README.md` (optional; Mock path; demo boundary)
-- Judge interleaved demo (different story): `python -m eval.demo` / `python -m eval.demo --serve`
+Open the printed URL (default **http://127.0.0.1:8766/**). A browser tab should open automatically.
 
-Vertex remains evidence for production-shaped LLM integration, not the demo's deterministic correctness mechanism.
+### What to click
+
+1. **PLAY SCENARIO** — auto-advances the 15-beat pitch, or **STEP** one beat at a time.
+2. Optional: **RETURN TO THREAD** jumps to the outfit return (hero).
+3. **RESET DEMO** restarts from beat 1.
+4. **Evidence** is optional and secondary (collapsed by default).
+
+### What to watch
+
+- Left: many unfinished workstreams stay alive.
+- Center: the conversation, including the return and the clarify.
+- Right **STATE**: **CURRENT** / **HISTORY** / **EXCLUDED**.
+
+### Expected hero moment
+
+When the user says **“Okay, back to the outfit.”**:
+
+| Panel | Expect |
+|---|---|
+| **CURRENT** | **navy** (+ formal/evening constraints if shown) |
+| **HISTORY** | **black** superseded by navy |
+| **EXCLUDED** | unrelated threads (auth, orders, Lisbon, trivia, …) |
+
+Then **“Maybe the navy one?”** → **NEEDS CLARIFICATION** (no blind guess).
+
+### Known limitations
+
+- Synthetic scripted fixture (not organic multi-user chat).
+- Deterministic MockLLM / scripted extracts — not a hosted-model accuracy claim.
+- In-memory only for this path; no Cloud Run / Firestore in this demo.
+- Not production-ready.
+
+---
+
+**DEMO-READY / RESEARCH-PRODUCT CHECKPOINT** — not production-ready.
+
+## THE PROBLEM
+
+Conventional chat treats every message as one flat timeline. When you jump among unfinished work — auth, deploy, an outfit decision, a trip — the assistant either:
+
+- drowns you in **FULL** history (everything, including the wrong threads), or
+- forgets what mattered under **RECENT** (the older decision falls out of the window).
+
+You leave a thought. When you come back, the working state is gone — or contaminated.
+
+## THE IDEA
+
+**ContextFlow lets you leave a thought without losing it.**
+
+**ContextFlow keeps multiple unfinished workstreams alive and reconstructs the right working context when you return.**
+
+## THE DEMO
+
+One browser window. ~60–120 seconds. Deterministic. Offline.
+
+If product invariants fail, the UI shows **DEMO ERROR** and will not pretend success.
+
+### Exact sequence (15 beats)
+
+1. Authentication (JWT / 401)
+2. Outfit opens (**black**, corporate)
+3. Orders API (overlapping 401 vocabulary)
+4. Dinner / food
+5. Docker / CI
+6. Lisbon travel
+7. Checkout frontend (another 401)
+8. Presentation deck
+9. Trivia distraction
+10. Stripe / job-application deadline
+11. Correction: **black → navy** (black kept as history)
+12. Leave the outfit again
+13. Deictic “fix that”
+14. **Hero:** “Okay, back to the outfit.”
+15. “Maybe the navy one?” → **NEEDS CLARIFICATION**
+
+## THE DIFFERENCE
+
+| View | What you get |
+|---|---|
+| **FULL history** | Everything — including unrelated threads |
+| **RECENT** | Latest turns — can miss older working state |
+| **ContextFlow** | The resumed thread’s current working context |
+
+A separate GCP durability path exists under `docs/CLOUD_POC_REVIEWER.md` (and `docs/REAL_GCP_POC.md` / `docs/END_TO_END_GCP_PROOF.md`) — do not conflate it with this local product demo.

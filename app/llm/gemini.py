@@ -18,9 +18,17 @@ class GeminiClient:
         key = api_key or os.getenv("GEMINI_API_KEY")
         use_vertex = use_vertex if use_vertex is not None else os.getenv("CF_USE_VERTEX") == "1"
         if use_vertex:
-            self._client = genai.Client(vertexai=True,
-                                        project=os.getenv("GCP_PROJECT"),
-                                        location=os.getenv("GCP_REGION", "asia-south1"))
+            # Vertex model region may differ from Cloud Run / Firestore region.
+            loc = (
+                os.getenv("CF_VERTEX_LOCATION")
+                or os.getenv("GCP_REGION")
+                or "us-central1"
+            )
+            self._client = genai.Client(
+                vertexai=True,
+                project=os.getenv("GCP_PROJECT"),
+                location=loc,
+            )
         else:
             if not key:
                 raise RuntimeError("GEMINI_API_KEY not set and Vertex not enabled.")

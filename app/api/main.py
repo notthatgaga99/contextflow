@@ -24,8 +24,14 @@ app = FastAPI(
 )
 
 
+DEMO_ONLY = os.getenv("CF_DEMO_ONLY", "1" if os.getenv("CF_SMOKE_FIXTURE") == "1" else "0") == "1"
+MEMORY_BACKEND = os.getenv("CF_MEMORY_BACKEND", "memory").strip().lower() or "memory"
+MEMORY_DURABLE = MEMORY_BACKEND == "firestore"
+
+
 def _make_llm():
-    if os.getenv("CF_USE_GEMINI") == "1":
+    # Vertex / Gemini: proposer (extract) + answer only — never ACT/CLARIFY authority.
+    if os.getenv("CF_USE_GEMINI") == "1" or os.getenv("CF_USE_VERTEX") == "1":
         from app.llm.gemini import GeminiClient
         return GeminiClient()
     if os.getenv("CF_USE_OLLAMA") == "1":
@@ -44,6 +50,7 @@ store = ConversationStore(_make_llm(), SETTINGS, mode=os.getenv("CF_MODE", "spli
 
 
 def _make_extractor():
+    # CF_LLM_EXTRACT=1 → LLM proposes MemoryPatches only; never ACT/CLARIFY.
     if os.getenv("CF_LLM_EXTRACT") == "1":
         return LlmMemoryExtractor(store.llm)
     if os.getenv("CF_SMOKE_FIXTURE") == "1":
@@ -53,9 +60,6 @@ def _make_extractor():
 
 
 extractor = _make_extractor()
-
-DEMO_ONLY = os.getenv("CF_DEMO_ONLY", "1" if os.getenv("CF_SMOKE_FIXTURE") == "1" else "0") == "1"
-MEMORY_BACKEND = os.getenv("CF_MEMORY_BACKEND", "memory").strip().lower() or "memory"
 
 
 class TurnIn(BaseModel):
@@ -81,6 +85,7 @@ class TurnOut(BaseModel):
     total_context_tokens: int | None = None
     correlation_id: str | None = None
     extract_ok: bool | None = None
+    extract_committed: bool | None = None
     demo_only: bool | None = None
     memory_backend: str | None = None
 
@@ -93,16 +98,21 @@ def _title_and_loop(r) -> tuple[str | None, str | None]:
 
 def _config_ok() -> dict:
     issues = []
-    if os.getenv("CF_USE_GEMINI") == "1" and not (
-        os.getenv("GEMINI_API_KEY") or os.getenv("CF_USE_VERTEX") == "1"
+    if (
+        (os.getenv("CF_USE_GEMINI") == "1" or os.getenv("CF_USE_VERTEX") == "1")
+        and not (os.getenv("GEMINI_API_KEY") or os.getenv("CF_USE_VERTEX") == "1")
     ):
         issues.append("gemini_enabled_without_credentials")
     if SETTINGS.TAU < 0 or SETTINGS.DELTA < 0:
         issues.append("invalid_gate_thresholds")
-    if MEMORY_BACKEND not in ("memory",):
-        # Durable adapters are NOT YET; refuse unknown backends fail-closed.
+    if MEMORY_BACKEND not in ("memory", "firestore"):
         issues.append(f"unsupported_memory_backend:{MEMORY_BACKEND}")
-    return {"ok": not issues, "issues": issues}
+    if MEMORY_BACKEND == "firestore" and not (
+        os.getenv("GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
+    ):
+        # ADC may still resolve project; warn as degraded, not hard-fail local inject.
+        issues.append("firestore_project_unset")
+    return {"ok": not issues or issues == ["firestore_project_unset"], "issues": issues}
 
 
 @app.middleware("http")
@@ -127,25 +137,34 @@ async def add_correlation_id(request: Request, call_next):
 @app.get("/healthz")
 def health():
     cfg = _config_ok()
+    vertex_on = os.getenv("CF_USE_VERTEX") == "1" or os.getenv("CF_USE_GEMINI") == "1"
     return {
         "status": "ok" if cfg["ok"] else "degraded",
         "service": "contextflow",
         "ready": cfg["ok"],
         "demo_only": DEMO_ONLY,
         "memory_backend": MEMORY_BACKEND,
-        "memory_durable": False,
-        "multi_instance_safe": False,
+        "memory_durable": MEMORY_DURABLE,
+        "registry_durable": MEMORY_DURABLE,
+        "multi_instance_safe": MEMORY_DURABLE,
         "config_ok": cfg["ok"],
         "config_issues": cfg["issues"],
         "llm": (
-            "gemini" if os.getenv("CF_USE_GEMINI") == "1"
+            "vertex" if os.getenv("CF_USE_VERTEX") == "1"
+            else "gemini" if os.getenv("CF_USE_GEMINI") == "1"
             else "ollama" if os.getenv("CF_USE_OLLAMA") == "1"
             else "mock"
         ),
         "extract": "llm" if os.getenv("CF_LLM_EXTRACT") == "1" else "mock",
+        "vertex_enabled": vertex_on,
         "boundary": (
-            "Public unauthenticated access is a demo boundary. "
-            "In-memory state is process-local."
+            "Authenticated Cloud Run + Firestore is the durable POC path. "
+            "Public unauthenticated access remains a demo-only boundary. "
+            + (
+                "Firestore-backed memory survives restart when CF_MEMORY_BACKEND=firestore."
+                if MEMORY_DURABLE
+                else "In-memory state is process-local."
+            )
         ),
     }
 
@@ -178,6 +197,13 @@ def turn(t: TurnIn, request: Request):
     package_status = "ok" if r.package is not None else (
         "clarify" if r.transition and r.transition.value == "CLARIFY" else "none"
     )
+    answer_status = (
+        "clarify" if r.transition and r.transition.value == "CLARIFY"
+        else "ok" if r.answer else "none"
+    )
+    mem_stats = mem.stats() if hasattr(mem, "stats") else {}
+    reg_stats = eng.reg.stats() if hasattr(eng.reg, "stats") else {}
+    hist = mem.historical()
     emit_decision(decision_event(
         correlation_id=corr,
         conversation_id=t.conversation_id.strip(),
@@ -187,13 +213,23 @@ def turn(t: TurnIn, request: Request):
         referent_id=r.predicted_referent_id,
         extract_ok=pipe.extract.ok,
         extract_status="ok" if pipe.extract.ok else "rejected",
+        extract_committed=bool(pipe.extract.items) or bool(pipe.extract.idempotent_retry),
         message_chars=len(t.message or ""),
         latency_ms=latency_ms,
         memory_asserted=len(mem.asserted()),
         memory_total=len(mem.all()),
+        memory_backend=MEMORY_BACKEND,
+        memory_reads=mem_stats.get("memory_reads"),
+        memory_writes=mem_stats.get("memory_writes"),
+        memory_current_count=len(mem.asserted()),
+        memory_history_count=len([i for i in hist if i.status in ("superseded", "retracted")]),
+        workstream_count=reg_stats.get("workstream_count") or len(eng.reg.open_tasks()),
+        registry_reads=reg_stats.get("registry_reads"),
+        registry_writes=reg_stats.get("registry_writes"),
         package_status=package_status,
         context_mode=r.package.context_mode if r.package else None,
         demo_only=DEMO_ONLY,
+        answer_status=answer_status,
     ))
     return TurnOut(
         conversation_id=t.conversation_id,
@@ -210,6 +246,7 @@ def turn(t: TurnIn, request: Request):
         total_context_tokens=r.package.total_context_tokens if r.package else None,
         correlation_id=corr,
         extract_ok=pipe.extract.ok,
+        extract_committed=bool(pipe.extract.items) or bool(pipe.extract.idempotent_retry),
         demo_only=DEMO_ONLY,
         memory_backend=MEMORY_BACKEND,
     )
@@ -316,7 +353,7 @@ def list_memory(conversation_id: str):
         },
         "demo_only": DEMO_ONLY,
         "memory_backend": MEMORY_BACKEND,
-        "memory_durable": False,
+        "memory_durable": MEMORY_DURABLE,
     }
 
 

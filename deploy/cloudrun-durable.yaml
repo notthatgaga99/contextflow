@@ -1,0 +1,84 @@
+# ContextFlow Cloud Run — DURABLE POC (Firestore memory).
+#
+# Project: contextflow-506414
+# Region: asia-south1 (Cloud Run + Firestore)
+# Vertex: us-central1 via CF_VERTEX_LOCATION
+#
+# Authenticated only — do NOT deploy with --allow-unauthenticated.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: contextflow-durable
+  labels:
+    app: contextflow
+    contextflow.dev/tier: durable-poc
+  annotations:
+    contextflow.dev/demo-only: "false"
+    contextflow.dev/memory-backend: firestore
+    run.googleapis.com/invoker-iam-check: "true"
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/cpu-throttling: "true"
+      labels:
+        app: contextflow
+        contextflow.dev/tier: durable-poc
+    spec:
+      serviceAccountName: contextflow-run@contextflow-506414.iam.gserviceaccount.com
+      containerConcurrency: 8
+      timeoutSeconds: 60
+      containers:
+        - image: IMAGE
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: CF_MODE
+              value: split
+            - name: CF_DEMO_ONLY
+              value: "0"
+            - name: CF_SMOKE_FIXTURE
+              value: "0"
+            - name: CF_MEMORY_BACKEND
+              value: firestore
+            - name: GCP_PROJECT
+              value: contextflow-506414
+            - name: GCP_REGION
+              value: asia-south1
+            - name: CF_FIRESTORE_DATABASE
+              value: contextflow-poc
+            - name: CF_VERTEX_LOCATION
+              value: us-central1
+            - name: CF_GEN_MODEL
+              value: gemini-2.5-flash-lite
+            - name: CF_LITE_MODEL
+              value: gemini-2.5-flash-lite
+            - name: CF_EMBED_LOCAL
+              value: "1"
+            # Vertex toggled per revision/experiment; durability uses mock.
+            - name: CF_USE_VERTEX
+              value: "0"
+            - name: CF_USE_GEMINI
+              value: "0"
+            - name: CF_LLM_EXTRACT
+              value: "0"
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 3
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 15
+            failureThreshold: 3

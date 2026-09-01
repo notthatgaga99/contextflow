@@ -1,9 +1,8 @@
-"""In-memory MemoryStore. Not durable. Not Firestore.
+"""In-memory MemoryStore. Not durable.
 
-Protocol `MemoryStore` is the persistence boundary. This module ships the
-in-memory implementation used for local and Cloud Run demo revisions.
-A durable adapter is optional later and must not change routing or
-working-context semantics.
+Protocol `MemoryStore` is the persistence boundary. Implementations:
+- InMemoryMemoryStore (default, local / demo)
+- FirestoreMemoryStore (durable POC; see app/memory/firestore_store.py)
 
 Namespaced by conversation_id on the store instance (one store per conversation).
 Idempotent retry: same turn + same idempotency keys does not duplicate items.

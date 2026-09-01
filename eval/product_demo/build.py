@@ -1,4 +1,4 @@
-"""Build a deterministic product-demo snapshot from the ten-workstream fixture.
+"""Build a deterministic one-window product-demo snapshot.
 
 CONTROLLED ADVERSARIAL ENGINEERING FIXTURE — demo mechanisms, not production accuracy.
 MockLLM + MockMemoryExtractor. $0. No Vertex. No network.
@@ -6,6 +6,7 @@ MockLLM + MockMemoryExtractor. $0. No Vertex. No network.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -24,6 +25,17 @@ from eval.consented_case.contexts import (
     full_history_prompt,
     recent_prompt,
 )
+from eval.product_demo.scenario import (
+    DEMO_BOUNDARY,
+    DEMO_LABEL,
+    EXPECTED_BEAT_LABELS,
+    MESSAGE_OVERRIDES,
+    NARRATIVE,
+    PRODUCT_LLM_EXTRA,
+    REVIEWER_SENTENCE,
+    TAGLINE,
+    THESIS,
+)
 from eval.ten_workstream.load import extract_scripts, llm_scripts, load_fixture
 from eval.ten_workstream.run import make_registry
 
@@ -31,30 +43,13 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "eval" / "out" / "product_demo.json"
 UI = Path(__file__).resolve().parent / "ui.html"
 
-# Ordered ~60–120s pitch. Every listed turn becomes a UI beat.
-# Transitions/clarify come from frozen ContextFlow + Mock scripts — not forced.
-NARRATIVE = [
-    {"turn": 1, "beat": "open", "caption": "Open an authentication thread"},
-    {"turn": 3, "beat": "open", "caption": "Open the outfit thread (black)"},
-    {"turn": 5, "beat": "switch", "caption": "Similar technical thread - orders API"},
-    {"turn": 10, "beat": "switch", "caption": "Jump to Docker / CI"},
-    {"turn": 11, "beat": "switch", "caption": "Unrelated travel - Lisbon"},
-    {"turn": 20, "beat": "switch", "caption": "Trivia noise - many threads still alive"},
-    {"turn": 28, "beat": "switch", "caption": "Another distraction - Stripe deadline"},
-    {"turn": 32, "beat": "correct", "caption": "Correction: black -> navy (history kept)"},
-    {"turn": 35, "beat": "distract", "caption": "Leave the outfit again"},
-    {"turn": 37, "beat": "deictic", "caption": "Deictic 'fix that' amid open work"},
-    {"turn": 38, "beat": "return", "caption": "Back to the outfit - reconstruct navy / formal / evening"},
-    {"turn": 46, "beat": "clarify", "caption": "Underspecified - refuse to guess"},
-]
-
 
 def _status_label(task, selected_id: str | None, transition: str | None) -> str:
     if selected_id and task.id == selected_id:
         if transition == "RETURN":
-            return "Returned"
+            return "RETURNING TO"
         if transition == "CLARIFY":
-            return "Ambiguous"
+            return "NEEDS CLARIFICATION"
         return "Active"
     if task.status == "resolved":
         return "Resolved"
@@ -75,9 +70,9 @@ def _inspector(reg, store, selected_id: str | None, transition: str | None) -> l
         for i in superseded:
             nxt = next((x.text for x in asserted if x.id == i.superseded_by), None)
             if nxt:
-                history_lines.append(f"{i.text} -> superseded by {nxt}")
+                history_lines.append(f"{i.text} → superseded by {nxt}")
             else:
-                history_lines.append(f"{i.text} -> superseded")
+                history_lines.append(f"{i.text} → superseded")
         rows.append({
             "id": t.id,
             "title": t.title,
@@ -135,11 +130,11 @@ def _compare(history: list[dict], message: str, task, store, reg) -> dict:
         task, f"{task.id}.loop1", store, reg.open_tasks(),
     )
     rendered = "\n".join([
-        f"WORKSTREAM: {task.title}",
-        f"GOAL: {task.anchor.goal}",
-        "DECISIONS: " + (", ".join(proj.decisions) or "—"),
-        "CONSTRAINTS: " + (", ".join(proj.constraints) or "—"),
-        "FACTS: " + (", ".join(proj.facts) or "—"),
+        f"Thread: {task.title}",
+        f"Goal: {task.anchor.goal}",
+        "CURRENT decisions: " + (", ".join(proj.decisions) or "—"),
+        "CURRENT constraints: " + (", ".join(proj.constraints) or "—"),
+        "CURRENT facts: " + (", ".join(proj.facts) or "—"),
     ])
     full = full_history_prompt(history, message)
     recent = recent_prompt(history, message, RECENT_K)
@@ -147,27 +142,23 @@ def _compare(history: list[dict], message: str, task, store, reg) -> dict:
     return {
         "full": {
             "preview": full[:900], "tokens": count(full),
-            "label": "FULL HISTORY",
-            "blurb": "Everything is available, including unrelated material.",
+            "label": "FULL history",
+            "blurb": "Everything is available — including unrelated threads.",
         },
         "recent": {
             "preview": recent[:900], "tokens": count(recent),
             "label": f"RECENT (last {RECENT_K})",
-            "blurb": "Recent context can miss older working state.",
+            "blurb": "Recent turns can miss older working state.",
         },
         "contextflow": {
             "preview": cf[:900], "tokens": count(cf),
-            "label": "CONTEXTFLOW WORKING SET",
-            "blurb": (
-                "Only the selected workstream's current working state is projected."
-            ),
+            "label": "ContextFlow working context",
+            "blurb": "Only the resumed thread’s current working state.",
         },
         "qualitative": {
-            "full": "Everything is available, including unrelated material.",
-            "recent": "Recent context can miss older working state.",
-            "contextflow": (
-                "Only the selected workstream's current working state is projected."
-            ),
+            "full": "Everything is available — including unrelated threads.",
+            "recent": "Recent turns can miss older working state.",
+            "contextflow": "Only the resumed thread’s current working state.",
         },
     }
 
@@ -176,22 +167,220 @@ def _lifecycle_e(store) -> dict:
     asserted = store.asserted("E")
     hist = store.historical("E")
     color_now = [i.text for i in asserted if i.slot == "color"]
+    constraints = [
+        i.text for i in asserted if i.kind == "constraint"
+    ]
     superseded = [
         {"text": i.text, "status": i.status, "superseded_by": i.superseded_by,
          "provenance": i.provenance, "source_turn": i.source_turn}
         for i in hist if i.status == "superseded" and i.slot == "color"
     ]
-    return {"current": color_now, "superseded": superseded}
+    return {
+        "current": color_now,
+        "constraints": constraints,
+        "superseded": superseded,
+    }
+
+
+def _evidence(r, focus, store, working) -> dict:
+    """Technical drawer — secondary to the product story."""
+    items = []
+    if focus:
+        for i in store.asserted(focus.id):
+            items.append({
+                "text": i.text, "kind": i.kind, "slot": i.slot,
+                "status": i.status, "source_turn": i.source_turn,
+                "provenance": i.provenance, "referent_id": i.referent_id,
+            })
+        for i in store.historical(focus.id):
+            if i.status == "superseded":
+                items.append({
+                    "text": i.text, "kind": i.kind, "slot": i.slot,
+                    "status": i.status, "source_turn": i.source_turn,
+                    "provenance": i.provenance,
+                    "superseded_by": i.superseded_by,
+                    "why_excluded_from_current": "superseded",
+                })
+    excluded_why = []
+    if working:
+        for e in working.get("excluded") or []:
+            excluded_why.append({
+                "workstream": e["workstream"],
+                "why": "unrelated_to_selected_thread",
+                "samples": e.get("samples") or [],
+            })
+    return {
+        "selected_workstream": r.task_id,
+        "referent": r.predicted_referent_id,
+        "transition": r.transition.value if r.transition else None,
+        "package_present": r.package is not None,
+        "clarify": r.clarify_question,
+        "focus_items": items,
+        "excluded": excluded_why,
+    }
+
+
+def _semantic_fingerprint(store, reg, frames: list[dict]) -> str:
+    """Stable hash of demo-relevant semantic state (not wall-clock)."""
+    blob = {
+        "asserted": sorted(
+            (i.workstream_id, i.kind, i.slot or "", i.text, i.status)
+            for i in store.all()
+        ),
+        "frames": [
+            {
+                "turn": f["turn"], "beat": f["beat"],
+                "transition": f["transition"], "task_id": f["task_id"],
+                "message": f["message"],
+                "current": (f.get("working") or {}).get("included"),
+                "clarify": bool(f.get("clarify")),
+            }
+            for f in frames
+        ],
+        "open": sorted(t.id for t in reg.open_tasks()),
+    }
+    raw = json.dumps(blob, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+
+def _validate_demo(frames: list[dict], store, reg) -> list[str]:
+    """Fail-closed product invariants. Empty list = demo healthy."""
+    errors: list[str] = []
+    if len(frames) != 15:
+        errors.append(f"expected_15_beats_got_{len(frames)}")
+    if len(NARRATIVE) != 15 or len(EXPECTED_BEAT_LABELS) != 15:
+        errors.append("narrative_length_mismatch")
+    if len(reg.all()) != 10:
+        errors.append(f"expected_10_workstreams_got_{len(reg.all())}")
+
+    turns = [f["turn"] for f in frames]
+    if turns != [n["turn"] for n in NARRATIVE]:
+        errors.append("beat_turn_order_mismatch")
+
+    hero = next((f for f in frames if f.get("hero") or f["beat"] == "return"), None)
+    if hero is None:
+        errors.append("missing_hero_return_beat")
+    else:
+        if hero["message"] != MESSAGE_OVERRIDES[38]:
+            errors.append("hero_message_mismatch")
+        if hero.get("transition") != "RETURN" or hero.get("task_id") != "E":
+            errors.append("hero_not_return_to_outfit")
+        working = hero.get("working") or {}
+        inc = working.get("included") or {}
+        blob = " ".join(
+            (inc.get("decisions") or []) + (inc.get("constraints") or [])
+        ).lower()
+        if "navy" not in blob:
+            errors.append("hero_missing_navy_current")
+        if "black" in " ".join(inc.get("decisions") or []).lower():
+            errors.append("hero_projects_superseded_black_as_current")
+        life = hero.get("lifecycle") or {}
+        if not any(s.get("text") == "black" for s in life.get("superseded") or []):
+            errors.append("hero_missing_black_history")
+        excl = " ".join(
+            e.get("workstream", "").lower() for e in (working.get("excluded") or [])
+        )
+        for needle in ("authentication", "lisbon", "trivia"):
+            if needle not in excl:
+                errors.append(f"hero_missing_excluded_{needle}")
+
+    clarify = next((f for f in frames if f["beat"] == "clarify"), None)
+    if clarify is None:
+        errors.append("missing_clarify_beat")
+    elif clarify.get("transition") != "CLARIFY":
+        errors.append("clarify_beat_not_clarify")
+    elif "maybe" not in (clarify.get("message") or "").lower():
+        errors.append("clarify_message_mismatch")
+
+    if any(not f.get("generate_did_not_mutate_memory") for f in frames):
+        errors.append("generate_mutated_memory")
+
+    # Supersession: black historical, navy asserted on E
+    asserted_e = store.asserted("E")
+    hist_e = store.historical("E")
+    if not any(i.text == "navy" and i.status == "asserted" for i in asserted_e):
+        errors.append("navy_not_asserted_on_outfit")
+    if not any(i.text == "black" and i.status == "superseded" for i in hist_e):
+        errors.append("black_not_superseded_on_outfit")
+
+    return errors
+
+
+def public_demo_payload(payload: dict) -> dict:
+    """Browser-facing snapshot: product story only — no evaluator internals."""
+    frames = []
+    for f in payload.get("frames") or []:
+        frames.append({
+            "beat": f.get("beat"),
+            "hero": f.get("hero"),
+            "caption": f.get("caption"),
+            "turn": f.get("turn"),
+            "message": f.get("message"),
+            "transition": f.get("transition"),
+            "product_route": f.get("product_route"),
+            "task_id": f.get("task_id"),
+            "workstream_title": f.get("workstream_title"),
+            "clarify": f.get("clarify"),
+            "answer_preview": f.get("answer_preview"),
+            "workstreams": [
+                {
+                    "title": w.get("title"),
+                    "status": w.get("status"),
+                    "status_label": w.get("status_label"),
+                    "active_now": w.get("active_now"),
+                }
+                for w in (f.get("workstreams") or [])
+            ],
+            "inspector": [
+                {
+                    "id": i.get("id"),
+                    "title": i.get("title"),
+                    "status_label": i.get("status_label"),
+                    "decisions": i.get("decisions"),
+                    "constraints": i.get("constraints"),
+                    "facts": i.get("facts"),
+                    "history_lines": i.get("history_lines"),
+                }
+                for i in (f.get("inspector") or [])
+            ],
+            "focus_workstream_id": f.get("focus_workstream_id"),
+            "working": f.get("working"),
+            "compare": f.get("compare"),
+            "lifecycle": f.get("lifecycle"),
+            "evidence": {
+                "selected_workstream": (f.get("evidence") or {}).get("selected_workstream"),
+                "transition": (f.get("evidence") or {}).get("transition"),
+                "clarify": (f.get("evidence") or {}).get("clarify"),
+                "excluded": (f.get("evidence") or {}).get("excluded"),
+                "focus_items": (f.get("evidence") or {}).get("focus_items"),
+            },
+        })
+    return {
+        "label": payload.get("label"),
+        "demo_label": payload.get("demo_label"),
+        "demo_boundary": payload.get("demo_boundary"),
+        "checkpoint": payload.get("checkpoint"),
+        "thesis": payload.get("thesis"),
+        "reviewer_sentence": payload.get("reviewer_sentence"),
+        "tagline": payload.get("tagline"),
+        "demo_ok": payload.get("demo_ok"),
+        "demo_error": payload.get("demo_error"),
+        "disclaimer": payload.get("disclaimer"),
+        "honest_boundary": payload.get("honest_boundary"),
+        "controls": payload.get("controls"),
+        "paths": payload.get("paths"),
+        "frames": frames,
+        "workstream_titles": payload.get("workstream_titles"),
+    }
 
 
 def build() -> dict:
     fx = load_fixture()
-    turn_by = {t["turn"]: t for t in fx["turns"]}
     narrative_turns = {n["turn"] for n in NARRATIVE}
     max_turn = max(narrative_turns)
 
     scripts = extract_scripts(fx)
-    llm_s = llm_scripts(fx)
+    llm_s = {**llm_scripts(fx), **PRODUCT_LLM_EXTRA}
     reg = make_registry(fx)
     store = InMemoryMemoryStore(conversation_id="product-demo")
     writer = MemoryWriter(store, reg)
@@ -209,13 +398,19 @@ def build() -> dict:
         turn = t["turn"]
         if turn > max_turn:
             break
-        msg = t["message"]
+        msg = MESSAGE_OVERRIDES.get(turn, t["message"])
+        ids_before = {i.id for i in store.all()}
         pipe = run_turn(
             eng, writer, ext,
             conversation_id="product-demo",
             message=msg, turn=turn,
         )
         r = pipe.turn
+        # generate must not invent memory ids beyond extractor commits
+        new_ids = {i.id for i in store.all()} - ids_before
+        extract_ids = {i.id for i in pipe.extract.items}
+        generate_mutated = bool(new_ids - extract_ids)
+
         history.append({"role": "user", "text": msg, "turn": turn})
         if r.answer:
             history.append({"role": "assistant", "text": r.answer, "turn": turn})
@@ -225,28 +420,31 @@ def build() -> dict:
 
         meta = caption_by[turn]
         task = reg.get(r.task_id) if r.task_id else None
-        # On CLARIFY, still show outfit inspector if that is the story beat.
         focus = task
-        if meta["beat"] in ("return", "correct", "clarify") and reg.get("E"):
-            focus = reg.get("E") if meta["beat"] != "clarify" or not task else task
-        if meta["beat"] == "return":
-            focus = reg.get("E")
-        if meta["beat"] == "correct":
+        if meta["beat"] in ("return", "correct", "clarify"):
             focus = reg.get("E")
 
         working = _working_view(focus, store, reg) if focus else None
         compare = _compare(history, msg, focus, store, reg) if focus else None
         transition = r.transition.value if r.transition else None
+        product_route = (
+            "NEEDS CLARIFICATION" if transition == "CLARIFY" or r.clarify_question
+            else ("RETURNING TO" if transition == "RETURN" else (transition or "—"))
+        )
         frames.append({
             "beat": meta["beat"],
+            "hero": bool(meta.get("hero")),
             "caption": meta["caption"],
             "turn": turn,
             "message": msg,
             "transition": transition,
+            "product_route": product_route,
             "task_id": r.task_id,
-            "workstream_title": task.title if task else None,
+            "referent_id": r.predicted_referent_id,
+            "workstream_title": (focus or task).title if (focus or task) else None,
             "clarify": r.clarify_question,
             "answer_preview": (r.answer or "")[:180],
+            "generate_did_not_mutate_memory": not generate_mutated,
             "workstreams": [
                 {
                     "id": x.id, "title": x.title, "status": x.status,
@@ -261,41 +459,58 @@ def build() -> dict:
             "working": working,
             "compare": compare,
             "lifecycle": _lifecycle_e(store),
+            "evidence": _evidence(r, focus, store, working),
             "memory_counts": {
                 "asserted": len(store.asserted()),
                 "all": len(store.all()),
             },
         })
 
+    demo_errors = _validate_demo(frames, store, reg)
+    fingerprint = _semantic_fingerprint(store, reg, frames)
     payload = {
-        "label": "CONTROLLED ADVERSARIAL ENGINEERING FIXTURE — product demo",
+        "label": f"{DEMO_LABEL} — product demo",
+        "demo_label": DEMO_LABEL,
+        "demo_boundary": DEMO_BOUNDARY,
         "checkpoint": "DEMO-READY / RESEARCH-PRODUCT CHECKPOINT",
-        "tagline": (
-            "ContextFlow doesn't try to remember everything equally. "
-            "It maintains multiple open workstreams and reconstructs the "
-            "working state that matters when you return."
-        ),
+        "thesis": THESIS,
+        "reviewer_sentence": REVIEWER_SENTENCE,
+        "tagline": TAGLINE,
+        "demo_ok": not demo_errors,
+        "demo_error": None if not demo_errors else {
+            "message": "DEMO ERROR — product invariants failed",
+            "errors": demo_errors,
+        },
         "disclaimer": (
-            "Demo-only · MockLLM · CONTROLLED ADVERSARIAL ENGINEERING FIXTURE · "
-            "not organic chat · not production-ready · $0 · no network"
+            f"{DEMO_LABEL} · {DEMO_BOUNDARY} · MockLLM · offline · "
+            "$0 · no Vertex · no credentials · no network · not production-ready"
         ),
+        "honest_boundary": {
+            "fixture": "controlled synthetic engineering demo",
+            "deterministic": True,
+            "memory": "in-memory (process-local)",
+            "auth": False,
+            "natural_chat_benchmark": False,
+            "production_ready": False,
+            "vertex": False,
+            "gcp": False,
+            "network": False,
+        },
+        "controls": [
+            "RESET DEMO", "PLAY SCENARIO", "STEP", "RETURN TO THREAD", "INSPECT MEMORY",
+        ],
         "paths": {
             "mock": "default (this demo)",
-            "ollama": "CF_USE_OLLAMA=1 (optional local)",
-            "vertex": "explicit eval harnesses only — not this demo",
+            "command": "python -m eval.product_demo --serve",
         },
-        "pitch_questions": [
-            "What does ContextFlow remember?",
-            "What does it deliberately exclude from the current context?",
-            "Can it keep many tasks alive simultaneously?",
-            "Can it return after unrelated activity?",
-            "Can it preserve decisions and constraints?",
-            "Can it handle corrections?",
-            "Can it CLARIFY instead of guessing?",
-            "Why isn't this just a longer context window?",
+        "canonical_sequence": [
+            {"turn": n["turn"], "beat": n["beat"], "caption": n["caption"],
+             "label": EXPECTED_BEAT_LABELS[i]}
+            for i, n in enumerate(NARRATIVE)
         ],
         "frames": frames,
         "workstream_titles": [w["title"] for w in fx["workstreams"]],
+        "semantic_fingerprint": fingerprint,
         "narrative_note": (
             "Beat order is curated for the pitch; routing outcomes are produced by "
             "frozen ContextFlow + MockLLM scripts on the synthetic fixture."
@@ -311,7 +526,9 @@ def main() -> int:
     print(json.dumps({
         "status": "ok",
         "checkpoint": p["checkpoint"],
+        "thesis": p["thesis"],
         "frames": len(p["frames"]),
+        "fingerprint": p["semantic_fingerprint"],
         "out": str(OUT),
         "ui": str(UI),
     }, indent=2))

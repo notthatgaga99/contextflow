@@ -6,6 +6,7 @@ __pycache__/
 .DS_Store
 .vscode/
 CONTEXTFLOW_AGENT_NOTES.md
+docs/FINAL_RELEASE_AUDIT.md
 eval/out/*
 !eval/out/POC_RESULTS.md
 eval/consented_case/interpretation.json

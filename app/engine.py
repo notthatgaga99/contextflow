@@ -24,6 +24,19 @@ NewTaskFactory = Callable[[str, int], Optional[Task]]
 
 
 @dataclass
+class TurnPlan:
+    """Routing outcome without registry mutations or answer generation."""
+    transition: Transition
+    task_id: str | None
+    pred_task: str | None
+    pred_ref: str | None
+    evidence: dict
+    decision: GateDecision
+    open_tasks: list
+    candidates: list = field(default_factory=list)
+
+
+@dataclass
 class TurnResult:
     transition: Transition
     task_id: Optional[str]
@@ -105,7 +118,8 @@ class Engine:
         )
         return pkg
 
-    def handle_turn(self, message: str, turn: int) -> TurnResult:
+    def plan_turn(self, message: str, turn: int) -> TurnPlan:
+        """Frozen routing plan only — no registry writes, no answer generation."""
         open_tasks = self.retriever.candidates(message, self.reg)
         active = self.reg.active()
         active_id = active.id if active else None
@@ -140,26 +154,53 @@ class Engine:
         if conflict is not None:
             decision = decide(cands, conflict, active_id, self.settings, self.platt,
                               statuses=statuses, turns_since=turns_since)
-            return self._clarify(decision, cands, pred_task, pred_ref, evidence)
+            return TurnPlan(
+                Transition.CLARIFY, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+            )
 
         if resolution.use_referent_route:
             if resolution.ambiguous or not pred_task:
                 decision = decide(cands, None, active_id, self.settings, self.platt,
                                   statuses=statuses, turns_since=turns_since)
-                # Resolver is uncertain: policy CLARIFY even if scorer would act.
-                return self._clarify(decision, cands, pred_task, pred_ref, evidence)
+                return TurnPlan(
+                    Transition.CLARIFY, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+                )
             decision = bind_task(
                 cands, None, active_id, self.settings, statuses, turns_since, pred_task,
             )
-            return self._act(decision, pred_task, pred_ref, evidence, turn, message, open_tasks)
+            return TurnPlan(
+                decision.transition, pred_task, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+            )
 
         decision = decide(cands, None, active_id, self.settings, self.platt,
                           statuses=statuses, turns_since=turns_since)
         if decision.transition == Transition.CLARIFY:
-            return self._clarify(decision, cands, pred_task, pred_ref, evidence)
+            return TurnPlan(
+                Transition.CLARIFY, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+            )
         if decision.transition == Transition.NEW:
-            return self._new(decision, evidence, turn, message)
-        return self._act(decision, decision.task_id, pred_ref, evidence, turn, message, open_tasks)
+            return TurnPlan(
+                Transition.NEW, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+            )
+        return TurnPlan(
+            decision.transition, decision.task_id, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+        )
+
+    def execute_plan(self, plan: TurnPlan, message: str, turn: int) -> TurnResult:
+        """Apply a routing plan: registry mutations + answer generation."""
+        if plan.transition == Transition.CLARIFY:
+            return self._clarify(
+                plan.decision, plan.candidates, plan.pred_task, plan.pred_ref, plan.evidence,
+            )
+        if plan.transition == Transition.NEW:
+            return self._new(plan.decision, plan.evidence, turn, message)
+        return self._act(
+            plan.decision, plan.task_id, plan.pred_ref, plan.evidence, turn, message, plan.open_tasks,
+        )
+
+    def handle_turn(self, message: str, turn: int) -> TurnResult:
+        plan = self.plan_turn(message, turn)
+        return self.execute_plan(plan, message, turn)
 
     def _clarify(self, decision: GateDecision, cands, pred_task, pred_ref, evidence) -> TurnResult:
         return TurnResult(

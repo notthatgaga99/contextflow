@@ -3,153 +3,292 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ContextFlow — working memory demo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,650;1,9..40,500&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <title>ContextFlow — product demo</title>
+  <!-- Offline-capable: no CDN fonts / no network required for the demo itself. -->
   <style>
     :root {
-      --bg0: #12100e; --bg1: #1c1916; --panel: #221f1b; --ink: #f3eee6;
+      --bg0: #12100e; --panel: #221f1b; --ink: #f3eee6;
       --muted: #a39a8c; --line: #3a342c; --mint: #6fcf9c; --copper: #d4a574;
-      --rose: #e07a6a; --sky: #7eb6d9;
+      --rose: #e07a6a; --sky: #7eb6d9; --current-bg: #1a2820;
+      --serif: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      --sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0; color: var(--ink); font-family: "DM Sans", sans-serif;
+      margin: 0; color: var(--ink); font-family: var(--sans);
       background:
-        radial-gradient(1200px 600px at 10% -10%, #2a241c 0%, transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, #1a2a24 0%, transparent 50%),
+        radial-gradient(1100px 520px at 8% -8%, #2c241c 0%, transparent 55%),
+        radial-gradient(800px 420px at 100% 0%, #182822 0%, transparent 48%),
         var(--bg0);
       min-height: 100vh;
     }
-    header { padding: 1.15rem 1.5rem 0.85rem; border-bottom: 1px solid var(--line); }
-    .brand { font-family: "Fraunces", serif; font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; }
-    .tagline { color: var(--muted); max-width: 54rem; font-size: 0.95rem; line-height: 1.45; margin-top: 0.35rem; }
-    .banner { margin-top: 0.45rem; font-size: 0.72rem; color: var(--copper); letter-spacing: 0.04em; text-transform: uppercase; }
+    header {
+      padding: 1.15rem 1.5rem 0.75rem;
+      border-bottom: 1px solid var(--line);
+      animation: rise 0.7s ease-out both;
+    }
+    .brand {
+      font-family: var(--serif); font-size: clamp(1.85rem, 3vw, 2.4rem);
+      font-weight: 700; letter-spacing: -0.03em; line-height: 1.1;
+    }
+    .thesis {
+      margin-top: 0.3rem; font-family: var(--serif);
+      font-size: clamp(1.05rem, 1.8vw, 1.28rem); color: var(--mint); font-weight: 600;
+    }
+    .explain {
+      margin-top: 0.45rem; max-width: 42rem; font-size: 1rem; line-height: 1.45;
+      color: var(--ink);
+    }
+    .labels {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem;
+    }
+    .label-pill {
+      font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1px solid #5a4a32; color: var(--copper); border-radius: 6px;
+      padding: 0.22rem 0.5rem; background: #1a1714;
+    }
+    .label-pill.warn {
+      border-color: #6a4540; color: #e0b0a8;
+    }
+    .hint {
+      margin-top: 0.4rem; font-size: 0.82rem; color: var(--muted);
+    }
+    .demo-error {
+      display: none; margin: 0.75rem 1.5rem 0; padding: 0.75rem 1rem;
+      border: 1px solid var(--rose); background: #2a1816; border-radius: 10px; color: #f0c4bc;
+    }
+    .demo-error.open { display: block; }
+    .demo-error strong { color: var(--rose); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.72rem; }
     .controls {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-      padding: 0.7rem 1.5rem; border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.25);
+      display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;
+      padding: 0.65rem 1.5rem; border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.28);
     }
     button {
       font: inherit; cursor: pointer; border: 1px solid var(--line);
-      background: var(--panel); color: var(--ink); border-radius: 8px; padding: 0.45rem 0.85rem;
+      background: var(--panel); color: var(--ink); border-radius: 8px; padding: 0.42rem 0.8rem;
+      transition: border-color 0.15s, color 0.15s;
     }
+    button:hover:not(:disabled) { border-color: #5a4e40; }
     button.primary { background: #2a3d34; border-color: #3d5c4c; color: var(--mint); }
+    button.accent { border-color: #5a4a32; color: var(--copper); }
+    button.ghost { opacity: 0.75; font-size: 0.78rem; }
     button:disabled { opacity: 0.4; cursor: default; }
-    .step-meta { color: var(--muted); font-size: 0.82rem; margin-left: auto; }
-    .caption { width: 100%; color: var(--copper); font-size: 0.85rem; margin-top: 0.15rem; }
+    .step-meta { color: var(--muted); font-size: 0.8rem; margin-left: auto; }
+    .caption { width: 100%; color: var(--copper); font-size: 0.86rem; margin-top: 0.1rem; }
+    .hero-banner {
+      display: none; margin: 0; padding: 0.55rem 1.5rem;
+      background: linear-gradient(90deg, #1e3a2e 0%, #243028 55%, #1c1916 100%);
+      border-bottom: 1px solid #3d5c4c; color: var(--mint);
+      font-family: var(--serif); font-size: 1.05rem; letter-spacing: 0.01em;
+    }
+    .hero-banner.open { display: block; animation: heroIn 0.45s ease-out; }
     .layout {
-      display: grid; grid-template-columns: 16.5rem 1.05fr 1.2fr;
-      gap: 0.75rem; padding: 0.75rem 1rem 1.25rem; min-height: calc(100vh - 10rem);
+      display: grid; grid-template-columns: 14.5rem minmax(0, 1fr) minmax(0, 1.35fr);
+      gap: 0.7rem; padding: 0.7rem 1rem 1rem; min-height: calc(100vh - 13rem);
+      animation: rise 0.85s ease-out 0.08s both;
+    }
+    .layout.hero-mode .col#momentCol,
+    .layout.hero-mode .col#panelCol {
+      border-color: #3d5c4c;
+      box-shadow: 0 0 0 1px rgba(111,207,156,0.25), 0 12px 40px rgba(0,0,0,0.35);
     }
     @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
     .col {
       background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-      overflow: hidden; display: flex; flex-direction: column; min-height: 18rem;
+      overflow: hidden; display: flex; flex-direction: column; min-height: 16rem;
+      transition: border-color 0.25s, box-shadow 0.25s;
     }
     .col h2 {
-      margin: 0; padding: 0.7rem 0.9rem; font-size: 0.7rem; letter-spacing: 0.08em;
+      margin: 0; padding: 0.65rem 0.9rem; font-size: 0.68rem; letter-spacing: 0.09em;
       text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line);
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.22);
     }
-    .body { padding: 0.85rem 0.95rem; overflow: auto; flex: 1; font-size: 0.88rem; }
-    .ws { display: flex; align-items: center; gap: 0.5rem; padding: 0.38rem 0; border-bottom: 1px solid rgba(58,52,44,0.55); }
-    .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
-    .ws.active .dot { background: var(--mint); box-shadow: 0 0 0 3px rgba(111,207,156,0.2); }
+    .body { padding: 0.8rem 0.9rem; overflow: auto; flex: 1; font-size: 0.88rem; }
+    .ws { display: flex; align-items: center; gap: 0.45rem; padding: 0.36rem 0; border-bottom: 1px solid rgba(58,52,44,0.5); }
+    .dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+    .ws.active .dot { background: var(--mint); box-shadow: 0 0 0 3px rgba(111,207,156,0.18); }
     .ws.active { color: var(--mint); font-weight: 650; }
-    .ws .st { margin-left: auto; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .hero { font-family: "Fraunces", serif; font-size: 1.2rem; margin: 0 0 0.55rem; }
+    .ws .st { margin-left: auto; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .hero-line { font-family: var(--serif); font-size: 1.28rem; margin: 0 0 0.45rem; }
     .user {
       background: #2a2621; border-left: 3px solid var(--sky);
-      padding: 0.65rem 0.75rem; border-radius: 0 10px 10px 0; margin-bottom: 0.75rem;
+      padding: 0.7rem 0.8rem; border-radius: 0 10px 10px 0; margin-bottom: 0.7rem;
     }
+    .stream { max-height: 8.5rem; overflow: auto; margin-bottom: 0.65rem; font-size: 0.78rem; color: var(--muted); }
+    .stream .u { color: var(--sky); margin: 0.18rem 0; }
+    .stream .a { color: var(--muted); margin: 0.18rem 0; opacity: 0.85; }
     .pill {
-      display: inline-block; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--mint); border: 1px solid #3d5c4c; border-radius: 999px; padding: 0.15rem 0.55rem; margin-bottom: 0.5rem;
+      display: inline-block; font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--mint); border: 1px solid #3d5c4c; border-radius: 999px; padding: 0.14rem 0.55rem; margin-bottom: 0.45rem;
     }
     .pill.warn { color: var(--copper); border-color: #6a5438; }
-    .ok { color: var(--mint); } .ex { color: var(--rose); }
-    .list { margin: 0.35rem 0 0.8rem; padding-left: 1.1rem; }
-    .list li { margin: 0.2rem 0; }
-    .compare { display: grid; gap: 0.55rem; }
-    .card { border: 1px solid var(--line); border-radius: 10px; padding: 0.65rem 0.75rem; background: #1a1714; }
+    .pill.hero { background: #24382e; color: #b8f0d0; border-color: #4a7a60; }
+    .ok { color: var(--mint); } .ex { color: var(--rose); } .hist { color: var(--muted); }
+    .list { margin: 0.25rem 0 0.65rem; padding-left: 1.05rem; }
+    .list li { margin: 0.16rem 0; }
+    .compare { display: grid; gap: 0.5rem; }
+    .card { border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 0.65rem; background: #1a1714; }
     .card.win { border-color: #3d5c4c; background: #1a2420; }
-    .card h3 { margin: 0 0 0.25rem; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--copper); }
+    .card h3 { margin: 0 0 0.2rem; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--copper); }
     .card.win h3 { color: var(--mint); }
-    .tok { color: var(--muted); font-size: 0.75rem; }
+    .tok { color: var(--muted); font-size: 0.72rem; }
     pre {
-      white-space: pre-wrap; word-break: break-word; margin: 0.4rem 0 0;
-      font-size: 0.72rem; color: #cfc5b6; max-height: 7rem; overflow: auto;
+      white-space: pre-wrap; word-break: break-word; margin: 0.35rem 0 0;
+      font-size: 0.68rem; color: #cfc5b6; max-height: 5.5rem; overflow: auto;
     }
-    .life { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; margin: 0.5rem 0 0.85rem; font-family: "Fraunces", serif; }
-    .life .node { padding: 0.35rem 0.65rem; border-radius: 8px; border: 1px solid var(--line); }
-    .life .now { border-color: #3d5c4c; color: var(--mint); }
-    .life .old { color: var(--muted); text-decoration: line-through; }
-    .life .arrow { color: var(--muted); padding-left: 0.85rem; font-family: "DM Sans", sans-serif; font-size: 0.75rem; }
-    .insp h3 { margin: 0 0 0.45rem; font-family: "Fraunces", serif; font-size: 1.05rem; }
-    .insp .row { margin: 0.55rem 0; }
-    .insp .k { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
-    .insp .v { margin-top: 0.15rem; }
-    details { margin-top: 0.65rem; color: var(--muted); font-size: 0.78rem; }
-    details summary { cursor: pointer; }
-    .tabs { display: flex; gap: 0.35rem; margin-bottom: 0.55rem; flex-wrap: wrap; }
-    .tabs button { font-size: 0.75rem; padding: 0.3rem 0.55rem; }
+    .hero-state { display: grid; gap: 0.65rem; margin-top: 0.15rem; }
+    .block-current {
+      background: var(--current-bg); border: 1px solid #3d5c4c; border-radius: 12px;
+      padding: 0.95rem 1rem; animation: currentPulse 1.2s ease-out 1;
+    }
+    .block-current .label {
+      font-family: var(--serif); font-size: 1.12rem; color: var(--mint); margin: 0 0 0.4rem;
+    }
+    .block-current ul { margin: 0; padding-left: 1.1rem; font-size: 1.05rem; }
+    .block-history {
+      border-left: 2px solid #5a5248; padding: 0.35rem 0 0.2rem 0.75rem; opacity: 0.85;
+    }
+    .block-history .label { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .block-history li { text-decoration: line-through; color: var(--muted); }
+    .block-excluded .label { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rose); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
+    .chip {
+      font-size: 0.68rem; color: #c9a8a2; border: 1px dashed #6a4540;
+      border-radius: 6px; padding: 0.18rem 0.4rem; background: #241816;
+    }
+    .tabs { display: flex; gap: 0.3rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .tabs button { font-size: 0.72rem; padding: 0.28rem 0.5rem; }
     .tabs button.on { border-color: #3d5c4c; color: var(--mint); }
-    footer { padding: 0.5rem 1.5rem 1rem; color: var(--muted); font-size: 0.75rem; }
+    .drawer {
+      border-top: 1px solid var(--line); background: rgba(0,0,0,0.35);
+      padding: 0.55rem 1.5rem 0.9rem; display: none;
+    }
+    .drawer.open { display: block; animation: rise 0.35s ease-out; }
+    .drawer h3 { margin: 0.2rem 0 0.4rem; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    footer { padding: 0.45rem 1.5rem 0.9rem; color: var(--muted); font-size: 0.72rem; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes heroIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    @keyframes currentPulse {
+      0% { box-shadow: 0 0 0 0 rgba(111,207,156,0.45); }
+      100% { box-shadow: none; }
+    }
+    .flash { animation: pulse 0.55s ease; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(111,207,156,0.35); } 100% { box-shadow: none; } }
   </style>
 </head>
 <body>
   <header>
     <div class="brand">ContextFlow</div>
-    <div class="tagline" id="tagline">Loading…</div>
-    <div class="banner" id="banner">Demo-only</div>
+    <div class="thesis" id="thesis">ContextFlow lets you leave a thought without losing it.</div>
+    <p class="explain" id="explain">
+      ContextFlow keeps multiple unfinished workstreams alive and reconstructs the right working context when you return.
+    </p>
+    <div class="labels">
+      <span class="label-pill" id="demoLabel">CONTROLLED SYNTHETIC ENGINEERING DEMO</span>
+      <span class="label-pill warn" id="demoBoundary">NOT A NATURAL-CHAT BENCHMARK</span>
+    </div>
+    <div class="hint">Click <strong>PLAY SCENARIO</strong> (or <strong>STEP</strong>). Watch open threads, then the return to outfit.</div>
   </header>
+
+  <div class="demo-error" id="demoError">
+    <strong>DEMO ERROR</strong>
+    <div id="demoErrorBody" style="margin-top:0.35rem;font-size:0.88rem;"></div>
+  </div>
+
   <div class="controls">
-    <button id="prev" type="button">← Prev</button>
-    <button id="next" class="primary" type="button">Next beat →</button>
-    <button id="play" type="button">Auto-play</button>
+    <button id="reset" type="button">RESET DEMO</button>
+    <button id="play" class="primary" type="button">PLAY SCENARIO</button>
+    <button id="step" type="button">STEP</button>
+    <button id="returnThread" class="accent" type="button">RETURN TO THREAD</button>
+    <button id="inspect" type="button">INSPECT MEMORY</button>
+    <button id="evidence" class="ghost" type="button">Evidence</button>
     <span class="step-meta" id="meta"></span>
     <div class="caption" id="caption"></div>
   </div>
-  <div class="layout">
+
+  <div class="hero-banner" id="heroBanner">HERO — returning to the outfit · CURRENT navy · HISTORY black superseded · unrelated threads EXCLUDED</div>
+
+  <div class="layout" id="stage">
     <section class="col">
-      <h2>Active work</h2>
+      <h2>Open workstreams</h2>
       <div class="body" id="ws"></div>
     </section>
-    <section class="col">
-      <h2>Moment</h2>
+    <section class="col" id="momentCol">
+      <h2>Conversation</h2>
       <div class="body" id="moment"></div>
     </section>
-    <section class="col">
-      <h2>Working set vs everything else</h2>
+    <section class="col" id="panelCol">
+      <h2>Working context</h2>
       <div class="body">
-        <div class="tabs">
-          <button type="button" class="on" data-tab="working">Working context</button>
+        <div class="tabs" id="tabs">
+          <button type="button" class="on" data-tab="working">STATE</button>
           <button type="button" data-tab="compare">FULL / RECENT / CF</button>
-          <button type="button" data-tab="inspector">Memory inspector</button>
+          <button type="button" data-tab="inspector">Memory</button>
         </div>
         <div id="panel"></div>
       </div>
     </section>
   </div>
-  <footer>
-    python -m eval.product_demo --serve · CONTROLLED ADVERSARIAL ENGINEERING FIXTURE ·
-    FULL HISTORY ≠ WORKING MEMORY · DEMO-READY / RESEARCH-PRODUCT CHECKPOINT — not production-ready
+
+  <div class="drawer" id="drawer">
+    <h3>Evidence (optional · secondary)</h3>
+    <pre id="drawerBody">—</pre>
+  </div>
+
+  <footer id="footer">
+    python -m eval.product_demo --serve · CONTROLLED SYNTHETIC ENGINEERING DEMO ·
+    NOT A NATURAL-CHAT BENCHMARK · MockLLM · offline · not production-ready
   </footer>
+
   <script>
-    let data = null, idx = 0, tab = "working", timer = null;
+    let data = null, idx = 0, tab = "working", timer = null, stream = [];
+
+    function showDemoError(msg, details) {
+      const box = document.getElementById("demoError");
+      const body = document.getElementById("demoErrorBody");
+      body.textContent = details ? (msg + " — " + details) : msg;
+      box.classList.add("open");
+      document.getElementById("play").disabled = true;
+      document.getElementById("step").disabled = true;
+      document.getElementById("returnThread").disabled = true;
+    }
 
     async function load() {
       const r = await fetch("/api/demo");
+      if (!r.ok) {
+        showDemoError("Failed to load /api/demo", "HTTP " + r.status);
+        return;
+      }
       data = await r.json();
-      document.getElementById("tagline").textContent = data.tagline;
-      document.getElementById("banner").textContent = data.disclaimer;
+      document.getElementById("thesis").textContent = data.thesis || document.getElementById("thesis").textContent;
+      document.getElementById("explain").textContent =
+        data.reviewer_sentence || data.tagline || document.getElementById("explain").textContent;
+      if (data.demo_label) document.getElementById("demoLabel").textContent = data.demo_label;
+      if (data.demo_boundary) document.getElementById("demoBoundary").textContent = data.demo_boundary;
+      if (data.demo_ok === false || data.demo_error) {
+        const errs = (data.demo_error && data.demo_error.errors) || ["unknown_invariant_failure"];
+        showDemoError(
+          (data.demo_error && data.demo_error.message) || "DEMO ERROR",
+          errs.join(", ")
+        );
+      }
+      idx = 0; stream = []; tab = "working";
       render();
     }
 
     function frame() { return data.frames[idx]; }
     function escapeHtml(s) {
       return String(s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function rebuildStream() {
+      stream = [];
+      for (let i = 0; i <= idx; i++) {
+        const f = data.frames[i];
+        stream.push({role: "user", text: f.message});
+        if (f.clarify) stream.push({role: "assistant", text: f.clarify});
+        else if (f.answer_preview) stream.push({role: "assistant", text: f.answer_preview});
+      }
     }
 
     function renderWs(f) {
@@ -161,30 +300,38 @@
         </div>`).join("");
     }
 
+    function isHeroBeat(f) {
+      return !!(f.hero || f.beat === "return");
+    }
+
     function renderMoment(f) {
+      rebuildStream();
       const isClarify = f.transition === "CLARIFY" || !!f.clarify;
-      const route = isClarify
-        ? `<div class="pill warn">CLARIFY — refuse to guess</div>
-           <div class="hero">I’m not confident which continuation you mean.</div>
-           <p>${escapeHtml(f.clarify || "")}</p>`
-        : `<div class="pill">${escapeHtml(f.transition || "—")} → ${escapeHtml((f.workstream_title || "").toUpperCase())}</div>
-           <div class="hero">${escapeHtml(f.workstream_title || "—")}</div>`;
-      let life = "";
-      const lifeData = f.lifecycle || {};
-      const old = (lifeData.superseded || []);
-      const cur = (lifeData.current || []);
-      if (old.length || cur.length) {
-        life = `<div class="life">
-          ${old.map(s => `<div class="node old">${escapeHtml(s.text)}</div><div class="arrow">↓ superseded</div>`).join("")}
-          ${cur.map(t => `<div class="node now">${escapeHtml(t)}</div>`).join("")}
-        </div>`;
+      const hero = isHeroBeat(f);
+      let route;
+      if (isClarify) {
+        route = `<div class="pill warn">NEEDS CLARIFICATION</div>
+           <div class="hero-line">Not guessing — which one?</div>
+           <p>${escapeHtml(f.clarify || "Refuse to guess.")}</p>`;
+      } else if (hero) {
+        route = `<div class="pill hero">RETURNING TO · ${escapeHtml(f.workstream_title || "outfit")}</div>
+           <div class="hero-line">Back to the outfit</div>`;
+      } else {
+        route = `<div class="pill">${escapeHtml(f.product_route || f.transition || "—")}${f.workstream_title ? " · " + escapeHtml(f.workstream_title) : ""}</div>
+           <div class="hero-line">${escapeHtml(f.workstream_title || "—")}</div>`;
       }
+
+      const hist = stream.slice(-5).map(x =>
+        `<div class="${x.role === "user" ? "u" : "a"}"><strong>${x.role === "user" ? "You" : "Assistant"}</strong> — ${escapeHtml(x.text)}</div>`
+      ).join("");
+
       document.getElementById("moment").innerHTML = `
-        <div class="user"><strong>USER</strong><div>${escapeHtml(f.message)}</div></div>
+        <div class="stream">${hist}</div>
+        <div class="user"><strong>You</strong><div>${escapeHtml(f.message)}</div></div>
         ${route}
-        ${life}
-        <p style="color:var(--muted);font-size:0.8rem">Turn ${f.turn}</p>
       `;
+      if (hero || isClarify) document.getElementById("momentCol").classList.add("flash");
+      else document.getElementById("momentCol").classList.remove("flash");
     }
 
     function focusInspector(f) {
@@ -193,105 +340,163 @@
       return insp.find(x => x.id === id) || insp[0];
     }
 
+    function heroStateHtml(f) {
+      const inc = (f.working && f.working.included) || {decisions:[],constraints:[],facts:[]};
+      const ex = (f.working && f.working.excluded) || [];
+      const life = f.lifecycle || {};
+      const old = life.superseded || [];
+      const currentItems = []
+        .concat(inc.decisions || [])
+        .concat(inc.constraints || [])
+        .concat(inc.facts || []);
+      const focus = focusInspector(f);
+      const histLines = (focus && focus.history_lines) || old.map(s => s.text + " → superseded");
+
+      return `<div class="hero-state">
+        <div class="block-current">
+          <div class="label">CURRENT</div>
+          <ul>${currentItems.map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>—</li>"}</ul>
+        </div>
+        <div class="block-history">
+          <div class="label hist">HISTORY</div>
+          <ul class="list">${histLines.map(d => `<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul>
+        </div>
+        <div class="block-excluded">
+          <div class="label ex">EXCLUDED</div>
+          <div class="chips">${ex.map(e => `<span class="chip">× ${escapeHtml(e.workstream)}</span>`).join("") || "<span class='chip'>—</span>"}</div>
+        </div>
+      </div>`;
+    }
+
     function renderPanel(f) {
       const el = document.getElementById("panel");
+      const inc = (f.working && f.working.included) || {decisions:[],constraints:[],facts:[]};
+      const ex = (f.working && f.working.excluded) || [];
+      const showHeroLayout = isHeroBeat(f) || f.beat === "correct" || f.beat === "clarify";
+
       if (tab === "working") {
-        const inc = (f.working && f.working.included) || {decisions:[],constraints:[],facts:[]};
-        const ex = (f.working && f.working.excluded) || [];
+        if (showHeroLayout) {
+          el.innerHTML = heroStateHtml(f);
+          return;
+        }
         el.innerHTML = `
-          <div class="ok"><strong>CURRENT (working context)</strong></div>
+          <div class="ok"><strong>CURRENT</strong></div>
           <ul class="list">
-            ${(inc.decisions||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
-            ${(inc.constraints||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
-            ${(inc.facts||[]).map(x=>`<li>✓ ${escapeHtml(x)}</li>`).join("")}
+            ${(inc.decisions||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join("")}
+            ${(inc.constraints||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join("")}
+            ${(inc.facts||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join("")}
             ${!(inc.decisions||[]).length && !(inc.constraints||[]).length && !(inc.facts||[]).length ? "<li>—</li>" : ""}
           </ul>
           <div class="ex"><strong>EXCLUDED</strong></div>
-          <ul class="list">
-            ${ex.slice(0,8).map(e => `<li>× ${escapeHtml(e.workstream)}${e.samples&&e.samples[0] ? ": " + escapeHtml(e.samples[0]) : ""}</li>`).join("") || "<li>—</li>"}
-          </ul>
+          <div class="chips">${ex.map(e => `<span class="chip">× ${escapeHtml(e.workstream)}</span>`).join("") || "<span class='chip'>—</span>"}</div>
         `;
         return;
       }
       if (tab === "compare" && f.compare) {
         const c = f.compare;
         el.innerHTML = `<div class="compare">
-          <div class="card"><h3>${c.full.label}</h3><div class="tok">${c.full.tokens} tok · ${escapeHtml(c.full.blurb || c.qualitative.full)}</div><pre>${escapeHtml(c.full.preview)}</pre></div>
-          <div class="card"><h3>${c.recent.label}</h3><div class="tok">${c.recent.tokens} tok · ${escapeHtml(c.recent.blurb || c.qualitative.recent)}</div><pre>${escapeHtml(c.recent.preview)}</pre></div>
-          <div class="card win"><h3>${c.contextflow.label}</h3><div class="tok">${c.contextflow.tokens} tok · ${escapeHtml(c.contextflow.blurb || c.qualitative.contextflow)}</div><pre>${escapeHtml(c.contextflow.preview)}</pre></div>
+          <div class="card"><h3>${c.full.label}</h3><div class="tok">${c.full.tokens} tok · ${escapeHtml(c.full.blurb)}</div><pre>${escapeHtml(c.full.preview)}</pre></div>
+          <div class="card"><h3>${c.recent.label}</h3><div class="tok">${c.recent.tokens} tok · ${escapeHtml(c.recent.blurb)}</div><pre>${escapeHtml(c.recent.preview)}</pre></div>
+          <div class="card win"><h3>${c.contextflow.label}</h3><div class="tok">${c.contextflow.tokens} tok · ${escapeHtml(c.contextflow.blurb)}</div><pre>${escapeHtml(c.contextflow.preview)}</pre></div>
         </div>`;
         return;
       }
       const focus = focusInspector(f);
       if (!focus) { el.innerHTML = "—"; return; }
-      const excl = ((f.working && f.working.excluded) || []).map(e => e.workstream);
       el.innerHTML = `
         <div class="insp">
-          <h3>${escapeHtml(focus.title)}</h3>
-          <div class="row"><div class="k">Status</div><div class="v">${escapeHtml(focus.status_label || focus.status)}</div></div>
-          <div class="row"><div class="k">Goal</div><div class="v">${escapeHtml(focus.goal || "—")}</div></div>
-          <div class="row"><div class="k">CURRENT</div><div class="v"><ul class="list">
+          <h3 style="font-family:var(--serif);margin:0 0 0.4rem;">${escapeHtml(focus.title)}</h3>
+          <div class="ok"><strong>CURRENT</strong></div>
+          <ul class="list">
             ${(focus.decisions||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
             ${(focus.constraints||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
             ${(focus.facts||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("")}
-            ${!(focus.decisions||[]).length && !(focus.constraints||[]).length && !(focus.facts||[]).length ? "<li>—</li>" : ""}
-          </ul></div></div>
-          <div class="row"><div class="k">HISTORY</div><div class="v"><ul class="list">${(focus.history_lines||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">EXCLUDED</div><div class="v"><ul class="list">${excl.slice(0,8).map(d=>`<li>× ${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul></div></div>
-          <div class="row"><div class="k">Last active</div><div class="v">turn ${focus.last_active_turn}</div></div>
-          <details><summary>PROVENANCE</summary>
-            <pre>${escapeHtml(JSON.stringify((focus.superseded || []).map(s => ({
-              text: s.text, slot: s.slot, source_turn: s.source_turn,
-              status: "superseded", superseded_by: s.superseded_by,
-              provenance: s.provenance, kind: "decision"
-            })), null, 2))}</pre>
-          </details>
+          </ul>
+          <div class="hist"><strong>HISTORY</strong></div>
+          <ul class="list">${(focus.history_lines||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join("") || "<li>—</li>"}</ul>
+          <div class="ex"><strong>EXCLUDED</strong></div>
+          <div class="chips">${ex.map(e=>`<span class="chip">× ${escapeHtml(e.workstream)}</span>`).join("") || "<span class='chip'>—</span>"}</div>
         </div>`;
     }
 
+    function renderDrawer(f) {
+      const ev = f.evidence || {};
+      document.getElementById("drawerBody").textContent = JSON.stringify({
+        selected_workstream: ev.selected_workstream,
+        transition: ev.transition,
+        clarify: ev.clarify,
+        focus_items: ev.focus_items,
+        excluded: ev.excluded,
+      }, null, 2);
+    }
+
+    function applyBeatDefaults(f) {
+      if (f.beat === "return" || f.hero || f.beat === "clarify" || f.beat === "correct") tab = "working";
+    }
+
     function render() {
-      if (!data) return;
+      if (!data || !data.frames || !data.frames.length) return;
       const f = frame();
       document.getElementById("meta").textContent = `Beat ${idx + 1} / ${data.frames.length}`;
       document.getElementById("caption").textContent = f.caption || "";
-      document.getElementById("prev").disabled = idx <= 0;
-      document.getElementById("next").disabled = idx >= data.frames.length - 1;
-      if (f.beat === "return" || f.beat === "clarify") tab = f.beat === "clarify" ? "working" : (tab === "inspector" ? "inspector" : "working");
-      if (f.beat === "return") {
-        // Prefer working context on the killer return beat the first time we land.
-      }
-      renderWs(f); renderMoment(f); renderPanel(f);
+      const blocked = data.demo_ok === false;
+      document.getElementById("step").disabled = blocked || idx >= data.frames.length - 1;
+      const hero = isHeroBeat(f);
+      document.getElementById("heroBanner").classList.toggle("open", hero);
+      document.getElementById("stage").classList.toggle("hero-mode", hero || f.beat === "clarify");
+      renderWs(f); renderMoment(f); renderPanel(f); renderDrawer(f);
       document.querySelectorAll(".tabs button").forEach(b => {
         b.classList.toggle("on", b.dataset.tab === tab);
       });
     }
 
-    document.getElementById("prev").onclick = () => { idx = Math.max(0, idx - 1); render(); };
-    document.getElementById("next").onclick = () => {
-      idx = Math.min(data.frames.length - 1, idx + 1);
-      const f = frame();
-      if (f.beat === "return") tab = "working";
-      if (f.beat === "clarify") tab = "working";
-      if (f.beat === "correct") tab = "inspector";
+    function stopPlay() {
+      if (timer) { clearInterval(timer); timer = null; }
+      document.getElementById("play").textContent = "PLAY SCENARIO";
+    }
+
+    document.getElementById("reset").onclick = () => {
+      stopPlay(); idx = 0; tab = "working";
+      if (data && data.demo_ok !== false) {
+        document.getElementById("play").disabled = false;
+        document.getElementById("returnThread").disabled = false;
+      }
       render();
     };
+    document.getElementById("step").onclick = () => {
+      if (data && data.demo_ok === false) return;
+      if (idx < data.frames.length - 1) { idx += 1; applyBeatDefaults(frame()); render(); }
+    };
     document.getElementById("play").onclick = () => {
-      if (timer) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Auto-play"; return; }
-      document.getElementById("play").textContent = "Pause";
+      if (data && data.demo_ok === false) return;
+      if (timer) { stopPlay(); return; }
+      document.getElementById("play").textContent = "PAUSE";
       timer = setInterval(() => {
-        if (idx >= data.frames.length - 1) { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Auto-play"; return; }
-        idx += 1;
-        const f = frame();
-        if (f.beat === "return") tab = "working";
-        if (f.beat === "clarify") tab = "working";
-        if (f.beat === "correct") tab = "inspector";
-        render();
-      }, 2800);
+        if (idx >= data.frames.length - 1) { stopPlay(); return; }
+        idx += 1; applyBeatDefaults(frame()); render();
+      }, 2400);
+    };
+    document.getElementById("returnThread").onclick = () => {
+      if (data && data.demo_ok === false) return;
+      stopPlay();
+      const i = data.frames.findIndex(f => f.hero || f.beat === "return");
+      if (i >= 0) { idx = i; tab = "working"; render(); }
+    };
+    document.getElementById("inspect").onclick = () => {
+      tab = "inspector";
+      document.getElementById("panelCol").classList.add("flash");
+      render();
+    };
+    document.getElementById("evidence").onclick = () => {
+      document.getElementById("drawer").classList.toggle("open");
     };
     document.querySelectorAll(".tabs button").forEach(b => {
       b.onclick = () => { tab = b.dataset.tab; render(); };
     });
-    load().catch(e => { document.getElementById("tagline").textContent = "Failed to load demo: " + e; });
+    load().catch(e => {
+      document.getElementById("explain").textContent = "Failed to load demo.";
+      showDemoError("Failed to load demo", String(e));
+    });
   </script>
 </body>
 </html>

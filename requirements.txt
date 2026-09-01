@@ -5,3 +5,5 @@ fastapi>=0.110
 uvicorn>=0.27
 google-genai>=0.3.0
 python-dotenv
+# Optional durable MemoryStore (CF_MEMORY_BACKEND=firestore). Not required for local tests.
+google-cloud-firestore>=2.16.0

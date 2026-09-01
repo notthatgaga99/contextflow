@@ -65,8 +65,14 @@ MemoryExtractor   → proposes patches; must not route or write store
 - Superseded and retracted items are excluded.
 - Items from other workstreams are excluded (listed in `excluded_workstreams`).
 
-## Not in v1
+## Not in v1 (historical)
 
 - Graph / vector database
-- Durable cross-restart storage (in-memory only)
-- Firestore / Vector Search (until explicitly required)
+- LangChain / agentic routing
+
+## Current status (Phase 8–13)
+
+- **DEMONSTRATED:** Firestore-backed `MemoryStore` + `WorkstreamRegistry` on GCP. Survives Cloud Run revision replacement. Duplicate-current-state on recall turns fixed (Phase 12). Dynamic NEW workstream without seed (Phase 13).
+- **TESTED:** Repeatability harness — duplicate decisions 0/10; correction extraction **10/10 per-run** (Phase 13, seed OFF, deterministic parsers). Phase 12 baseline was **2/10** (not rewritten).
+- **Default local:** `CF_MEMORY_BACKEND=memory` (in-process) for tests and demo.
+- **NOT YET:** Production SLO, organic-chat benchmarks, Vector Search, 5/5 NEW-turn memory persistence after revision, isolation-check infra reliability.

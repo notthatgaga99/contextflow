@@ -22,10 +22,9 @@ work. Dumping the whole transcript (or every open card) into the answer model
 is bulky and can distract a generator.
 
 **What does ContextFlow do?**
-It tracks open tasks and open loops, mention clocks, and a derived foreground
-referent. A deterministic gate then ACTS (continue/switch/return/new) or
-CLARIFIES. The answer model sees the **selected task + selected loop**, not
-the full dump.
+It keeps multiple unfinished workstreams alive and reconstructs the right
+working context when you return — with a deterministic gate that ACTS or
+CLARIFIES when ambiguity matters.
 
 **What evidence do we have?**
 A controlled PoC on a fixed scenario family: MockLLM tests, local Ollama
@@ -33,31 +32,43 @@ probes, a 512-cell interference/scale grid, and Gemini 2.5 Flash-Lite as a
 hosted **proposer** (not a product cost claim). Details: `docs/POC_FREEZE.md`,
 `eval/out/POC_RESULTS.md`.
 
-**How do I run it?**
-See the 60-second demo below. No API key. No network.
+**How do I run the product demo?**
+See below. No API key. No network. No GCP.
 
-## 60-second demo
+## REVIEWER DEMO (start here)
 
-    python -m eval.demo
+**CONTROLLED SYNTHETIC ENGINEERING DEMO** · **NOT A NATURAL-CHAT BENCHMARK**
 
-Optional local UI (still MockLLM, no cloud):
+```bash
+python -m eval.product_demo --serve
+```
+
+Open http://127.0.0.1:8766/ (also printed in the terminal; a browser tab should open).
+
+1. Click **PLAY SCENARIO** (or **STEP**).
+2. Watch many unfinished threads stay open.
+3. Hero: **“Okay, back to the outfit.”** → **CURRENT navy**, **HISTORY black superseded**, unrelated **EXCLUDED**.
+4. Then **“Maybe the navy one?”** → **NEEDS CLARIFICATION**.
+
+Full checklist: `docs/PRODUCT_DEMO.md`.
+
+Optional older four-task judge demo (still MockLLM):
 
     python -m eval.demo --serve
 
-Every-turn dump: `python -m eval.demo --verbose`
+## CLOUD TECHNICAL PROOF (separate)
 
-You should see Authentication / Frontend / Deployment / OAuth, then:
+**Not** the local product demo. Real Cloud Run + Firestore + Vertex. Authenticated. **Not production-ready.**
 
+Reviewer walkthrough (what to run + what to inspect):
+
+- `docs/CLOUD_POC_REVIEWER.md`
+
+Primary harness:
+
+```bash
+python -m eval.cloud_poc.end_to_end_resurrection
 ```
-USER                "fix that"
-LLM PROPOSAL        Authentication (0.97)     [soft; not the decision]
-CONTEXTFLOW         Deployment / C.loop1      [deictic mention clocks]
-GATE                CONTINUE C
-ANSWER CONTEXT      Deployment + Docker CI failure
-```
-
-FULL HISTORY = everything. CONTEXTFLOW = what matters now.
-No numerical token-savings claim.
 
 ## Architecture
 
