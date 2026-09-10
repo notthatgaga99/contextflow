@@ -181,9 +181,10 @@ class Engine:
                 Transition.CLARIFY, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
             )
         if decision.transition == Transition.NEW:
-            return TurnPlan(
+            plan = TurnPlan(
                 Transition.NEW, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
             )
+            return self._maybe_align(plan, message, open_tasks, active_id)
 
         plan = TurnPlan(
             decision.transition, decision.task_id, pred_task, pred_ref, evidence, decision, open_tasks, cands,

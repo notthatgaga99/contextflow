@@ -27,6 +27,13 @@ _STOP = frozenset({
     "here", "also", "very", "really", "should", "would", "could", "need",
     "want", "get", "got", "make", "made", "using", "use", "used",
 })
+# Deictic / underspecified continues — prefer stick to active, do not force NEW.
+_CONTINUE_CUES = frozenset({
+    "yes", "yeah", "yep", "ok", "okay", "sure", "same", "also", "and", "then",
+    "those", "these", "them", "that", "this", "again", "still", "continue",
+    "more", "please", "right", "exactly", "correct", "yaml", "yml", "json",
+    "file", "files", "config", "configs", "manifest", "manifests",
+})
 
 
 def _tokens(text: str) -> set[str]:
@@ -34,6 +41,21 @@ def _tokens(text: str) -> set[str]:
         t for t in _TOKEN.findall((text or "").lower())
         if len(t) >= 3 and t not in _STOP
     }
+
+
+def is_underspecified(message: str) -> bool:
+    """Short or deictic follow-ups should not open a new workstream."""
+    raw = (message or "").strip()
+    if len(raw) < 24:
+        return True
+    toks = _tokens(raw)
+    if len(toks) <= 3:
+        return True
+    # Mostly continuation glue + tiny content.
+    content = {t for t in toks if t not in _CONTINUE_CUES}
+    if len(content) <= 1 and len(raw) < 80:
+        return True
+    return False
 
 
 def task_blob(task: Task, extra_texts: list[str] | None = None) -> str:
@@ -85,6 +107,17 @@ def align_plan(
     accept_min: float = 0.10,
 ) -> AlignmentOutcome | None:
     """Return an override, or None to keep the frozen gate decision."""
+    # Spurious NEW on tiny follow-ups ("yml", "ok?", "yes") after CLARIFY/tech.
+    if transition == Transition.NEW and active_id and is_underspecified(message):
+        return AlignmentOutcome(
+            transition=Transition.CONTINUE,
+            task_id=active_id,
+            reason="stick_underspecified_new",
+            selected_score=0.0,
+            best_other_id=None,
+            best_other_score=0.0,
+        )
+
     if transition in (Transition.CLARIFY, Transition.NEW):
         return None
     if not task_id or not open_tasks:
@@ -110,14 +143,12 @@ def align_plan(
         best_other_id
         and best_other >= accept_min
         and best_other >= selected + steal_margin
+        and not is_underspecified(message)
     ):
         if active_id == best_other_id:
             tr = Transition.CONTINUE
-        elif any(t.id == best_other_id for t in open_tasks):
-            # Prefer RETURN semantic when leaving active for a paused peer.
-            tr = Transition.RETURN if active_id and active_id != best_other_id else Transition.SWITCH
-            if active_id is None:
-                tr = Transition.SWITCH
+        elif active_id and active_id != best_other_id:
+            tr = Transition.RETURN
         else:
             tr = Transition.SWITCH
         return AlignmentOutcome(
@@ -129,8 +160,9 @@ def align_plan(
             best_other_score=best_other,
         )
 
-    # Nothing open matches — first fashion after tech should be NEW, not IoT CONTINUE.
-    if selected < accept_min:
+    # Substantial mismatched topic (e.g. fashion after IoT) → NEW.
+    # Vague / short YAML-style continues must NOT open a new thread.
+    if selected < accept_min and not is_underspecified(message):
         return AlignmentOutcome(
             transition=Transition.NEW,
             task_id=None,

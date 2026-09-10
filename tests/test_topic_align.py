@@ -75,3 +75,34 @@ def test_keep_gate_when_selected_matches():
         active_id="T3",
     )
     assert out is None
+
+
+def test_short_yaml_followup_does_not_force_new():
+    tech = _task(
+        "T1",
+        "helm values and deployment yamls for the service",
+        ["helm", "values", "deployment", "yaml", "service"],
+    )
+    out = align_plan(
+        message="yml",
+        transition=Transition.CONTINUE,
+        task_id="T1",
+        open_tasks=[tech],
+        active_id="T1",
+    )
+    assert out is None
+
+
+def test_spurious_new_on_tiny_message_sticks_to_active():
+    tech = _task("T1", "helm values yaml", ["helm", "yaml", "values"])
+    out = align_plan(
+        message="ok?",
+        transition=Transition.NEW,
+        task_id=None,
+        open_tasks=[tech],
+        active_id="T1",
+    )
+    assert out is not None
+    assert out.transition == Transition.CONTINUE
+    assert out.task_id == "T1"
+    assert out.reason == "stick_underspecified_new"
