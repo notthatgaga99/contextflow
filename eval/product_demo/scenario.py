@@ -21,24 +21,45 @@ MESSAGE_OVERRIDES = {
 # Ordered ~60–120s one-window pitch. User never types a task id.
 # Beat order matches docs/PRODUCT_DEMO.md (captions must match fixture turns).
 NARRATIVE = [
-    {"turn": 1, "beat": "open", "caption": "Authentication thread opens"},
-    {"turn": 3, "beat": "open", "caption": "Outfit thread opens (black)"},
-    {"turn": 5, "beat": "switch", "caption": "Orders API — similar 401 vocabulary"},
-    {"turn": 8, "beat": "switch", "caption": "Dinner / food"},
-    {"turn": 10, "beat": "switch", "caption": "Docker / CI"},
-    {"turn": 11, "beat": "switch", "caption": "Lisbon travel"},
-    {"turn": 14, "beat": "switch", "caption": "Checkout frontend — another 401"},
-    {"turn": 17, "beat": "switch", "caption": "Presentation deck"},
-    {"turn": 20, "beat": "switch", "caption": "Trivia distraction"},
-    {"turn": 28, "beat": "switch", "caption": "Stripe application deadline"},
-    {"turn": 32, "beat": "correct", "caption": "Correction: black → navy (history kept)"},
-    {"turn": 35, "beat": "distract", "caption": "Leave the outfit again"},
-    {"turn": 37, "beat": "deictic", "caption": "Deictic “fix that”"},
+    {
+        "turn": 1, "beat": "open",
+        "caption": "1) Start a tech problem — auth still returns 401",
+    },
+    {
+        "turn": 3, "beat": "open",
+        "caption": "2) New thread — outfit (we assume black for now)",
+    },
+    {
+        "turn": 5, "beat": "switch",
+        "caption": "3) Another tech 401 — easy to mix with auth",
+    },
+    {"turn": 8, "beat": "switch", "caption": "4) Life interrupt — dinner plans"},
+    {"turn": 10, "beat": "switch", "caption": "5) Back to tech — Docker / CI"},
+    {"turn": 11, "beat": "switch", "caption": "6) Life interrupt — Lisbon trip"},
+    {
+        "turn": 14, "beat": "switch",
+        "caption": "7) Third 401 thread — checkout frontend",
+    },
+    {"turn": 17, "beat": "switch", "caption": "8) Work interrupt — presentation deck"},
+    {"turn": 20, "beat": "switch", "caption": "9) Noise — trivia (should stay out of real work)"},
+    {"turn": 28, "beat": "switch", "caption": "10) Deadline interrupt — Stripe / job"},
+    {
+        "turn": 32, "beat": "correct",
+        "caption": "11) We were wrong — not black, NAVY (keep black as history)",
+    },
+    {"turn": 35, "beat": "distract", "caption": "12) Leave the outfit again — more switching"},
+    {
+        "turn": 37, "beat": "deictic",
+        "caption": "13) Vague: “fix that” — which unfinished thread?",
+    },
     {
         "turn": 38, "beat": "return", "hero": True,
-        "caption": "RETURNING TO outfit — reconstruct working context",
+        "caption": "14) HERO: back to outfit → CURRENT navy · HISTORY black · EXCLUDE the rest",
     },
-    {"turn": 46, "beat": "clarify", "caption": "NEEDS CLARIFICATION — refuse to guess"},
+    {
+        "turn": 46, "beat": "clarify",
+        "caption": "15) “Maybe the navy one?” → ask, don’t guess",
+    },
 ]
 
 # Human-readable expected pitch order (for tests / docs alignment).

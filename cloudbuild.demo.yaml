@@ -1,0 +1,11 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-south1-docker.pkg.dev/contextflow-506414/cloud-run-source-deploy/contextflow-demo:ui1
+      - -f
+      - Dockerfile.demo
+      - .
+images:
+  - asia-south1-docker.pkg.dev/contextflow-506414/cloud-run-source-deploy/contextflow-demo:ui1

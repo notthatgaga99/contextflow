@@ -61,11 +61,17 @@ def serve(
     payload: dict | None = None,
     open_browser: bool = True,
 ) -> None:
+    import os
     import uvicorn
 
     if payload is None:
         payload = build()
     app = create_app(payload)
+    # Cloud Run injects PORT; bind all interfaces when hosting publicly.
+    port = int(os.getenv("PORT", str(port)))
+    if os.getenv("K_SERVICE") or os.getenv("CF_DEMO_CLOUD") == "1":
+        host = "0.0.0.0"
+        open_browser = False
     url = f"http://{host}:{port}/"
 
     # Clear, copy-pasteable launch banner (ASCII-safe for Windows consoles).
@@ -105,6 +111,9 @@ def main() -> int:
     )
     args = ap.parse_args()
     payload = build()
+    # Prefer PORT when present (Cloud Run) for the printed URL.
+    import os
+    serve_port = int(os.getenv("PORT", str(args.port)))
     print(json.dumps({
         "checkpoint": payload["checkpoint"],
         "thesis": payload.get("thesis"),
@@ -114,7 +123,7 @@ def main() -> int:
         "fingerprint": payload.get("semantic_fingerprint"),
         "out": str(OUT),
         "disclaimer": payload["disclaimer"],
-        "url": f"http://{args.host}:{args.port}/" if args.serve else None,
+        "url": f"http://{args.host}:{serve_port}/" if args.serve else None,
     }, indent=2), flush=True)
     if args.serve:
         if not payload.get("demo_ok", True):

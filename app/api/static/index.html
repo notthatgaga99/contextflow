@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ContextFlow</title>
+  <style>
+    :root {
+      --bg: #f7f6f3; --card: #fff; --ink: #1c1917; --muted: #78716c;
+      --line: #e7e5e4; --accent: #0f766e; --accent-soft: #ccfbf1;
+      --rose: #be123c; --rose-soft: #ffe4e6;
+      --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); min-height: 100vh; }
+    header { background: var(--card); border-bottom: 1px solid var(--line); padding: 1rem 1.25rem 0.9rem; }
+    .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; }
+    .tag { margin: 0.2rem 0 0; color: var(--accent); font-weight: 600; }
+    .sub { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.88rem; max-width: 48rem; line-height: 1.45; }
+    .layout {
+      display: grid; grid-template-columns: 1fr 300px; gap: 0.85rem;
+      padding: 0.85rem; max-width: 1140px; margin: 0 auto;
+    }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      overflow: hidden; display: flex; flex-direction: column; min-height: 28rem;
+    }
+    .card h2 {
+      margin: 0; padding: 0.65rem 0.9rem; font-size: 0.7rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); background: #fafaf9;
+    }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid var(--line); background: #fafaf9;
+    }
+    .toolbar button {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 0.35rem 0.75rem; font: inherit; font-size: 0.78rem; cursor: pointer;
+    }
+    .toolbar button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 650; }
+    .toolbar button:disabled { opacity: 0.45; cursor: default; }
+    .chat { flex: 1; overflow: auto; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .bubble { max-width: 94%; padding: 0.65rem 0.8rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.45; white-space: pre-wrap; }
+    .bubble.user { align-self: flex-end; background: #ecfdf5; border: 1px solid #99f6e4; }
+    .bubble.bot { align-self: flex-start; background: #fafaf9; border: 1px solid var(--line); }
+    .meta { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
+    .meta b { color: var(--accent); }
+    .composer { display: flex; gap: 0.4rem; padding: 0.65rem 0.9rem; border-top: 1px solid var(--line); }
+    .composer input {
+      flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.75rem; font: inherit;
+    }
+    .composer button {
+      border: none; background: var(--accent); color: #fff; border-radius: 10px;
+      padding: 0.6rem 0.9rem; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    .composer button:disabled { opacity: 0.5; }
+    .status { padding: 0.4rem 0.9rem; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--line); }
+    .err { color: var(--rose); padding: 0.45rem 0.9rem; font-size: 0.84rem; }
+    .side-actions { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); }
+    .side-actions button {
+      width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 10px;
+      padding: 0.5rem; font: inherit; cursor: pointer;
+    }
+    .howto {
+      margin: 0; padding: 0.55rem 0.75rem; font-size: 0.76rem; line-height: 1.4; color: var(--muted);
+      border-bottom: 1px solid var(--line); background: #fafaf9;
+    }
+    .howto b { color: var(--ink); font-weight: 650; }
+    .body { padding: 0.75rem; overflow: auto; flex: 1; font-size: 0.84rem; }
+    .ws {
+      padding: 0.35rem 0.4rem; border: 1px solid transparent; border-radius: 8px;
+      display: flex; gap: 0.4rem; align-items: flex-start; cursor: pointer; text-align: left;
+      width: 100%; background: transparent; font: inherit; color: inherit;
+    }
+    .ws:hover { background: #f5f5f4; }
+    .dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #d6d3d1; margin-top: 0.35rem; flex-shrink: 0; }
+    .ws.on { border-color: #99f6e4; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+    .ws.on .dot { background: var(--accent); }
+    .ws .meta-line { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-top: 0.1rem; }
+    .block { margin-bottom: 0.7rem; }
+    .label { font-size: 0.66rem; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    .footprint {
+      font-size: 0.72rem; color: var(--muted); margin: 0 0 0.45rem; line-height: 1.35;
+    }
+    .current { background: var(--accent-soft); border: 1px solid #99f6e4; border-radius: 10px; padding: 0.6rem 0.7rem; }
+    .current .label { color: var(--accent); font-weight: 700; }
+    .history .label { color: var(--muted); }
+    .history li { color: var(--muted); text-decoration: line-through; }
+    .excluded .label { color: var(--rose); }
+    .chip-x {
+      display: inline-block; margin: 0.12rem 0.12rem 0 0; padding: 0.12rem 0.35rem;
+      border-radius: 6px; background: var(--rose-soft); color: #9f1239; font-size: 0.7rem;
+    }
+    ul { margin: 0.15rem 0 0; padding-left: 1rem; }
+    .caption { font-size: 0.78rem; color: var(--accent); padding: 0 0.9rem 0.45rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">ContextFlow</div>
+    <div class="tag">Leave a thought without losing it.</div>
+    <p class="sub">
+      How to try it: optionally click <b>BUILD HISTORY</b> to open several unfinished threads, then scroll the chat,
+      click a thread in <b>State</b> to inspect its CURRENT / HISTORY, and type freely — switch back (“What about Alfama for Lisbon?”),
+      revive another open thread, or start something new. Suggestions are optional.
+    </p>
+  </header>
+
+  <div class="layout">
+    <section class="card">
+      <h2>Conversation</h2>
+      <div class="toolbar">
+        <button class="primary" id="buildHistory" type="button">1 · BUILD HISTORY (optional warm-up)</button>
+        <button id="pauseDeep" type="button" disabled>PAUSE</button>
+        <button id="newChat" type="button">NEW CHAT</button>
+      </div>
+      <div class="caption" id="caption">Build history (optional) → click a thread on the right → type to switch / revive / start new.</div>
+      <div class="toolbar" id="suggestBar" style="display:none;border-top:none;padding-top:0;"></div>
+      <div class="chat" id="chat">
+        <div class="bubble bot">Judge path (not a locked script):
+1) Optional: BUILD HISTORY — seeds eng, townhall, Lisbon, and outfit threads.
+2) Click any open workstream on the right to see that thread’s CURRENT memory and superseded HISTORY, plus a small footprint (items / chars projected into working context).
+3) Type freely: revive (“What about place X in Lisbon?”), switch threads, or open a new topic.
+Chips after history are shortcuts only — ignore them anytime.</div>
+      </div>
+      <div class="composer">
+        <input id="msg" placeholder="Ask about any open thread — or start a new one…" autocomplete="off" />
+        <button id="send" type="button">Send</button>
+      </div>
+      <div class="status" id="status">Ready</div>
+      <div class="err" id="err" hidden></div>
+    </section>
+
+    <aside class="card">
+      <h2>State</h2>
+      <p class="howto"><b>Click a thread</b> to inspect its memory. CURRENT is what that thread would feed the model; HISTORY is superseded (e.g. black → navy).</p>
+      <div class="side-actions"><button id="refresh" type="button">Refresh state</button></div>
+      <div class="body">
+        <div class="block">
+          <div class="label">Open workstreams</div>
+          <div id="ws">—</div>
+        </div>
+        <div class="block" id="footprintBlock">
+          <div class="label">Working-context footprint</div>
+          <div class="footprint" id="footprint">Select a thread —</div>
+        </div>
+        <div class="block current">
+          <div class="label" id="currentLabel">CURRENT</div>
+          <ul id="current"><li>—</li></ul>
+        </div>
+        <div class="block history">
+          <div class="label" id="historyLabel">HISTORY</div>
+          <ul id="history"><li>—</li></ul>
+        </div>
+        <div class="block excluded">
+          <div class="label">EXCLUDED (other threads)</div>
+          <div id="excluded">—</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    /** Optional warm-up: eng + life interrupts (not a judge script). */
+    const DEEP = [
+      { t: "A", c: "Open eng thread", m: "We're on branch feat/submission-polish. Cloud Run service contextflow is public. Do NOT redesign gate/referent/scorer. Help me debug why judges hit {\"detail\":\"Not Found\"} on the root URL." },
+      { t: "A", c: "Constraint", m: "Root path / has no route — only /docs /health /turn. Confirm that's expected for FastAPI, then propose the smallest fix so / shows a clean UI without touching routing freeze files." },
+      { t: "A", c: "CI / ADO", m: "Azure DevOps-style check: pytest is green locally (312 passed) but the pipeline image build failed after COPY . . — no .dockerignore. List what must be excluded so we don't ship .env or eval/out." },
+      { t: "A", c: "401 hypothesis", m: "Hypothesis: POST /turn 401 after refresh is because middleware rejects expired access tokens and never accepts the rotated refresh cookie. Walk the request path and tell me what to log first." },
+      { t: "A", c: "Narrow bug", m: "We log correlation_id but not token_kind. Assume refresh hits /turn with Authorization Bearer <access>. If access is expired, should we return 401 with machine-readable code refresh_required?" },
+      { t: "A", c: "Falsify auth", m: "Correction: it's NOT the refresh cookie. Staging shows identity token missing on unauthenticated clients — Cloud Run IAM returns 403 HTML, not our FastAPI 401. Update the diagnosis." },
+      { t: "A", c: "Public vs durable", m: "We have contextflow (public demo) and contextflow-durable (IAM invoker only). Judges must use the public UI URL. Write a one-paragraph hackathon form note." },
+      { t: "A", c: "Deploy flags", m: "Before redeploy: GET / UI, Vertex extract+answer only, CF_LLM_EXTRACT=1, CF_SEED_ABCD=0, max instances 2. Confirm env flags and rollback." },
+      { t: "A", c: "Logging", m: "Cloud Logging query for turn_decision on service contextflow — which fields prove extract_ok and transition without logging raw user text?" },
+      { t: "A", c: "Freeze proof", m: "Give the exact git diff command to prove gate.py referent.py scorer.py config.py writer.py unchanged vs freeze commit 8cc5539." },
+      { t: "A", c: "GitHub link", m: "origin/main is still scaffold. Release is on feat/submission-polish. What GitHub URL should the form use until we update main?" },
+      { t: "B", c: "Townhall", m: "Quick switch — ignore engineering. Draft a warm 90-second hosting script for Friday office townhall. Thank volunteers; one ContextFlow shout-out." },
+      { t: "B", c: "Townhall short", m: "Shorten to 45 seconds. Remove jargon. Keep: leave a thought without losing it." },
+      { t: "C", c: "Lisbon trip", m: "Different thread: Lisbon trip planning. Hotel needs parking near the center. Mid-range budget, 4 nights." },
+      { t: "C", c: "Lisbon detail", m: "Prefer walkable neighborhoods. Add a note that airport traffic was mentioned in the deck — don't let that contaminate the hotel choice." },
+      { t: "D", c: "Haldi black", m: "Another thread: best friend's haldi this weekend. Festive but comfortable. Assuming black is fine for evening." },
+      { t: "D", c: "Falsify navy", m: "Actually navy, not black — formal evening. Keep black as old assumption for audit. What should CURRENT vs HISTORY look like?" },
+      { t: "D", c: "Outfit constraint", m: "Also no heavy embroidery — need to dance. Prefer breathable fabrics." }
+    ];
+
+    const SUGGEST = [
+      { c: "Revive Lisbon", m: "What about Alfama for my Lisbon stay — walkable, still okay with parking nearby?" },
+      { c: "Return to eng", m: "Okay, back to the Cloud Run / FastAPI judge access issue — continue from the IAM vs FastAPI diagnosis, don't restart." },
+      { c: "Maybe navy?", m: "Maybe the navy one?" },
+      { c: "Townhall tweak", m: "For the townhall script — add one line thanking the volunteers by first name only." }
+    ];
+
+    let conversationId = "deep-" + Math.random().toString(36).slice(2, 10);
+    let turn = 1, busy = false, deepIdx = 0, playing = false, lastTaskId = null, historyReady = false;
+    let memoryCache = null;
+    const chat = document.getElementById("chat");
+    const status = document.getElementById("status");
+    const err = document.getElementById("err");
+    const caption = document.getElementById("caption");
+
+    function esc(s) {
+      return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function addBubble(role, text, meta) {
+      const div = document.createElement("div");
+      div.className = "bubble " + (role === "user" ? "user" : "bot");
+      div.innerHTML = esc(text) + (meta ? `<div class="meta">${meta}</div>` : "");
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function setBusy(v) {
+      busy = v;
+      document.getElementById("send").disabled = v || playing;
+      document.getElementById("buildHistory").disabled = v || playing;
+      document.getElementById("pauseDeep").disabled = !playing;
+      status.textContent = v ? ("Gemini turn " + turn + "…")
+        : (playing ? ("Building history " + deepIdx + "/" + DEEP.length) : ("Ready · " + conversationId));
+    }
+    function showSuggestBar() {
+      historyReady = true;
+      const bar = document.getElementById("suggestBar");
+      bar.style.display = "flex";
+      bar.innerHTML = '<span style="font-size:0.72rem;color:#78716c;width:100%;">Optional ideas (or just type your own):</span>';
+      SUGGEST.forEach((beat) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = beat.c;
+        b.onclick = () => send(beat.m, "You · " + beat.c);
+        bar.appendChild(b);
+      });
+      caption.textContent = "History ready — click a thread on the right, then type to revive / switch / start new.";
+      document.getElementById("buildHistory").textContent = "REBUILD HISTORY";
+    }
+    function renderWorkstreams(tasks, selectedId) {
+      if (!tasks.length) {
+        document.getElementById("ws").textContent = "—";
+        return;
+      }
+      document.getElementById("ws").innerHTML = "";
+      tasks.forEach(t => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ws" + (t.id === selectedId ? " on" : "");
+        const mem = (memoryCache && (memoryCache.workstreams || []).find(x => x.id === t.id)) || null;
+        const nCur = mem
+          ? (mem.decisions || []).length + (mem.constraints || []).length + (mem.facts || []).length
+          : null;
+        const nHist = mem ? ((mem.history || []).length) : null;
+        const meta = (nCur != null)
+          ? `<span class="meta-line">${nCur} current · ${nHist} history</span>`
+          : "";
+        btn.innerHTML = `<span class="dot"></span><span>${esc(t.title || t.id)}${meta}</span>`;
+        btn.onclick = () => refreshState(t.id);
+        document.getElementById("ws").appendChild(btn);
+      });
+    }
+    async function refreshState(taskId) {
+      try {
+        const tr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/tasks");
+        const tj = await tr.json();
+        const tasks = tj.tasks || [];
+        const mr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/memory");
+        if (mr.ok) memoryCache = await mr.json();
+        if (!taskId && tasks[0]) taskId = tasks[0].id;
+        renderWorkstreams(tasks, taskId);
+        if (!taskId) return;
+        lastTaskId = taskId;
+        const title = (tasks.find(t => t.id === taskId) || {}).title || taskId;
+        document.getElementById("currentLabel").textContent = "CURRENT · " + title;
+        document.getElementById("historyLabel").textContent = "HISTORY · " + title;
+
+        const wr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/working-context?task_id=" + encodeURIComponent(taskId));
+        if (!wr.ok) return;
+        const w = await wr.json();
+        const inc = w.included || {};
+        const items = [].concat(inc.decisions || [], inc.constraints || [], inc.facts || [], inc.entities || []);
+        const chars = items.reduce((n, x) => n + String(x || "").length, 0);
+        document.getElementById("footprint").textContent =
+          items.length + " projected lines · ~" + chars + " chars in this thread’s working context"
+          + " (other open threads are excluded from the answer package).";
+        document.getElementById("current").innerHTML = items.length
+          ? items.map(x => `<li>${esc(x)}</li>`).join("")
+          : "<li>(empty — extract may not have written yet)</li>";
+        const ex = w.excluded_workstreams || [];
+        document.getElementById("excluded").innerHTML = ex.length
+          ? ex.map(e => `<span class="chip-x">× ${esc(typeof e === "string" ? e : (e.workstream || e.title || e))}</span>`).join("")
+          : "—";
+
+        const ws = (memoryCache && (memoryCache.workstreams || []).find(x => x.id === taskId)) || null;
+        const hist = (ws && ws.history) || [];
+        document.getElementById("history").innerHTML = hist.length
+          ? hist.map(i => `<li>${esc(i.text || "")}</li>`).join("")
+          : "<li>(none superseded yet)</li>";
+      } catch (e) {}
+    }
+    async function send(text, beatCaption) {
+      text = (text || "").trim();
+      if (!text || busy) return false;
+      err.hidden = true;
+      if (beatCaption) caption.textContent = beatCaption;
+      document.getElementById("msg").value = "";
+      addBubble("user", text);
+      setBusy(true);
+      try {
+        const r = await fetch("/turn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversation_id: conversationId, message: text, turn })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error((j.detail && JSON.stringify(j.detail)) || ("HTTP " + r.status));
+        turn += 1;
+        const reply = j.clarify_question || j.answer || "(no answer)";
+        const meta = `<b>${esc(j.transition || "?")}</b>` + (j.workstream_title ? " · " + esc(j.workstream_title) : "");
+        addBubble("bot", reply, meta);
+        await refreshState(j.task_id);
+        return true;
+      } catch (e) {
+        err.hidden = false;
+        err.textContent = String(e.message || e);
+        addBubble("bot", "Request failed — see error below.");
+        playing = false;
+        return false;
+      } finally { setBusy(false); }
+    }
+    async function buildHistory() {
+      playing = true; historyReady = false; setBusy(false);
+      for (let i = deepIdx; i < DEEP.length; i++) {
+        if (!playing) break;
+        deepIdx = i + 1;
+        const beat = DEEP[i];
+        const ok = await send(beat.m, `Warm-up [${deepIdx}/${DEEP.length}] ${beat.c}`);
+        if (!ok) break;
+        await new Promise(r => setTimeout(r, 350));
+      }
+      playing = false; setBusy(false);
+      if (deepIdx >= DEEP.length) showSuggestBar();
+    }
+
+    document.getElementById("buildHistory").onclick = () => {
+      if (busy || playing) return;
+      if (historyReady) document.getElementById("newChat").click();
+      buildHistory();
+    };
+    document.getElementById("pauseDeep").onclick = () => {
+      playing = false; setBusy(false);
+      caption.textContent = "Paused " + deepIdx + "/" + DEEP.length + ". Click a thread or type freely anytime.";
+      if (deepIdx >= 8) showSuggestBar();
+    };
+    document.getElementById("send").onclick = () => send(document.getElementById("msg").value);
+    document.getElementById("msg").addEventListener("keydown", e => { if (e.key === "Enter") send(document.getElementById("msg").value); });
+    document.getElementById("refresh").onclick = () => refreshState(lastTaskId);
+    document.getElementById("newChat").onclick = () => {
+      playing = false; historyReady = false;
+      conversationId = "deep-" + Math.random().toString(36).slice(2, 10);
+      turn = 1; deepIdx = 0; lastTaskId = null; memoryCache = null;
+      chat.innerHTML = "";
+      addBubble("bot", "New chat. Optional BUILD HISTORY, then click threads on the right and type to revive / switch / start new.");
+      document.getElementById("ws").textContent = "—";
+      document.getElementById("current").innerHTML = "<li>—</li>";
+      document.getElementById("history").innerHTML = "<li>—</li>";
+      document.getElementById("excluded").textContent = "—";
+      document.getElementById("footprint").textContent = "Select a thread —";
+      document.getElementById("currentLabel").textContent = "CURRENT";
+      document.getElementById("historyLabel").textContent = "HISTORY";
+      document.getElementById("suggestBar").style.display = "none";
+      document.getElementById("suggestBar").innerHTML = "";
+      caption.textContent = "Build history (optional) → click a thread → type to switch / revive / start new.";
+      document.getElementById("buildHistory").disabled = false;
+      document.getElementById("buildHistory").textContent = "1 · BUILD HISTORY (optional warm-up)";
+      status.textContent = "Ready · " + conversationId;
+    };
+    fetch("/health").then(r => r.json()).then(h => {
+      status.textContent = "Ready · llm=" + (h.llm || "?") + " · " + conversationId;
+    }).catch(() => {});
+  </script>
+</body>
+</html>

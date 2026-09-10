@@ -1,8 +1,10 @@
 import logging
 import os
 import time
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from app.config import SETTINGS
@@ -131,6 +133,17 @@ async def add_correlation_id(request: Request, call_next):
     if DEMO_ONLY:
         response.headers["x-contextflow-demo-only"] = "1"
     return response
+
+
+_STATIC = Path(__file__).resolve().parent / "static" / "index.html"
+
+
+@app.get("/")
+def live_demo_ui():
+    """Public reviewer UI — clean chat over POST /turn (Gemini when enabled)."""
+    if not _STATIC.is_file():
+        raise HTTPException(status_code=404, detail="ui_missing")
+    return FileResponse(_STATIC)
 
 
 @app.get("/health")

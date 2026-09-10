@@ -1,0 +1,20 @@
+# Product-demo UI on Cloud Run (public reviewer surface).
+# Serves eval.product_demo — MockLLM snapshot, not Vertex.
+FROM python:3.12-slim
+
+WORKDIR /srv
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt \
+    && useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser
+
+COPY . .
+RUN chown -R appuser:appuser /srv
+
+ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
+ENV CF_DEMO_CLOUD=1
+USER 10001
+
+# Build snapshot at boot, then serve UI on 0.0.0.0:$PORT
+CMD ["sh", "-c", "python -m eval.product_demo --serve --host 0.0.0.0 --port ${PORT:-8080} --no-browser"]
