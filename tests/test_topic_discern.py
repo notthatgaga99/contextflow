@@ -108,3 +108,49 @@ def test_prompt_lists_open_cards():
     p = build_discern_prompt("back to ivory", [t1, t2], "T1")
     assert "id=T1" in p and "id=T2" in p
     assert "ACTIVE_ID: T1" in p
+
+
+def test_veto_underspecified_new_sticks_active():
+    from app.router.topic_discern import DiscernResult, refine_discern
+    tech = _task("T3", "Meghalaya solo trip guide", ["meghalaya", "trip", "guide", "solo"])
+    raw = DiscernResult(Transition.NEW, None, 0.9, "new", reason="llm")
+    out = refine_discern(raw, "hikes or cafes?", [tech], "T3")
+    assert out.transition == Transition.CONTINUE
+    assert out.task_id == "T3"
+    assert out.reason == "veto_underspecified_stick"
+
+
+def test_veto_switch_to_peplum_when_asking_pipelines():
+    from app.router.topic_discern import DiscernResult, refine_discern
+    azure = _task(
+        "T1",
+        "azure pipeline bash exit 127 yaml",
+        ["azure", "pipeline", "bash", "yaml", "agent", "tests"],
+    )
+    peplum = _task(
+        "T2",
+        "peplum hosting corporate event",
+        ["peplum", "hosting", "corporate", "dress", "outfit"],
+    )
+    raw = DiscernResult(Transition.SWITCH, "T2", 0.85, "oops", reason="llm")
+    msg = (
+        "if i were to consider that i want to create 10 pipelines on same repo "
+        "unit test module test end to end azure"
+    )
+    out = refine_discern(raw, msg, [azure, peplum], "T2")
+    assert out.task_id == "T1"
+    assert out.reason == "veto_better_lexical"
+
+
+def test_veto_new_when_bash_matches_azure_card():
+    from app.router.topic_discern import DiscernResult, refine_discern
+    azure = _task(
+        "T1",
+        "azure pipeline bash exit 127 self hosted agent",
+        ["azure", "pipeline", "bash", "exit", "agent"],
+    )
+    trip = _task("T3", "Meghalaya solo trip", ["meghalaya", "trip", "solo"])
+    raw = DiscernResult(Transition.NEW, None, 0.9, "new", reason="llm")
+    out = refine_discern(raw, "when would i see bash exit 4? is it pretty common", [azure, trip], "T3")
+    assert out.task_id == "T1"
+    assert out.reason == "veto_new_has_match"

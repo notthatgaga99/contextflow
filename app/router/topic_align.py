@@ -33,14 +33,23 @@ _CONTINUE_CUES = frozenset({
     "those", "these", "them", "that", "this", "again", "still", "continue",
     "more", "please", "right", "exactly", "correct", "yaml", "yml", "json",
     "file", "files", "config", "configs", "manifest", "manifests",
+    "hikes", "hike", "cafes", "cafe", "guide", "trip", "solo", "bash", "exit",
+    "pipeline", "pipelines", "azure", "agent", "tests", "test", "merge",
 })
 
 
 def _tokens(text: str) -> set[str]:
-    return {
-        t for t in _TOKEN.findall((text or "").lower())
-        if len(t) >= 3 and t not in _STOP
-    }
+    out: set[str] = set()
+    for t in _TOKEN.findall((text or "").lower()):
+        if len(t) < 3 or t in _STOP:
+            continue
+        out.add(t)
+        # Light plural fold so pipeline(s)/test(s) still match cards.
+        if t.endswith("s") and len(t) > 4 and not t.endswith("ss"):
+            out.add(t[:-1])
+        elif len(t) > 3:
+            out.add(t + "s")
+    return out
 
 
 def is_underspecified(message: str) -> bool:
