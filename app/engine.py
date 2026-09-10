@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, Optional
+import os
 
 from app.config import SETTINGS, NEW_ID
 from app.domain import LLM, Registry, Transition
@@ -20,6 +21,7 @@ from app.context.working_set import WorkingContextBuilder
 from app.memory.retriever import OpenWorkstreamRetriever, Retriever
 from app.memory.store import MemoryStore
 from app.router.topic_align import align_plan
+from app.router.topic_discern import discern_topic
 
 NewTaskFactory = Callable[[str, int], Optional[Task]]
 
@@ -192,12 +194,51 @@ class Engine:
         return self._maybe_align(plan, message, open_tasks, active_id)
 
     def _maybe_align(self, plan: TurnPlan, message: str, open_tasks: list, active_id: str | None) -> TurnPlan:
-        """Post-gate topic alignment; frozen gate thresholds unchanged."""
+        """Post-gate topic alignment; frozen gate thresholds unchanged.
+
+        Prefer lite-LLM discern (CF_TOPIC_LLM) when enabled; lexical fallback otherwise.
+        """
         mem_texts: dict[str, list[str]] = {}
         if self.memory_store is not None:
             for t in open_tasks:
                 items = self.memory_store.asserted(t.id)
                 mem_texts[t.id] = [i.text for i in items if getattr(i, "text", "")]
+
+        topic_llm = os.getenv("CF_TOPIC_LLM", "").strip()
+        if topic_llm == "":
+            # Default on for Vertex-hosted demos; off for local mock pytest.
+            topic_llm = "1" if os.getenv("CF_USE_VERTEX") == "1" else "0"
+
+        if topic_llm == "1" and plan.transition != Transition.CLARIFY:
+            discerned = discern_topic(
+                self.llm, message, open_tasks, active_id, mem_texts,
+            )
+            if discerned is not None:
+                evidence = {
+                    **plan.evidence,
+                    "topic_discern": discerned.reason,
+                    "topic_discern_decision": discerned.transition.value,
+                    "topic_discern_task": discerned.task_id,
+                    "topic_discern_confidence": discerned.confidence,
+                    "topic_discern_rationale": discerned.rationale,
+                    "topic_align_gate_transition": plan.transition.value,
+                    "topic_align_gate_task": plan.task_id,
+                }
+                if discerned.transition == Transition.CLARIFY:
+                    return TurnPlan(
+                        Transition.CLARIFY, None, plan.pred_task, plan.pred_ref, evidence,
+                        plan.decision, plan.open_tasks, plan.candidates,
+                    )
+                if discerned.transition == Transition.NEW:
+                    return TurnPlan(
+                        Transition.NEW, None, plan.pred_task, plan.pred_ref, evidence,
+                        plan.decision, plan.open_tasks, plan.candidates,
+                    )
+                return TurnPlan(
+                    discerned.transition, discerned.task_id, plan.pred_task, plan.pred_ref,
+                    evidence, plan.decision, plan.open_tasks, plan.candidates,
+                )
+
         aligned = align_plan(
             message=message,
             transition=plan.transition,
