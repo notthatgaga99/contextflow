@@ -150,22 +150,61 @@ class ContextCompiler:
         chunks = [pkg.decision_text, pkg.answer_text]
         return "\n".join(c for c in chunks if c)
 
-    def render(self, pkg: ContextPackage) -> str:
+    def render(self, pkg: ContextPackage, message: str | None = None) -> str:
+        """Render answer prompt.
+
+        When ``message`` is set (production generate path), include it so SWITCH
+        to the wrong thread cannot answer that thread while dismissing the user.
+        Without ``message``, preserve the legacy package-only shape for tests/eval.
+        """
+        if not (message and message.strip()):
+            if pkg.context_mode == MERGED_COMPACT and pkg.answer_text:
+                return pkg.answer_text
+            lines = [f"TASK: {pkg.task_summary}"]
+            if pkg.selected_referent_id:
+                lines.append(f"REFERENT: {pkg.selected_referent_id}")
+            if pkg.selected_open_loop:
+                lines.append(f"SELECTED LOOP: {pkg.selected_open_loop}")
+            if pkg.open_loops:
+                lines.append("OPEN LOOPS: " + "; ".join(pkg.open_loops))
+            if pkg.active_decisions:
+                lines.append("DECISIONS: " + "; ".join(pkg.active_decisions))
+            if pkg.active_constraints:
+                lines.append("CONSTRAINTS: " + "; ".join(pkg.active_constraints))
+            if pkg.relevant_facts:
+                lines.append("FACTS: " + "; ".join(pkg.relevant_facts))
+            if pkg.relevant_entities:
+                lines.append("ENTITIES: " + "; ".join(pkg.relevant_entities))
+            return "\n".join(lines)
+
+        lines = [
+            "Answer the USER message below.",
+            "Use WORKING CONTEXT only as supporting memory for the selected thread.",
+            "Never call the USER message unrelated or off-topic.",
+            "If working context is about a different subject than the USER message, "
+            "say briefly that the wrong thread may be selected, then still address "
+            "the USER message (or ask which thread to use) — do not dump the wrong topic.",
+            "",
+            "WORKING CONTEXT:",
+        ]
         if pkg.context_mode == MERGED_COMPACT and pkg.answer_text:
-            return pkg.answer_text
-        lines = [f"TASK: {pkg.task_summary}"]
-        if pkg.selected_referent_id:
-            lines.append(f"REFERENT: {pkg.selected_referent_id}")
-        if pkg.selected_open_loop:
-            lines.append(f"SELECTED LOOP: {pkg.selected_open_loop}")
-        if pkg.open_loops:
-            lines.append("OPEN LOOPS: " + "; ".join(pkg.open_loops))
-        if pkg.active_decisions:
-            lines.append("DECISIONS: " + "; ".join(pkg.active_decisions))
-        if pkg.active_constraints:
-            lines.append("CONSTRAINTS: " + "; ".join(pkg.active_constraints))
-        if pkg.relevant_facts:
-            lines.append("FACTS: " + "; ".join(pkg.relevant_facts))
-        if pkg.relevant_entities:
-            lines.append("ENTITIES: " + "; ".join(pkg.relevant_entities))
+            lines.append(pkg.answer_text)
+        else:
+            lines.append(f"TASK: {pkg.task_summary}")
+            if pkg.selected_referent_id:
+                lines.append(f"REFERENT: {pkg.selected_referent_id}")
+            if pkg.selected_open_loop:
+                lines.append(f"SELECTED LOOP: {pkg.selected_open_loop}")
+            if pkg.open_loops:
+                lines.append("OPEN LOOPS: " + "; ".join(pkg.open_loops))
+            if pkg.active_decisions:
+                lines.append("DECISIONS: " + "; ".join(pkg.active_decisions))
+            if pkg.active_constraints:
+                lines.append("CONSTRAINTS: " + "; ".join(pkg.active_constraints))
+            if pkg.relevant_facts:
+                lines.append("FACTS: " + "; ".join(pkg.relevant_facts))
+            if pkg.relevant_entities:
+                lines.append("ENTITIES: " + "; ".join(pkg.relevant_entities))
+        lines.append("")
+        lines.append(f"USER: {message.strip()}")
         return "\n".join(lines)

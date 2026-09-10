@@ -19,6 +19,7 @@ from app.context.compiler import ContextCompiler
 from app.context.working_set import WorkingContextBuilder
 from app.memory.retriever import OpenWorkstreamRetriever, Retriever
 from app.memory.store import MemoryStore
+from app.router.topic_align import align_plan
 
 NewTaskFactory = Callable[[str, int], Optional[Task]]
 
@@ -168,9 +169,10 @@ class Engine:
             decision = bind_task(
                 cands, None, active_id, self.settings, statuses, turns_since, pred_task,
             )
-            return TurnPlan(
+            plan = TurnPlan(
                 decision.transition, pred_task, pred_task, pred_ref, evidence, decision, open_tasks, cands,
             )
+            return self._maybe_align(plan, message, open_tasks, active_id)
 
         decision = decide(cands, None, active_id, self.settings, self.platt,
                           statuses=statuses, turns_since=turns_since)
@@ -182,8 +184,46 @@ class Engine:
             return TurnPlan(
                 Transition.NEW, None, pred_task, pred_ref, evidence, decision, open_tasks, cands,
             )
-        return TurnPlan(
+
+        plan = TurnPlan(
             decision.transition, decision.task_id, pred_task, pred_ref, evidence, decision, open_tasks, cands,
+        )
+        return self._maybe_align(plan, message, open_tasks, active_id)
+
+    def _maybe_align(self, plan: TurnPlan, message: str, open_tasks: list, active_id: str | None) -> TurnPlan:
+        """Post-gate topic alignment; frozen gate thresholds unchanged."""
+        mem_texts: dict[str, list[str]] = {}
+        if self.memory_store is not None:
+            for t in open_tasks:
+                items = self.memory_store.asserted(t.id)
+                mem_texts[t.id] = [i.text for i in items if getattr(i, "text", "")]
+        aligned = align_plan(
+            message=message,
+            transition=plan.transition,
+            task_id=plan.task_id,
+            open_tasks=open_tasks,
+            active_id=active_id,
+            memory_texts_by_task=mem_texts,
+        )
+        if aligned is None:
+            return plan
+        evidence = {
+            **plan.evidence,
+            "topic_align": aligned.reason,
+            "topic_align_selected_score": aligned.selected_score,
+            "topic_align_best_other": aligned.best_other_id,
+            "topic_align_best_other_score": aligned.best_other_score,
+            "topic_align_gate_transition": plan.transition.value,
+            "topic_align_gate_task": plan.task_id,
+        }
+        if aligned.transition == Transition.NEW:
+            return TurnPlan(
+                Transition.NEW, None, plan.pred_task, plan.pred_ref, evidence,
+                plan.decision, plan.open_tasks, plan.candidates,
+            )
+        return TurnPlan(
+            aligned.transition, aligned.task_id, plan.pred_task, plan.pred_ref, evidence,
+            plan.decision, plan.open_tasks, plan.candidates,
         )
 
     def execute_plan(self, plan: TurnPlan, message: str, turn: int) -> TurnResult:
@@ -223,7 +263,7 @@ class Engine:
         task = self.reg.get(task_id)
         loop_text = _loop_text(task, pred_ref)
         pkg = self._make_package(task, pred_ref, loop_text, message, open_tasks)
-        answer = self.llm.generate(self.compiler.render(pkg))
+        answer = self.llm.generate(self.compiler.render(pkg, message=message))
         self.reg.apply_update(task_id, {})  # legacy no-op; MemoryWriter is the production path
         return TurnResult(
             decision.transition, task_id, answer, None, pkg, decision,
@@ -264,7 +304,7 @@ class Engine:
         self.reg.set_last_selected_referent(ref_id)
         loop_text = _loop_text(task, ref_id)
         pkg = self._make_package(task, ref_id, loop_text, message, self.reg.open_tasks())
-        answer = self.llm.generate(self.compiler.render(pkg))
+        answer = self.llm.generate(self.compiler.render(pkg, message=message))
         return TurnResult(
             Transition.NEW, task.id, answer, None, pkg, decision,
             task.id, ref_id, evidence,
