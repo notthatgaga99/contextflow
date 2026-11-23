@@ -26,7 +26,7 @@ Models are soft proposers. The harness decides what is allowed into the answer p
 | 3 Retrieve | Partial | B | Open cards only — correct for wedge; no cold/global memory yet |
 | 4 Select | **Strong** | A− | Gate + referent + fail-closed CLARIFY is the real product |
 | 5 Assemble | Good | B+ | RB-WSR + compact; now with per-kind caps / recent-first ranking |
-| 6 Generate | Thin | C | Answer-only; no tool loop |
+| 6 Generate | Thin | C+ | Answer-only; thin post-ACT tool loop (search→optional patch; never re-bind/L1 dump) |
 | 7 Compact / H2 | **Yes** | B | Supersession + caps + rollup + last-N catalog (file/Firestore) + match suggest + opt-in import |
 
 **Bottom line:** ~**55–65%** of a full industry context manager if you weight all stages equally; ~**80%+ of the wedge** (stages 4–5) if you grade what you set out to prove. Condensation across chats and industrial retrieve backends were the real gaps — not “the idea is wrong.”

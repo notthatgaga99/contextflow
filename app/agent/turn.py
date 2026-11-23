@@ -1,10 +1,13 @@
-"""Agent turn: bind_and_expose + optional auto tools (tools never re-bind)."""
+"""Agent turn: bind_and_expose first; thin tool loop after ACT only.
+
+Tools never re-bind, never replace L1 for this turn, never soften Select.
+"""
 
 from __future__ import annotations
 
 from typing import Any
 
-from app.agent.tools import invoke_tool
+from app.agent.tool_loop import run_bound_tool_loop
 from app.kernel.bind_api import bind_and_expose
 
 
@@ -17,10 +20,10 @@ def run_agent_turn(
     turn: int,
     auto_tools: bool = True,
 ) -> dict[str, Any]:
-    """Run one agentic turn. Binder stays authority; tools enrich the shell UI.
+    """One agentic turn. Binder stays authority.
 
-    On CLARIFY (``interrupt=True``) the shell must pause — no generate from L1,
-    and bound search tools are skipped.
+    Order (honest): bind → extract/L1/answer → optional bound tools →
+    optional Writer patches for *next* turn. CLARIFY interrupts with no tools.
     """
     bound = bind_and_expose(
         store,
@@ -43,7 +46,6 @@ def run_agent_turn(
             "expose_text": bound.l1_expose,
             "timeline": list(bound.timeline),
         }
-    # Host contract overlays (interrupt clears answer/L1 for clarify).
     out["interrupt"] = bound.interrupt
     out["l1_expose"] = bound.l1_expose
     out["discrimination"] = bound.discrimination
@@ -54,39 +56,43 @@ def run_agent_turn(
         out["task_id"] = None
         out["clarify_question"] = bound.clarify_question
         out["expose_text"] = None
+        out["l1_expose"] = None
 
+    # Freeze L1 snapshot before any tool work (same-turn expose must not change).
+    l1_snapshot = out.get("l1_expose")
     timeline = list(out.get("timeline") or bound.timeline)
     tool_runs: list[dict[str, Any]] = []
-    if auto_tools and not bound.interrupt:
-        health = invoke_tool(
-            store, "session_health", {"conversation_id": conversation_id},
-        )
-        tool_runs.append(health.to_dict())
-        timeline.append({
-            "step": "tool",
-            "detail": "session_health",
-            "ok": health.ok,
-        })
-        if bound.task_id:
-            searched = invoke_tool(store, "search_bound", {
-                "conversation_id": conversation_id,
-                "workstream_id": bound.task_id,
-                "query": message,
-                "limit": 3,
-            })
-            tool_runs.append(searched.to_dict())
-            timeline.append({
-                "step": "tool",
-                "detail": "search_bound",
-                "ok": searched.ok,
-                "n_hits": len((searched.data or {}).get("hits") or []),
-            })
-    elif bound.interrupt:
+    patches_committed: list[dict[str, Any]] = []
+
+    if bound.interrupt:
         timeline.append({
             "step": "interrupt",
-            "detail": "clarify — host must pause",
+            "detail": "clarify — host must pause; tools skipped",
         })
+    elif auto_tools:
+        loop = run_bound_tool_loop(
+            store,
+            conversation_id=conversation_id,
+            message=message,
+            turn=turn,
+            task_id=bound.task_id,
+            transition=bound.transition,
+            l1_expose=l1_snapshot,
+        )
+        tool_runs = list(loop.get("tools") or [])
+        patches_committed = list(loop.get("patches_committed") or [])
+        timeline.extend(list(loop.get("timeline") or []))
+        # Law: tools must not rewrite this turn's L1 expose.
+        out["l1_expose"] = l1_snapshot
+        out["expose_text"] = l1_snapshot
+        out["tool_loop"] = {
+            "skipped": bool(loop.get("skipped")),
+            "skip_reason": loop.get("skip_reason"),
+            "l1_unchanged": bool(loop.get("l1_unchanged")),
+            "n_patches": len(patches_committed),
+        }
 
     out["timeline"] = timeline
     out["tools"] = tool_runs
+    out["patches_committed"] = patches_committed
     return out

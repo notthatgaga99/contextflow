@@ -396,7 +396,9 @@ Tools never replace the frozen binder.</div>
         chat.appendChild(host.firstChild);
         chat.scrollTop = chat.scrollHeight;
         if (name === "assemble_short_term" && j.ok && j.data) {
-          document.getElementById("l1expose").textContent = j.data.expose_text || "—";
+          // Diagnostic only — not the binder L1 for this turn.
+          document.getElementById("l1expose").textContent =
+            "[diagnostic assemble]\n" + (j.data.expose_text || "—");
           renderPlanes(j.data.planes);
         }
         await refreshThreads(lastTaskId);

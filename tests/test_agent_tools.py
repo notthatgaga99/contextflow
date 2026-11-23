@@ -61,4 +61,9 @@ def test_agent_turn_timeline():
     steps = [s["step"] for s in out["timeline"]]
     assert "bind" in steps
     assert "answer" in steps
-    assert out.get("tools")
+    # ACT/NEW with task_id may run search_bound; CLARIFY would skip.
+    if not out.get("interrupt") and out.get("task_id"):
+        assert out.get("tools")
+        assert out.get("tool_loop", {}).get("l1_unchanged") is True
+    else:
+        assert out.get("tools") == []

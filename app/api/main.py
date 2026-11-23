@@ -735,19 +735,37 @@ def agent_tools():
 
 @app.post("/agent/tools/{tool_name}")
 def agent_tool_invoke(tool_name: str, body: ToolInvokeIn):
-    from app.agent.tools import invoke_tool
+    """Manual tool invoke. Write/search tools should pass the bound workstream_id.
+
+    Does not re-bind. Prefer POST /agent/turn for the fail-closed loop.
+    """
+    from app.agent.tools import TOOL_REGISTRY, invoke_tool
 
     args = dict(body.arguments or {})
     args.setdefault("conversation_id", body.conversation_id)
+    # Fail-closed for write tools: workstream must exist (no invent).
+    entry = TOOL_REGISTRY.get(tool_name)
+    if entry and entry[0].category == "write":
+        wid = str(args.get("workstream_id") or "").strip()
+        if not wid:
+            raise HTTPException(status_code=400, detail="workstream_id_required")
+        try:
+            eng = store.engine(body.conversation_id.strip())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        if eng.reg.get(wid) is None:
+            raise HTTPException(status_code=404, detail=f"unknown_workstream:{wid}")
     result = invoke_tool(store, tool_name, args)
     if not result.ok and result.error and result.error.startswith("unknown_tool"):
         raise HTTPException(status_code=404, detail=result.error)
+    if not result.ok and result.error and result.error.startswith("workstream_not_bound"):
+        raise HTTPException(status_code=400, detail=result.error)
     return {**result.to_dict(), "demo_only": DEMO_ONLY}
 
 
 @app.post("/agent/turn")
 def agent_turn(body: AgentTurnIn, request: Request):
-    """Agentic turn: bind → extract → SHORT_TERM → tools → answer (+ timeline)."""
+    """Agentic turn: bind → L1/answer → optional bound tools (never re-bind)."""
     from app.agent.turn import run_agent_turn
 
     corr = getattr(request.state, "correlation_id", correlation_id())

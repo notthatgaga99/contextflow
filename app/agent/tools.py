@@ -302,12 +302,35 @@ def list_tools() -> list[dict[str, Any]]:
     return out
 
 
-def invoke_tool(store, name: str, arguments: dict[str, Any] | None = None) -> ToolResult:
+def invoke_tool(
+    store,
+    name: str,
+    arguments: dict[str, Any] | None = None,
+    *,
+    bound_workstream_id: str | None = None,
+) -> ToolResult:
+    """Invoke a registered tool.
+
+    When ``bound_workstream_id`` is set, a mismatched ``workstream_id`` argument
+    fails closed (tools never retarget another hop).
+    """
     entry = TOOL_REGISTRY.get(name)
     if entry is None:
         return ToolResult(ok=False, tool=name, error=f"unknown_tool:{name}")
     spec, fn = entry
     args = dict(arguments or {})
+    if bound_workstream_id:
+        from app.agent.tool_loop import reject_unbound_workstream
+
+        gated = reject_unbound_workstream(
+            args, bound_workstream_id=bound_workstream_id,
+        )
+        if gated is not None:
+            gated.tool = spec.name
+            return gated
+        # Stamp bound id for write/search tools that require it.
+        if "workstream_id" in (spec.parameters.get("properties") or {}):
+            args["workstream_id"] = bound_workstream_id
     try:
         data = fn(store, **args)
         return ToolResult(ok=True, tool=spec.name, data=data)
