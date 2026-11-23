@@ -134,6 +134,7 @@ def run() -> dict:
             conversation_id="ten-extract-density-vertex",
             open_workstreams=open_ws,
             asserted_items=store.asserted(),
+            focus_workstream_id=spec.get("expect_ws"),
         )
         before = {i.id for i in store.all()}
         extracted = ext.extract(req)
@@ -161,6 +162,12 @@ def run() -> dict:
         blob = " ".join(p.text for p in proposed)
         need = list(spec.get("need_tokens") or [])
         need_ok = (not need) or _need_hit(blob, need)
+        expect_slot = spec.get("expect_slot")
+        slot_ok = None
+        if expect_slot and not spec.get("expect_uncertain_or_empty"):
+            slot_ok = any(p.slot == expect_slot for p in proposed) or any(
+                i.slot == expect_slot for i in store.asserted(expect_ws or "")
+            )
         recon = "n/a"
         useful = False
         partial = False
@@ -196,6 +203,8 @@ def run() -> dict:
             "ws_intended": tspec["ws"],
             "category": spec["category"],
             "message": msg,
+            "expect_slot": expect_slot,
+            "slot_ok": slot_ok,
             "proposed": [_brief_patch(p) for p in proposed],
             "persisted": len(persisted),
             "writer_ok": result.ok,

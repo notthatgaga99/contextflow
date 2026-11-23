@@ -35,25 +35,25 @@ RESULTS_MD = ROOT / "docs" / "EXTRACT_DENSITY_OLLAMA.md"
 
 # Bounded slice rooted in 10×20 arcs (turn numbers from fixture_10x20.json).
 SUBSET = [
-    {"id": "d01_A_ttl15", "turn": 11, "expect_ws": "A", "need_tokens": ["TTL", "15"],
-     "category": "fact", "mode": "anchored"},
-    {"id": "d02_B_alpine", "turn": 12, "expect_ws": "B", "need_tokens": ["alpine"],
-     "category": "decision", "mode": "anchored"},
+    {"id": "d01_A_ttl15", "turn": 11, "expect_ws": "A", "expect_slot": "ttl",
+     "need_tokens": ["TTL", "15"], "category": "fact", "mode": "anchored"},
+    {"id": "d02_B_alpine", "turn": 12, "expect_ws": "B", "expect_slot": "builder",
+     "need_tokens": ["alpine"], "category": "decision", "mode": "anchored"},
     {"id": "d03_C_gateway", "turn": 13, "expect_ws": "C", "need_tokens": ["Authorization", "gateway"],
      "category": "fact", "mode": "anchored"},
-    {"id": "d04_E_black", "turn": 5, "expect_ws": "E", "need_tokens": ["black"],
-     "category": "decision", "mode": "anchored"},
-    {"id": "d05_E_navy_corr", "turn": 35, "expect_ws": "E", "need_tokens": ["navy"],
-     "stale_tokens": ["black"], "category": "correction_supersession", "mode": "anchored",
-     "lifecycle": True},
-    {"id": "d06_A_ttl5", "turn": 41, "expect_ws": "A", "need_tokens": ["5", "TTL"],
-     "category": "correction_supersession", "mode": "anchored"},
-    {"id": "d07_B_debian", "turn": 42, "expect_ws": "B", "need_tokens": ["debian"],
-     "category": "decision", "mode": "anchored"},
-    {"id": "d08_A_aud", "turn": 61, "expect_ws": "A", "need_tokens": ["aud", "api.internal"],
-     "category": "constraint", "mode": "anchored"},
-    {"id": "d09_B_4gi", "turn": 72, "expect_ws": "B", "need_tokens": ["4Gi", "4"],
-     "category": "decision", "mode": "anchored"},
+    {"id": "d04_E_black", "turn": 5, "expect_ws": "E", "expect_slot": "color",
+     "need_tokens": ["black"], "category": "decision", "mode": "anchored"},
+    {"id": "d05_E_navy_corr", "turn": 35, "expect_ws": "E", "expect_slot": "color",
+     "need_tokens": ["navy"], "stale_tokens": ["black"],
+     "category": "correction_supersession", "mode": "anchored", "lifecycle": True},
+    {"id": "d06_A_ttl5", "turn": 41, "expect_ws": "A", "expect_slot": "ttl",
+     "need_tokens": ["5", "TTL"], "category": "correction_supersession", "mode": "anchored"},
+    {"id": "d07_B_debian", "turn": 42, "expect_ws": "B", "expect_slot": "builder",
+     "need_tokens": ["debian"], "category": "decision", "mode": "anchored"},
+    {"id": "d08_A_aud", "turn": 61, "expect_ws": "A", "expect_slot": "aud",
+     "need_tokens": ["aud", "api.internal"], "category": "constraint", "mode": "anchored"},
+    {"id": "d09_B_4gi", "turn": 72, "expect_ws": "B", "expect_slot": "mem",
+     "need_tokens": ["4Gi", "4"], "category": "decision", "mode": "anchored"},
     {"id": "d10_E_peplum", "turn": 45, "expect_ws": "E", "need_tokens": ["peplum"],
      "category": "decision", "mode": "anchored"},
     {"id": "d11_A_recall_abstain", "turn": 131, "expect_ws": None, "need_tokens": [],
@@ -78,6 +78,8 @@ def _need_hit(text: str, tokens: list[str]) -> bool:
 def _classify(row: dict) -> str:
     if row.get("expect_uncertain_or_empty"):
         return "ABSTAIN_OK" if row.get("fail_closed_ok") else "ABSTAIN_FAIL"
+    if row.get("expect_slot") and row.get("slot_ok") is False and row.get("useful"):
+        return "SLOT_MISS"
     if row.get("wrong_workstream"):
         return "WRONG_WS"
     if row.get("writer_rejected"):
@@ -127,6 +129,7 @@ def run() -> dict:
             conversation_id="ten-extract-density",
             open_workstreams=open_ws,
             asserted_items=store.asserted(),
+            focus_workstream_id=spec.get("expect_ws"),
         )
         before = {i.id for i in store.all()}
         extracted = ext.extract(req)
@@ -179,12 +182,24 @@ def run() -> dict:
         if spec.get("expect_uncertain_or_empty"):
             fail_closed_ok = len(proposed) == 0 or all(p.uncertain for p in proposed)
 
+        expect_slot = spec.get("expect_slot")
+        slot_ok = None
+        if expect_slot and not spec.get("expect_uncertain_or_empty"):
+            slot_ok = any(
+                (p.slot == expect_slot) or any(
+                    i.slot == expect_slot for i in store.asserted(expect_ws or "")
+                )
+                for p in proposed
+            ) if expect_ws else any(p.slot == expect_slot for p in proposed)
+
         row = {
             "id": spec["id"],
             "turn": spec["turn"],
             "ws_intended": tspec["ws"],
             "category": spec["category"],
             "message": msg,
+            "expect_slot": expect_slot,
+            "slot_ok": slot_ok,
             "proposed": [_brief_patch(p) for p in proposed],
             "persisted": len(persisted),
             "writer_ok": result.ok,

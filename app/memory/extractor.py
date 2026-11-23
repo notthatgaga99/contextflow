@@ -245,6 +245,98 @@ def _infer_color_correction(
         row["kind"] = "decision"
 
 
+# Structural slot cues for revive-critical identity (not fixture-string overfitting).
+_TTL_RE = re.compile(
+    r"(?is)\bttl\b(?:\s*(?:to|=|:)\s*|\s+)(\d+)\s*(?:m|min|mins|minutes)?\b"
+)
+_AUD_RE = re.compile(
+    r"(?is)\baud(?:ience)?(?:\s+claim)?\s*(?:must\s+be|=|:|to)\s*"
+    r"([a-z0-9][a-z0-9._-]*)"
+)
+_BUILDER_IMAGE_RE = re.compile(
+    r"(?is)\b(?:builder(?:\s+image)?|use)\b.{0,40}\b(debian(?:\s+slim)?|alpine|ubuntu)\b"
+)
+_MEM_RE = re.compile(
+    r"(?is)(?:\b(?:mem(?:ory)?|ram)\b(?:\s*(?:to|=|:|limit)\s*|\s+)(\d+)\s*(gi|g|mi|m)?\b"
+    r"|\b(\d+)\s*(gi)\b)"
+)
+
+
+def _compact_slot_value(slot: str, message: str, text: str) -> str | None:
+    blob = f"{text or ''} {message or ''}"
+    if slot == "ttl":
+        m = _TTL_RE.search(blob)
+        return f"{m.group(1)} minutes" if m else None
+    if slot == "aud":
+        m = _AUD_RE.search(blob)
+        return m.group(1) if m else None
+    if slot == "builder":
+        m = _BUILDER_IMAGE_RE.search(blob)
+        if not m:
+            return None
+        val = re.sub(r"\s+", " ", m.group(1).strip().lower())
+        return "debian slim" if val.startswith("debian") else val
+    if slot == "mem":
+        m = _MEM_RE.search(blob)
+        if not m:
+            return None
+        if m.group(1):
+            n, unit = m.group(1), (m.group(2) or "gi").lower()
+        else:
+            n, unit = m.group(3), (m.group(4) or "gi").lower()
+        unit = "Gi" if unit.startswith("g") else "Mi"
+        return f"{n}{unit}"
+    if slot == "color":
+        return _extract_color_token(blob)
+    return None
+
+
+def infer_known_slots(
+    row: dict,
+    *,
+    message: str,
+) -> None:
+    """Fill missing slot + compact text for known revive-critical keys.
+
+    Runs after LLM/deterministic propose. Never invents workstream or transition.
+    """
+    if row.get("slot"):
+        # Still compact text when slot already set but value is prose.
+        slot = str(row.get("slot") or "")
+        compact = _compact_slot_value(slot, message, str(row.get("text") or ""))
+        if compact and len(str(row.get("text") or "")) > len(compact) + 8:
+            row["text"] = compact
+        return
+    kind = str(row.get("kind") or "")
+    if kind not in ("decision", "correction", "fact", "constraint"):
+        return
+    for slot in ("ttl", "aud", "builder", "mem", "color"):
+        compact = _compact_slot_value(slot, message, str(row.get("text") or ""))
+        if not compact:
+            continue
+        # Require slot cue in message or text so we don't tag unrelated facts.
+        cue_ok = {
+            "ttl": bool(re.search(r"(?i)\bttl\b", f"{message} {row.get('text') or ''}")),
+            "aud": bool(re.search(r"(?i)\baud\b", f"{message} {row.get('text') or ''}")),
+            "builder": bool(re.search(
+                r"(?i)\b(?:builder|debian|alpine|ubuntu)\b",
+                f"{message} {row.get('text') or ''}",
+            )),
+            "mem": bool(re.search(
+                r"(?i)\b(?:mem(?:ory)?|ram|\d+\s*gi)\b",
+                f"{message} {row.get('text') or ''}",
+            )),
+            "color": bool(_extract_color_token(f"{message} {row.get('text') or ''}")),
+        }[slot]
+        if not cue_ok:
+            continue
+        row["slot"] = slot
+        row["text"] = compact
+        if kind == "correction" and slot == "color":
+            row["kind"] = "decision"
+        return
+
+
 _PICK_COLOR_DRESS_RE = re.compile(
     r"(?is)\b(?:pick|choose|get)\s+(?:(?:a|the)\s+)?(" + "|".join(_COLOR_WORDS) + r")\s+dress\b"
 )
@@ -668,6 +760,7 @@ class LlmMemoryExtractor:
                 asserted=req.asserted_items,
                 tasks=req.open_workstreams,
             )
+            infer_known_slots(row, message=req.message)
             if any(_assertion_equivalent(row, item) for item in req.asserted_items):
                 notes.append("dropped_redundant_row")
                 continue

@@ -136,6 +136,10 @@ Only if free/paid cloud is consciously available: small revive probe slice on Fl
 | Ollama `llama3.1:8b` | 2 | 1 | 0 | thin | $0 |
 | **Vertex `gemini-2.5-flash-lite`** | **10** | **2** | **0** | **all present** | ~$0.001 |
 
+**Write-quality harden (2026-11):** non-NEW extract gets `focus_workstream_id=plan.task_id`;
+post-LLM `infer_known_slots` for ttl/aud/builder/mem/color; deterministic ttl/aud slot
+corrections. Stub suite: `tests/test_extract_slot_enforce.py`.
+
 **Runs:**
 - `python -m eval.ten_workstream.extract_density_ollama`
 - `. .\scripts\env_vertex_local.ps1; python -m eval.ten_workstream.extract_density_vertex`

@@ -22,7 +22,7 @@ Models are soft proposers. The harness decides what is allowed into the answer p
 | Stage | Done? | Grade | Notes |
 |---|---|---|---|
 | 1 Observe | Yes | B | Message + optional extract history; no rich tool/env ingest |
-| 2 Write | Partial | B− | Assert/supersede/retract solid; extract quality is the weak link |
+| 2 Write | Partial | B | Assert/supersede/retract solid; focus attach + known-slot enforce (ttl/aud/builder/mem/color) |
 | 3 Retrieve | Partial | B | Open cards only — correct for wedge; no cold/global memory yet |
 | 4 Select | **Strong** | A− | Gate + referent + fail-closed CLARIFY is the real product |
 | 5 Assemble | Good | B+ | RB-WSR + compact; now with per-kind caps / recent-first ranking |

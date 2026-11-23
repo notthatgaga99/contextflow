@@ -36,6 +36,17 @@ _FAVORITE_COLOR_RE = re.compile(r"(?is)\b(?:favorite|favourite)\s+color\b")
 _DOCKER_FROM_TO_RE = re.compile(
     r"(?is)\b(?:docker|image|base)\b.*\bfrom\s+(\w+)\s+to\s+(\w+)\b"
 )
+_TTL_FROM_TO_RE = re.compile(
+    r"(?is)\bttl\b.{0,24}\bfrom\s+(\d+)\s*(?:m|min|mins|minutes)?"
+    r".{0,16}\bto\s+(\d+)\s*(?:m|min|mins|minutes)?\b"
+)
+_TTL_SET_RE = re.compile(
+    r"(?is)\b(?:set|use|make)\b.{0,24}\bttl\b(?:\s*(?:to|=|:)\s*|\s+)(\d+)\s*(?:m|min|mins|minutes)?\b"
+)
+_AUD_SET_RE = re.compile(
+    r"(?is)\baud(?:ience)?\b(?:\s*(?:claim)?\s*)?(?:must\s+be|to|=|:)\s*"
+    r"([a-z0-9][a-z0-9._-]*)"
+)
 
 
 def _outfit_workstream_id(
@@ -144,6 +155,23 @@ def try_parse_color_correction(
     return body
 
 
+def _slot_predecessor(
+    asserted: list[MemoryItem],
+    workstream_id: str,
+    slot: str,
+) -> MemoryItem | None:
+    return next(
+        (
+            i for i in asserted
+            if i.status == "asserted"
+            and i.workstream_id == workstream_id
+            and i.slot == slot
+            and i.kind in ("decision", "correction", "fact", "constraint")
+        ),
+        None,
+    )
+
+
 def try_parse_slot_correction(
     message: str,
     *,
@@ -151,42 +179,67 @@ def try_parse_slot_correction(
     tasks: list[Task],
     focus_workstream_id: str | None = None,
 ) -> dict | None:
-    """Non-color slot correction (e.g. docker base image)."""
+    """Non-color slot correction (docker base_image, ttl, aud)."""
     msg = (message or "").strip()
     if not msg or message_looks_recall_only(msg):
         return None
+
+    slot: str | None = None
+    new_val: str | None = None
+    old_val: str | None = None
+    cue_tasks: tuple[str, ...] = ()
+
     m = _DOCKER_FROM_TO_RE.search(msg)
-    if not m:
+    if m:
+        slot, old_val, new_val = "base_image", m.group(1), m.group(2)
+        cue_tasks = ("docker", "ci", "builder")
+    if not slot:
+        m = _TTL_FROM_TO_RE.search(msg)
+        if m:
+            slot, old_val, new_val = "ttl", m.group(1), f"{m.group(2)} minutes"
+            cue_tasks = ("jwt", "auth", "ttl", "refresh")
+    if not slot:
+        m = _TTL_SET_RE.search(msg)
+        if m:
+            slot, new_val = "ttl", f"{m.group(1)} minutes"
+            cue_tasks = ("jwt", "auth", "ttl", "refresh")
+    if not slot:
+        m = _AUD_SET_RE.search(msg)
+        if m:
+            slot, new_val = "aud", m.group(1)
+            cue_tasks = ("jwt", "auth", "aud", "token")
+
+    if not slot or not new_val:
         return None
-    old_val, new_val = m.group(1), m.group(2)
-    if old_val == new_val:
+    if old_val and old_val == new_val:
         return None
+
     ws = focus_workstream_id
     if not ws:
         for task in tasks:
-            if any("docker" in c for c in task.retrieval_cues):
+            blob = " ".join(
+                [task.title or "", " ".join(task.retrieval_cues or [])]
+            ).lower()
+            if any(c in blob for c in cue_tasks):
                 ws = task.id
                 break
     if not ws:
         return None
-    predecessor = next(
-        (
-            i for i in asserted
-            if i.status == "asserted"
-            and i.workstream_id == ws
-            and i.slot == "base_image"
-        ),
-        None,
-    )
-    if not predecessor and old_val:
+
+    predecessor = _slot_predecessor(asserted, ws, slot)
+    if old_val and slot == "base_image" and not predecessor:
         return None
     body = {
         "kind": "decision",
         "text": new_val,
         "workstream_id": ws,
-        "slot": "base_image",
+        "slot": slot,
         "action": "assert",
     }
     if predecessor:
+        if predecessor.text.strip().lower() == new_val.strip().lower():
+            return None
         body["supersedes_id"] = predecessor.id
+    if any(_assertion_equivalent(body, item) for item in asserted):
+        return None
     return body
