@@ -124,6 +124,8 @@ pytest -m "trust or integration" -q
 python -m eval.discrimination.run_cases --json eval/out/discrimination_cases.json
 python -m eval.discrimination.insights   # also writes eval/out/discrimination_plane.json
 pytest -m "integration or h2" -q         # H2 catalog / Firestore Fake / HTTP archive→import
+pytest -m organic -q                     # authored interleaved mini-slice (not prod accuracy)
+python -m eval.organic.run
 ```
 
 Optional live: `. .\scripts\env_vertex_local.ps1` then `python -m eval.discrimination.vertex_smoke`.
