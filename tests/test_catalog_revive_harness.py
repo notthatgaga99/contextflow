@@ -24,12 +24,15 @@ def test_r3_catalog_revive_harness_all_pass():
     sel = by_id["r3_selective_import_revive"]
     assert sel["probe_pass_count"] == sel["probe_n"] == 3
     assert sel["import_ok"] is True
+    assert sel["match_ok"] is True
+    assert sel.get("match_query")
     assert set(sel["id_map"]) == {"A", "B", "E"}
     # Remap must not keep source ids as live task ids.
     assert "A" not in sel["id_map"].values()
 
     clar = by_id["r3_honest_clarify_overlap"]
     assert clar["pass"] is True
+    assert clar["match_ok"] is True
     assert clar["probes"][0]["act_or_clarify"] == "CLARIFY"
     assert clar["probes"][0]["policy_match"] is True
 

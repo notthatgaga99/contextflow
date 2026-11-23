@@ -110,7 +110,7 @@ That is “entire working memory handling **and** switch.”
 | 7a | Memory planes (STM / LTM / procedural / relevant) | **Done** — `MemoryManager` + `docs/MEMORY_MANAGEMENT.md` (RB-WSR; not a vendor clone) |
 | 7b | File-backed last-N catalog | **Done** — `.data/catalog.json` via `CF_CATALOG_PATH` / `CF_CATALOG_PERSIST` |
 | 7c | Firestore last-N catalog | **Done** — `FirestoreConversationCatalog` via `CF_CATALOG_BACKEND=firestore` |
-| 8 | Density stress: long run on one hop then revive others | Research fixture |
+| 8 | Density stress: long run on one hop then revive others | **Done** — R3 + match suggest; `eval.cloud_poc.density_catalog_revive_cloud` |
 | 9 | Bound cold enrich after bind | **Done** — superseded-slot filter + provenance ids |
 
 ---

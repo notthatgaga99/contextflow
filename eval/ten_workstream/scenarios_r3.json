@@ -25,8 +25,9 @@
   "scenarios": [
     {
       "id": "r3_selective_import_revive",
-      "description": "Replay 10×20 → catalog → import A/B/E only → local NEW interference → revive imported hops with WC isolation.",
+      "description": "Replay 10×20 density → catalog → match suggest → import A/B/E only → local NEW interference → revive imported hops with WC isolation.",
       "source_fixture": "fixture_10x20.json",
+      "match_query": "JWT refresh TTL peplum navy Docker debian",
       "import_source_ids": ["A", "B", "E"],
       "catalog_max_entries": 5,
       "destination": {
@@ -92,6 +93,7 @@
       "id": "r3_honest_clarify_overlap",
       "description": "Import A+C (shared 401 domain). Underspecified 401 cue must CLARIFY — not force a wrong ACT.",
       "source_fixture": "fixture_10x20.json",
+      "match_query": "401 token auth orders",
       "import_source_ids": ["A", "C"],
       "catalog_max_entries": 5,
       "destination": {

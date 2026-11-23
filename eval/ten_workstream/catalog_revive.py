@@ -234,6 +234,22 @@ def run_import_revive_scenario(scenario: dict, fixture_dir: Path) -> dict:
     entry = cat.touch_from_live(src_reg, src_store, conversation_id=src_cid)
     catalog_has_source = cat.get(src_cid) is not None
 
+    # Tier C: soft match must surface the archived chat before opt-in import.
+    match_query = (scenario.get("match_query") or "").strip()
+    match_hits = cat.match(match_query, limit=3) if match_query else []
+    match_ok = (
+        True if not match_query
+        else any(ent.conversation_id == src_cid for ent, _ in match_hits)
+    )
+    # Import uses catalog entry resolved via match (or direct get) — never live mash.
+    matched_entry = None
+    if match_hits:
+        matched_entry = next(
+            (ent for ent, _ in match_hits if ent.conversation_id == src_cid),
+            match_hits[0][0],
+        )
+    import_entry = matched_entry or entry
+
     dest = scenario.get("destination") or {}
     dst_cid = dest.get("conversation_id") or "fresh-r3"
     dst_reg = InMemoryRegistry()
@@ -242,7 +258,7 @@ def run_import_revive_scenario(scenario: dict, fixture_dir: Path) -> dict:
 
     import_ids = list(scenario.get("import_source_ids") or [])
     imp = import_rollup_workstreams(
-        dst_reg, dst_writer, entry.rollup,
+        dst_reg, dst_writer, import_entry.rollup,
         workstream_ids=import_ids,
         turn=0,
         as_paused=True,
@@ -393,6 +409,7 @@ def run_import_revive_scenario(scenario: dict, fixture_dir: Path) -> dict:
     scenario_pass = (
         imp.ok
         and catalog_has_source
+        and match_ok
         and len(imp.imported) == len(import_ids)
         and probes_pass
     )
@@ -405,6 +422,12 @@ def run_import_revive_scenario(scenario: dict, fixture_dir: Path) -> dict:
         "source_conversation_id": src_cid,
         "destination_conversation_id": dst_cid,
         "catalog_has_source": catalog_has_source,
+        "match_query": match_query or None,
+        "match_ok": match_ok,
+        "match_top": [
+            {"conversation_id": e.conversation_id, "score": round(s, 4)}
+            for e, s in match_hits[:3]
+        ],
         "catalog_blurb": entry.blurb,
         "import_ok": imp.ok,
         "import_errors": imp.errors,
