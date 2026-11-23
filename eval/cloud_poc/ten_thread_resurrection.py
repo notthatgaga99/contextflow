@@ -40,7 +40,7 @@ def _tasks(base, token, cid):
     return data
 
 
-def run(project="contextflow-506414", region="asia-south1") -> dict:
+def run(project="contextflow-gagan-20261019", region="us-central1") -> dict:
     cid = f"poc-ten-{uuid.uuid4().hex[:8]}"
     base = gcloud(
         "run", "services", "describe", SERVICE,

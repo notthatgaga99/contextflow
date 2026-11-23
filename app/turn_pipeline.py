@@ -51,14 +51,14 @@ def run_turn(
 ) -> PipelineResult:
     """turn N → route-aware extract → ContextFlow. Safe to retry.
 
-    Non-NEW turns: extract → route → answer (unchanged semantics).
-    NEW turns: plan → create card → bounded extract → answer already generated.
+    Non-NEW: extract → route → answer.
+    NEW: create card → extract (focus) → answer (so generate sees same-turn facts).
     """
     plan = engine.plan_turn(message, turn)
     passes = 0
 
     if plan.transition == Transition.NEW:
-        routed = engine.execute_plan(plan, message, turn)
+        routed = engine.execute_plan(plan, message, turn, generate_answer=False)
         req = _extract_request(
             engine, writer,
             conversation_id=conversation_id,
@@ -69,7 +69,8 @@ def run_turn(
         )
         extracted = apply_extraction(extractor, writer, req)
         passes = 1
-        return PipelineResult(extract=extracted, turn=routed, extract_passes=passes)
+        answered = engine.complete_answer(routed, message, turn)
+        return PipelineResult(extract=extracted, turn=answered, extract_passes=passes)
 
     req = _extract_request(
         engine, writer,

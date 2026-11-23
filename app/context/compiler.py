@@ -35,6 +35,7 @@ class ContextCompiler:
         active_constraints: list[str] | None = None,
         relevant_facts: list[str] | None = None,
         relevant_entities: list[str] | None = None,
+        procedures: list[str] | None = None,
         excluded_workstreams: list[str] | None = None,
         memory_item_ids: list[str] | None = None,
         recent_changes: list[str] | None = None,
@@ -60,6 +61,7 @@ class ContextCompiler:
             active_constraints=list(active_constraints if active_constraints is not None else a.constraints),
             relevant_facts=list(relevant_facts if relevant_facts is not None else a.entities),
             relevant_entities=list(relevant_entities or []),
+            procedures=list(procedures or []),
             excluded_workstreams=list(excluded_workstreams or []),
             memory_item_ids=list(memory_item_ids or []),
             recent_changes=list(recent_changes or []),
@@ -142,6 +144,7 @@ class ContextCompiler:
         parts.extend(pkg.open_loops)
         parts.extend(pkg.active_decisions)
         parts.extend(pkg.active_constraints)
+        parts.extend(pkg.procedures)
         parts.extend(pkg.relevant_facts)
         parts.extend(pkg.relevant_entities)
         return " ".join(p for p in parts if p)
@@ -167,6 +170,8 @@ class ContextCompiler:
                 lines.append(f"SELECTED LOOP: {pkg.selected_open_loop}")
             if pkg.open_loops:
                 lines.append("OPEN LOOPS: " + "; ".join(pkg.open_loops))
+            if pkg.procedures:
+                lines.append("PROCEDURAL: " + "; ".join(pkg.procedures))
             if pkg.active_decisions:
                 lines.append("DECISIONS: " + "; ".join(pkg.active_decisions))
             if pkg.active_constraints:
@@ -197,6 +202,8 @@ class ContextCompiler:
                 lines.append(f"SELECTED LOOP: {pkg.selected_open_loop}")
             if pkg.open_loops:
                 lines.append("OPEN LOOPS: " + "; ".join(pkg.open_loops))
+            if pkg.procedures:
+                lines.append("PROCEDURAL: " + "; ".join(pkg.procedures))
             if pkg.active_decisions:
                 lines.append("DECISIONS: " + "; ".join(pkg.active_decisions))
             if pkg.active_constraints:

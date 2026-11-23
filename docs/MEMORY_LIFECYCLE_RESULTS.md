@@ -44,10 +44,10 @@ FULL / RECENT / CF: **needed_state** vs **contamination**. `needed+leaks` means 
 
 ### Layer notes (primary)
 
-- **return_A:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['corporate outfit', 'travel', 'paper']; sizes={'full_chars': 1354, 'recent_chars': 752, 'cf_chars': 163, 'cf_answer_tokens': 24}
-- **return_B_navy:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'travel', 'paper']; sizes={'full_chars': 1595, 'recent_chars': 791, 'cf_chars': 177, 'cf_answer_tokens': 23}
-- **return_C:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'corporate outfit', 'paper']; sizes={'full_chars': 1782, 'recent_chars': 780, 'cf_chars': 149, 'cf_answer_tokens': 19}
-- **return_B_again:** transition=SWITCH; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'travel', 'paper']; sizes={'full_chars': 1961, 'recent_chars': 772, 'cf_chars': 199, 'cf_answer_tokens': 27}
+- **return_A:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['corporate outfit', 'travel', 'paper']; sizes={'full_chars': 1307, 'recent_chars': 731, 'cf_chars': 163, 'cf_answer_tokens': 24}
+- **return_B_navy:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'travel', 'paper']; sizes={'full_chars': 1540, 'recent_chars': 767, 'cf_chars': 222, 'cf_answer_tokens': 32}
+- **return_C:** transition=RETURN; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'corporate outfit', 'paper']; sizes={'full_chars': 1722, 'recent_chars': 754, 'cf_chars': 149, 'cf_answer_tokens': 19}
+- **return_B_again:** transition=SWITCH; winner=CF_beats_FULL; missing={'facts': [], 'decisions': [], 'constraints': [], 'entities': [], 'needed_state': []}; leaks=[]; stale=[]; excluded=['authentication', 'travel', 'paper']; sizes={'full_chars': 1898, 'recent_chars': 756, 'cf_chars': 238, 'cf_answer_tokens': 36}
 
 ## Secondary control (human-seeded memory, extractor skipped)
 

@@ -17,7 +17,7 @@ from tests.conftest import make_task
 def _store(cid: str) -> FirestoreMemoryStore:
     return FirestoreMemoryStore(
         cid,
-        project=os.getenv("GCP_PROJECT", "contextflow-506414"),
+        project=os.getenv("GCP_PROJECT", "contextflow-gagan-20261019"),
         database=os.getenv("CF_FIRESTORE_DATABASE", "contextflow-poc"),
     )
 
@@ -83,7 +83,7 @@ def run() -> dict:
 
 
 def main() -> int:
-    os.environ.setdefault("GCP_PROJECT", "contextflow-506414")
+    os.environ.setdefault("GCP_PROJECT", "contextflow-gagan-20261019")
     os.environ.setdefault("CF_FIRESTORE_DATABASE", "contextflow-poc")
     out = run()
     print(json.dumps(out, indent=2))

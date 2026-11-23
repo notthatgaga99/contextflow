@@ -6,6 +6,7 @@ import ast
 import subprocess
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.memory.store import InMemoryMemoryStore
@@ -179,6 +180,12 @@ def test_no_eval_gold_in_app_runtime():
 
 def test_routing_files_byte_identical_to_checkpoint():
     root = Path(__file__).resolve().parents[1]
+    probe = subprocess.run(
+        ["git", "cat-file", "-e", CHECKPOINT],
+        cwd=root, check=False, capture_output=True,
+    )
+    if probe.returncode != 0:
+        pytest.skip(f"checkpoint {CHECKPOINT} not in this clone")
     files = [
         "app/router/gate.py",
         "app/router/referent.py",

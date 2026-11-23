@@ -101,11 +101,11 @@ class MemoryWriter:
         if p.supersedes_id:
             return self.store.get(p.supersedes_id)
         if p.slot and p.action == "assert":
-            peers = self._slot_peer_kinds(p.kind)
+            # Slot is the condensation key: a new value on the same slot replaces
+            # CURRENT regardless of whether the prior row was fact vs decision.
             for item in self.store.asserted(p.workstream_id):
                 if (
-                    item.kind in peers
-                    and item.slot == p.slot
+                    item.slot == p.slot
                     and item.workstream_id == p.workstream_id
                     and item.referent_id == p.referent_id
                     and item.status == "asserted"
@@ -196,7 +196,14 @@ class MemoryWriter:
                 idempotency_key=key,
             )
             if target is not None:
-                if p.supersedes_id and target.kind not in self._slot_peer_kinds(p.kind):
+                same_slot = bool(p.slot and target.slot == p.slot)
+                # Explicit supersedes_id must match peer kinds unless same slot
+                # (slot is the condensation key across fact/decision/correction).
+                if (
+                    p.supersedes_id
+                    and not same_slot
+                    and target.kind not in self._slot_peer_kinds(p.kind)
+                ):
                     return WriterResult(ok=False, errors=["supersede kind mismatch"])
                 batch.append(MemoryItem(**{**target.to_dict(),
                                            "status": "superseded",

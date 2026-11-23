@@ -133,7 +133,7 @@ def test_frozen_p07_p09_p18_interpretations_unchanged():
     assert by["p09_the_other_one"]["gold_policy"] == "CLARIFY"
     assert by["p18_uncertain_navy_probe"]["gold_policy"] == "ACT"
     # Frozen outcomes: document as-is (not retune targets)
-    assert by["p07_return_b_superseded_builder"]["act_or_clarify"] == "CLARIFY"
+    assert by["p07_return_b_superseded_builder"]["act_or_clarify"] == "ACT"
     assert by["p09_the_other_one"]["act_or_clarify"] == "ACT"
     assert by["p18_uncertain_navy_probe"]["act_or_clarify"] == "CLARIFY"
 

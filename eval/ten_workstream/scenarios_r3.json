@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "kind": "controlled_catalog_import_revive",
+    "not": [
+      "natural human chat",
+      "statistical generalization holdout",
+      "gate retune license"
+    ],
+    "rooted_in": [
+      "R1_10x20_density_revive",
+      "R2_condensation_L1_vs_full",
+      "catalog_last_N_and_opt_in_import",
+      "frozen_binder_MemoryPort_switch"
+    ],
+    "control_philosophy": [
+      "Declarative scenarios — add cases without changing app/.",
+      "Gold is evaluator-only; runtime never reads this file.",
+      "Selective import (subset of hops) — not auto-merge-all.",
+      "Imported cards start paused; bind must select.",
+      "ACT gold when cues uniquely identify an imported hop.",
+      "CLARIFY gold when overlap is intentionally ambiguous — fail-closed is success.",
+      "Do not require perfect mid-trajectory routing on the source chat."
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "r3_selective_import_revive",
+      "description": "Replay 10×20 → catalog → import A/B/E only → local NEW interference → revive imported hops with WC isolation.",
+      "source_fixture": "fixture_10x20.json",
+      "import_source_ids": ["A", "B", "E"],
+      "catalog_max_entries": 5,
+      "destination": {
+        "conversation_id": "fresh-r3-selective",
+        "seed_turns": [
+          {
+            "message": "Brand new thread: dairy-free risotto for two tonight with mushrooms.",
+            "llm": {
+              "task_id": null,
+              "is_new_task": true,
+              "confidence": 0.92,
+              "rationale": "r3_local_new"
+            },
+            "extract": {
+              "patches": [
+                {
+                  "kind": "decision",
+                  "text": "dairy-free mushroom risotto",
+                  "slot": "dish"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "probes": [
+        {
+          "id": "r3_revive_A",
+          "message": "Final check: JWT 401 after refresh — TTL 5 minutes and aud api.internal on the auth service",
+          "gold_source_workstream_id": "A",
+          "gold_loop_index": 1,
+          "gold_policy": "ACT",
+          "needed_state": ["TTL 5", "aud"],
+          "should_not_carry": ["navy", "debian slim", "risotto", "mushroom"],
+          "category": "import_revive",
+          "utterance_kind": "return"
+        },
+        {
+          "id": "r3_revive_E",
+          "message": "Confirm navy peplum closed-toe corporate evening outfit",
+          "gold_source_workstream_id": "E",
+          "gold_loop_index": 1,
+          "gold_policy": "ACT",
+          "needed_state": ["navy", "peplum"],
+          "should_not_carry": ["TTL", "Docker", "risotto", "debian"],
+          "category": "import_revive",
+          "utterance_kind": "return"
+        },
+        {
+          "id": "r3_revive_B",
+          "message": "Final check: CI failing on Docker step — debian slim, pin digest, 4Gi",
+          "gold_source_workstream_id": "B",
+          "gold_loop_index": 1,
+          "gold_policy": "ACT",
+          "needed_state": ["debian slim", "4Gi"],
+          "should_not_carry": ["navy", "JWT", "risotto", "aud"],
+          "category": "import_revive",
+          "utterance_kind": "return"
+        }
+      ]
+    },
+    {
+      "id": "r3_honest_clarify_overlap",
+      "description": "Import A+C (shared 401 domain). Underspecified 401 cue must CLARIFY — not force a wrong ACT.",
+      "source_fixture": "fixture_10x20.json",
+      "import_source_ids": ["A", "C"],
+      "catalog_max_entries": 5,
+      "destination": {
+        "conversation_id": "fresh-r3-clarify",
+        "seed_turns": []
+      },
+      "probes": [
+        {
+          "id": "r3_ambiguous_401",
+          "message": "still getting a 401 with the token",
+          "gold_source_workstream_id": null,
+          "gold_policy": "CLARIFY",
+          "needed_state": [],
+          "should_not_carry": [],
+          "category": "import_ambiguity",
+          "utterance_kind": "underspecified",
+          "note": "Fail-closed CLARIFY is the correct product behavior under A/C overlap."
+        }
+      ]
+    },
+    {
+      "id": "r3_catalog_last_n",
+      "description": "Catalog keeps last-N structured rollups only — not transcripts.",
+      "kind": "catalog_capacity",
+      "catalog_max_entries": 3,
+      "archive_count": 5,
+      "expect_kept": 3
+    },
+    {
+      "id": "r3_paused_until_bind",
+      "description": "After selective import, cards are paused and no L1 package exists until a bind turn.",
+      "kind": "import_paused_invariant",
+      "source_fixture": "fixture_10x20.json",
+      "import_source_ids": ["A", "E"]
+    }
+  ]
+}

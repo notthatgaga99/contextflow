@@ -11,8 +11,8 @@ from urllib import error, request
 
 from eval.cloud_poc.gcp_cli import gcloud
 
-DEFAULT_PROJECT = "contextflow-506414"
-DEFAULT_REGION = "asia-south1"
+DEFAULT_PROJECT = "contextflow-gagan-20261019"
+DEFAULT_REGION = "us-central1"
 SERVICE = "contextflow-durable"
 
 

@@ -138,3 +138,22 @@ def clarify_question(cands: list[Candidate], reg) -> str:
     if labels:
         return f"Do you mean the {labels[0]}?"
     return "Which task did you mean?"
+
+
+def clarify_question_from_ids(task_ids: list[str], reg) -> str:
+    """Near-miss clarify: ask about the confused open threads (identity channel)."""
+    labels = []
+    for tid in task_ids:
+        if not tid:
+            continue
+        t = reg.get(tid)
+        if t is None:
+            continue
+        labels.append(t.anchor.goal or t.title or tid)
+        if len(labels) >= 2:
+            break
+    if len(labels) >= 2:
+        return f"Do you mean the {labels[0]}, or the {labels[1]}?"
+    if labels:
+        return f"Do you mean the {labels[0]}?"
+    return "Which task did you mean?"

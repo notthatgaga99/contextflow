@@ -22,7 +22,7 @@ def _tasks(base: str, token: str, cid: str) -> dict:
     return data
 
 
-def run(project: str = "contextflow-506414", region: str = "asia-south1") -> dict:
+def run(project: str = "contextflow-gagan-20261019", region: str = "us-central1") -> dict:
     suffix = uuid.uuid4().hex[:8]
     conv_a = f"poc-res-a-{suffix}"
     conv_b = f"poc-res-b-{suffix}"

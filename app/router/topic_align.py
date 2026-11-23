@@ -1,20 +1,18 @@
-"""Post-gate topic alignment — does not change gate/scorer thresholds.
+"""Post-gate topic alignment — thin adapter over discrimination policy table.
 
-When frozen routing binds CONTINUE/SWITCH/RETURN to a workstream whose
-lexical cues barely match the user message, override:
-  - to a better-matching open workstream, or
-  - to NEW when nothing open matches (e.g. first fashion turn after tech).
-
-This is a fail-closed demo safety rail, not a retune of gate.py / scorer.py.
+Frozen gate thresholds unchanged. Math/application lives in
+`thread_discriminate.decide_discrimination` (see THREAD_DISCRIMINATION_MODEL.md).
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 from app.domain import Transition
 from app.models.task import Task
+from app.router.thread_discriminate import IdentityCues, decide_discrimination
 
 _TOKEN = re.compile(r"[a-z0-9]+")
 _STOP = frozenset({
@@ -27,7 +25,6 @@ _STOP = frozenset({
     "here", "also", "very", "really", "should", "would", "could", "need",
     "want", "get", "got", "make", "made", "using", "use", "used",
 })
-# Deictic / underspecified continues — prefer stick to active, do not force NEW.
 _CONTINUE_CUES = frozenset({
     "yes", "yeah", "yep", "ok", "okay", "sure", "same", "also", "and", "then",
     "those", "these", "them", "that", "this", "again", "still", "continue",
@@ -44,10 +41,9 @@ def _tokens(text: str) -> set[str]:
         if len(t) < 3 or t in _STOP:
             continue
         out.add(t)
-        # Light plural fold so pipeline(s)/test(s) still match cards.
-        if t.endswith("s") and len(t) > 4 and not t.endswith("ss"):
+        if t.endswith("s") and len(t) >= 4 and not t.endswith("ss"):
             out.add(t[:-1])
-        elif len(t) > 3:
+        if len(t) >= 3 and not t.endswith("s"):
             out.add(t + "s")
     return out
 
@@ -60,7 +56,6 @@ def is_underspecified(message: str) -> bool:
     toks = _tokens(raw)
     if len(toks) <= 3:
         return True
-    # Mostly continuation glue + tiny content.
     content = {t for t in toks if t not in _CONTINUE_CUES}
     if len(content) <= 1 and len(raw) < 80:
         return True
@@ -86,8 +81,7 @@ def overlap_score(message: str, blob: str) -> float:
     mt, bt = _tokens(message), _tokens(blob)
     if not mt or not bt:
         return 0.0
-    inter = mt & bt
-    return len(inter) / max(len(mt), 1)
+    return len(mt & bt) / max(len(mt), 1)
 
 
 @dataclass
@@ -98,6 +92,8 @@ class AlignmentOutcome:
     selected_score: float
     best_other_id: str | None
     best_other_score: float
+    # Two-channel math snapshot (application point of the model).
+    discrimination: dict[str, Any] = field(default_factory=dict)
 
 
 def align_plan(
@@ -108,77 +104,31 @@ def align_plan(
     open_tasks: list[Task],
     active_id: str | None,
     memory_texts_by_task: dict[str, list[str]] | None = None,
-    # Selected task must clear this to keep the gate choice.
-    keep_min: float = 0.12,
-    # Challenger must beat selected by this margin to steal the bind.
+    identity_cues_by_task: dict[str, IdentityCues] | None = None,
+    keep_min: float = 0.12,  # retained for call-site compat; policy owns thresholds
     steal_margin: float = 0.08,
-    # Absolute floor to accept a challenger / keep from forcing NEW.
     accept_min: float = 0.10,
 ) -> AlignmentOutcome | None:
     """Return an override, or None to keep the frozen gate decision."""
-    # Spurious NEW on tiny follow-ups ("yml", "ok?", "yes") after CLARIFY/tech.
-    if transition == Transition.NEW and active_id and is_underspecified(message):
-        return AlignmentOutcome(
-            transition=Transition.CONTINUE,
-            task_id=active_id,
-            reason="stick_underspecified_new",
-            selected_score=0.0,
-            best_other_id=None,
-            best_other_score=0.0,
-        )
-
-    if transition in (Transition.CLARIFY, Transition.NEW):
+    del keep_min, steal_margin, accept_min  # policy table owns constants
+    decided = decide_discrimination(
+        message=message,
+        gate_transition=transition,
+        gate_task_id=task_id,
+        open_tasks=open_tasks,
+        active_id=active_id,
+        memory_texts_by_task=memory_texts_by_task,
+        identity_cues_by_task=identity_cues_by_task,
+        underspecified=is_underspecified(message),
+    )
+    if decided is None:
         return None
-    if not task_id or not open_tasks:
-        return None
-
-    mem = memory_texts_by_task or {}
-    scores: dict[str, float] = {}
-    for t in open_tasks:
-        scores[t.id] = overlap_score(message, task_blob(t, mem.get(t.id)))
-
-    selected = scores.get(task_id, 0.0)
-    others = [(tid, sc) for tid, sc in scores.items() if tid != task_id]
-    best_other_id, best_other = (None, 0.0)
-    if others:
-        best_other_id, best_other = max(others, key=lambda x: x[1])
-
-    # Gate choice is good enough.
-    if selected >= keep_min:
-        return None
-
-    # A different open thread clearly matches the message better.
-    if (
-        best_other_id
-        and best_other >= accept_min
-        and best_other >= selected + steal_margin
-        and not is_underspecified(message)
-    ):
-        if active_id == best_other_id:
-            tr = Transition.CONTINUE
-        elif active_id and active_id != best_other_id:
-            tr = Transition.RETURN
-        else:
-            tr = Transition.SWITCH
-        return AlignmentOutcome(
-            transition=tr,
-            task_id=best_other_id,
-            reason="steal_better_workstream",
-            selected_score=selected,
-            best_other_id=best_other_id,
-            best_other_score=best_other,
-        )
-
-    # Substantial mismatched topic (e.g. fashion after IoT) → NEW.
-    # Vague / short YAML-style continues must NOT open a new thread.
-    if selected < accept_min and not is_underspecified(message):
-        return AlignmentOutcome(
-            transition=Transition.NEW,
-            task_id=None,
-            reason="force_new_topic_mismatch",
-            selected_score=selected,
-            best_other_id=best_other_id,
-            best_other_score=best_other,
-        )
-
-    return None
+    return AlignmentOutcome(
+        transition=decided.transition,
+        task_id=decided.task_id,
+        reason=decided.reason,
+        selected_score=decided.selected_score,
+        best_other_id=decided.best_other_id,
+        best_other_score=decided.best_other_score,
+        discrimination=decided.evidence.to_dict(),
+    )

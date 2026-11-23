@@ -311,8 +311,8 @@ def _apply_gate(runs: list[RunRecord]) -> dict[str, Any]:
 
 
 def run(
-    project: str = "contextflow-506414",
-    region: str = "asia-south1",
+    project: str = "contextflow-gagan-20261019",
+    region: str = "us-central1",
     *,
     n_runs: int = DEFAULT_RUNS,
     max_usd: float = DEFAULT_MAX_USD,

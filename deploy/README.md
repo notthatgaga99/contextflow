@@ -7,7 +7,9 @@ Two identifiable configurations:
 | `deploy/cloudrun.yaml` | **Demo** | in-memory | Public invoke = demo boundary |
 | `deploy/cloudrun-durable.yaml` | **Durable POC** | Firestore | **Authenticated** (invoker IAM) |
 
-**Neither file has been applied in Phase 8.** Do not deploy without an approved plan.
+**Free Trial host (2026-11-23):** durable service deployed on
+`contextflow-gagan-20261019` / `us-central1` as `contextflow-durable`
+(authenticated invoker IAM). Demo yaml remains unused until needed.
 
 ---
 

@@ -308,7 +308,7 @@
         "Celesteela"
       ],
       "expected_gap": 12,
-      "frozen_behavior_note": "Frozen RESOLUTION: gold ACT B may CLARIFY. Document, do not retune."
+      "frozen_behavior_note": "I-channel resolve: gold ACT B now ACTs (was CLARIFY before slot/entity rail)."
     },
     {
       "id": "p08_deictic_fix_that",

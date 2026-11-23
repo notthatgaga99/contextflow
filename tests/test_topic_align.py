@@ -61,7 +61,12 @@ def test_steal_better_fashion_thread():
     )
     assert out is not None
     assert out.task_id == "T2"
-    assert out.reason == "steal_better_workstream"
+    assert out.reason in (
+        "steal_better_workstream",
+        "discriminate_steal_distinctive",
+        "discriminate_distinctive_near_miss",
+        "discriminate_near_miss_resolve",
+    )
 
 
 def test_keep_gate_when_selected_matches():

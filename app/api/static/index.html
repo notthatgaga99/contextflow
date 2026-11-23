@@ -3,377 +3,550 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ContextFlow</title>
+  <title>ContextFlow Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;550;650;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f7f6f3; --card: #fff; --ink: #1c1917; --muted: #78716c;
-      --line: #e7e5e4; --accent: #0f766e; --accent-soft: #ccfbf1;
-      --rose: #be123c; --rose-soft: #ffe4e6;
-      --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --bg0: #0a0f1a;
+      --bg1: #111827;
+      --panel: rgba(17, 24, 39, 0.82);
+      --line: rgba(148, 163, 184, 0.18);
+      --ink: #e8eef7;
+      --muted: #94a3b8;
+      --teal: #2dd4bf;
+      --teal-dim: rgba(45, 212, 191, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.12);
+      --rose: #fb7185;
+      --rose-dim: rgba(251, 113, 133, 0.12);
+      --sans: "Source Sans 3", system-ui, sans-serif;
+      --display: "Syne", var(--sans);
+      --mono: "JetBrains Mono", ui-monospace, monospace;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); min-height: 100vh; }
-    header { background: var(--card); border-bottom: 1px solid var(--line); padding: 1rem 1.25rem 0.9rem; }
-    .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; }
-    .tag { margin: 0.2rem 0 0; color: var(--accent); font-weight: 600; }
-    .sub { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.88rem; max-width: 48rem; line-height: 1.45; }
-    .layout {
-      display: grid; grid-template-columns: 1fr 300px; gap: 0.85rem;
-      padding: 0.85rem; max-width: 1140px; margin: 0 auto;
+    html, body { height: 100%; }
+    body {
+      margin: 0; color: var(--ink); font-family: var(--sans);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(45, 212, 191, 0.16), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(251, 191, 36, 0.08), transparent 50%),
+        linear-gradient(180deg, #0a0f1a 0%, #0f172a 48%, #0a0f1a 100%);
+      min-height: 100vh;
     }
-    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-    .card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-      overflow: hidden; display: flex; flex-direction: column; min-height: 28rem;
+    .shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      max-width: 1600px;
+      margin: 0 auto;
     }
-    .card h2 {
-      margin: 0; padding: 0.65rem 0.9rem; font-size: 0.7rem; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); background: #fafaf9;
+    header {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem;
+      padding: 1rem 1.25rem 0.85rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(10, 15, 26, 0.65);
+      backdrop-filter: blur(10px);
     }
+    .brand {
+      font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      letter-spacing: -0.04em; line-height: 1;
+    }
+    .brand em { font-style: normal; color: var(--teal); }
+    .tagline { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.92rem; max-width: 40rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
+    .badge {
+      font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em;
+      padding: 0.28rem 0.55rem; border-radius: 999px;
+      border: 1px solid var(--line); color: var(--muted); background: rgba(15, 23, 42, 0.7);
+    }
+    .badge.on { color: var(--teal); border-color: rgba(45, 212, 191, 0.45); background: var(--teal-dim); }
+    .workspace {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr) 340px;
+      gap: 0;
+      min-height: 0;
+    }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .rail, .inspector { max-height: 220px; }
+    }
+    .rail, .main, .inspector {
+      min-height: 0; border-right: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .inspector { border-right: none; border-left: 1px solid var(--line); }
+    .panel-h {
+      padding: 0.7rem 0.85rem; font-size: 0.68rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;
+    }
+    .panel-h button, .chip-btn {
+      font: inherit; font-size: 0.72rem; letter-spacing: 0.02em; text-transform: none;
+      border: 1px solid var(--line); background: transparent; color: var(--ink);
+      border-radius: 8px; padding: 0.28rem 0.55rem; cursor: pointer;
+    }
+    .chip-btn.primary, .send-btn {
+      background: var(--teal); color: #042f2e; border-color: var(--teal); font-weight: 700;
+    }
+    .chip-btn:disabled, .send-btn:disabled { opacity: 0.45; cursor: default; }
+    .rail-body, .inspector-body { overflow: auto; padding: 0.65rem; }
+    .thread {
+      width: 100%; text-align: left; border: 1px solid transparent; background: transparent;
+      color: inherit; font: inherit; border-radius: 10px; padding: 0.55rem 0.6rem; cursor: pointer;
+      margin-bottom: 0.35rem;
+    }
+    .thread:hover { background: rgba(148, 163, 184, 0.08); }
+    .thread.on { border-color: rgba(45, 212, 191, 0.4); background: var(--teal-dim); }
+    .thread .t { font-weight: 650; font-size: 0.9rem; }
+    .thread .m { display: block; margin-top: 0.15rem; color: var(--muted); font-size: 0.72rem; }
+    .main { display: flex; flex-direction: column; }
     .toolbar {
-      display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.55rem 0.9rem;
-      border-bottom: 1px solid var(--line); background: #fafaf9;
+      display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid var(--line);
     }
-    .toolbar button {
-      border: 1px solid var(--line); background: #fff; border-radius: 999px;
-      padding: 0.35rem 0.75rem; font: inherit; font-size: 0.78rem; cursor: pointer;
+    .chat {
+      flex: 1; overflow: auto; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.7rem;
     }
-    .toolbar button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 650; }
-    .toolbar button:disabled { opacity: 0.45; cursor: default; }
-    .chat { flex: 1; overflow: auto; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .bubble { max-width: 94%; padding: 0.65rem 0.8rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.45; white-space: pre-wrap; }
-    .bubble.user { align-self: flex-end; background: #ecfdf5; border: 1px solid #99f6e4; }
-    .bubble.bot { align-self: flex-start; background: #fafaf9; border: 1px solid var(--line); }
-    .meta { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
-    .meta b { color: var(--accent); }
-    .composer { display: flex; gap: 0.4rem; padding: 0.65rem 0.9rem; border-top: 1px solid var(--line); }
+    .msg {
+      max-width: min(720px, 94%); padding: 0.75rem 0.9rem; border-radius: 14px;
+      font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;
+      border: 1px solid var(--line);
+    }
+    .msg.user { align-self: flex-end; background: rgba(45, 212, 191, 0.1); border-color: rgba(45, 212, 191, 0.35); }
+    .msg.bot { align-self: flex-start; background: rgba(15, 23, 42, 0.9); }
+    .msg .meta { margin-top: 0.4rem; font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
+    .msg .meta b { color: var(--teal); font-weight: 500; }
+    .timeline {
+      display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.45rem;
+    }
+    .tl {
+      font-family: var(--mono); font-size: 0.62rem; padding: 0.18rem 0.4rem; border-radius: 6px;
+      background: rgba(148, 163, 184, 0.1); color: var(--muted); border: 1px solid var(--line);
+    }
+    .tl.bind { color: var(--teal); border-color: rgba(45, 212, 191, 0.35); background: var(--teal-dim); }
+    .tl.tool { color: var(--amber); border-color: rgba(251, 191, 36, 0.35); background: var(--amber-dim); }
+    .tl.answer { color: #93c5fd; }
+    .tool-card {
+      align-self: stretch; max-width: min(720px, 94%);
+      border: 1px solid rgba(251, 191, 36, 0.3); background: var(--amber-dim);
+      border-radius: 12px; padding: 0.55rem 0.7rem; font-family: var(--mono); font-size: 0.72rem;
+    }
+    .tool-card .name { color: var(--amber); font-weight: 500; margin-bottom: 0.25rem; }
+    .composer {
+      display: flex; gap: 0.5rem; padding: 0.75rem 0.9rem; border-top: 1px solid var(--line);
+      background: rgba(10, 15, 26, 0.55);
+    }
     .composer input {
-      flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.75rem; font: inherit;
+      flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 0.9rem;
+      background: #0b1220; color: var(--ink); font: inherit; font-size: 0.95rem;
     }
-    .composer button {
-      border: none; background: var(--accent); color: #fff; border-radius: 10px;
-      padding: 0.6rem 0.9rem; font: inherit; font-weight: 600; cursor: pointer;
+    .composer input:focus { outline: 1px solid rgba(45, 212, 191, 0.5); }
+    .send-btn { border: none; border-radius: 12px; padding: 0.75rem 1rem; cursor: pointer; font: inherit; }
+    .status {
+      padding: 0.35rem 0.9rem 0.55rem; font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
     }
-    .composer button:disabled { opacity: 0.5; }
-    .status { padding: 0.4rem 0.9rem; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--line); }
-    .err { color: var(--rose); padding: 0.45rem 0.9rem; font-size: 0.84rem; }
-    .side-actions { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); }
-    .side-actions button {
-      width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 10px;
-      padding: 0.5rem; font: inherit; cursor: pointer;
+    .err { color: var(--rose); padding: 0.4rem 0.9rem; font-size: 0.85rem; background: var(--rose-dim); }
+    .block { margin-bottom: 0.85rem; }
+    .label {
+      font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem;
     }
-    .howto {
-      margin: 0; padding: 0.55rem 0.75rem; font-size: 0.76rem; line-height: 1.4; color: var(--muted);
-      border-bottom: 1px solid var(--line); background: #fafaf9;
+    pre.l1 {
+      margin: 0; white-space: pre-wrap; font-family: var(--mono); font-size: 0.7rem;
+      line-height: 1.45; color: #cbd5e1; background: rgba(2, 6, 23, 0.55);
+      border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.7rem; max-height: 220px; overflow: auto;
     }
-    .howto b { color: var(--ink); font-weight: 650; }
-    .body { padding: 0.75rem; overflow: auto; flex: 1; font-size: 0.84rem; }
-    .ws {
-      padding: 0.35rem 0.4rem; border: 1px solid transparent; border-radius: 8px;
-      display: flex; gap: 0.4rem; align-items: flex-start; cursor: pointer; text-align: left;
-      width: 100%; background: transparent; font: inherit; color: inherit;
+    .plane-row {
+      display: flex; justify-content: space-between; gap: 0.5rem;
+      padding: 0.35rem 0.45rem; border-radius: 8px; font-size: 0.78rem;
+      border: 1px solid transparent;
     }
-    .ws:hover { background: #f5f5f4; }
-    .dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #d6d3d1; margin-top: 0.35rem; flex-shrink: 0; }
-    .ws.on { border-color: #99f6e4; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
-    .ws.on .dot { background: var(--accent); }
-    .ws .meta-line { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-top: 0.1rem; }
-    .block { margin-bottom: 0.7rem; }
-    .label { font-size: 0.66rem; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.2rem; }
-    .footprint {
-      font-size: 0.72rem; color: var(--muted); margin: 0 0 0.45rem; line-height: 1.35;
+    .plane-row:nth-child(odd) { background: rgba(148, 163, 184, 0.05); }
+    .plane-row b { font-weight: 650; color: var(--teal); font-size: 0.72rem; letter-spacing: 0.04em; }
+    .plane-row span { color: var(--muted); font-size: 0.72rem; text-align: right; }
+    .tools-list { display: flex; flex-direction: column; gap: 0.35rem; }
+    .tool-run {
+      text-align: left; width: 100%; border: 1px solid var(--line); background: rgba(2, 6, 23, 0.4);
+      color: inherit; border-radius: 10px; padding: 0.45rem 0.55rem; cursor: pointer; font: inherit;
     }
-    .current { background: var(--accent-soft); border: 1px solid #99f6e4; border-radius: 10px; padding: 0.6rem 0.7rem; }
-    .current .label { color: var(--accent); font-weight: 700; }
-    .history .label { color: var(--muted); }
-    .history li { color: var(--muted); text-decoration: line-through; }
-    .excluded .label { color: var(--rose); }
-    .chip-x {
-      display: inline-block; margin: 0.12rem 0.12rem 0 0; padding: 0.12rem 0.35rem;
-      border-radius: 6px; background: var(--rose-soft); color: #9f1239; font-size: 0.7rem;
-    }
-    ul { margin: 0.15rem 0 0; padding-left: 1rem; }
-    .caption { font-size: 0.78rem; color: var(--accent); padding: 0 0.9rem 0.45rem; }
+    .tool-run:hover { border-color: rgba(251, 191, 36, 0.45); }
+    .tool-run .n { font-family: var(--mono); font-size: 0.72rem; color: var(--amber); }
+    .tool-run .d { display: block; margin-top: 0.15rem; font-size: 0.72rem; color: var(--muted); }
+    ul.hist { margin: 0.2rem 0 0; padding-left: 1rem; color: var(--muted); font-size: 0.78rem; }
+    ul.hist li { text-decoration: line-through; }
+    .hint { font-size: 0.75rem; color: var(--muted); line-height: 1.4; margin: 0 0 0.6rem; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand">ContextFlow</div>
-    <div class="tag">Leave a thought without losing it.</div>
-    <p class="sub">
-      How to try it: optionally click <b>BUILD HISTORY</b> to open several unfinished threads, then scroll the chat,
-      click a thread in <b>State</b> to inspect its CURRENT / HISTORY, and type freely — switch back (“What about Alfama for Lisbon?”),
-      revive another open thread, or start something new. Suggestions are optional.
-    </p>
-  </header>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="brand">Context<em>Flow</em></div>
+        <p class="tagline">Agent workspace — bind one thread, expose SHORT_TERM only, tools under the binder. Leave a thought without losing it.</p>
+      </div>
+      <div class="badges">
+        <span class="badge on" id="llmBadge">llm=…</span>
+        <span class="badge" id="sessBadge">session</span>
+        <span class="badge">RB-WSR · frozen gate</span>
+      </div>
+    </header>
 
-  <div class="layout">
-    <section class="card">
-      <h2>Conversation</h2>
-      <div class="toolbar">
-        <button class="primary" id="buildHistory" type="button">1 · BUILD HISTORY (optional warm-up)</button>
-        <button id="pauseDeep" type="button" disabled>PAUSE</button>
-        <button id="newChat" type="button">NEW CHAT</button>
-      </div>
-      <div class="caption" id="caption">Build history (optional) → click a thread on the right → type to switch / revive / start new.</div>
-      <div class="toolbar" id="suggestBar" style="display:none;border-top:none;padding-top:0;"></div>
-      <div class="chat" id="chat">
-        <div class="bubble bot">Judge path (not a locked script):
-1) Optional: BUILD HISTORY — seeds eng, townhall, Lisbon, and outfit threads.
-2) Click any open workstream on the right to see that thread’s CURRENT memory and superseded HISTORY, plus a small footprint (items / chars projected into working context).
-3) Type freely: revive (“What about place X in Lisbon?”), switch threads, or open a new topic.
-Chips after history are shortcuts only — ignore them anytime.</div>
-      </div>
-      <div class="composer">
-        <input id="msg" placeholder="Ask about any open thread — or start a new one…" autocomplete="off" />
-        <button id="send" type="button">Send</button>
-      </div>
-      <div class="status" id="status">Ready</div>
-      <div class="err" id="err" hidden></div>
-    </section>
+    <div class="workspace">
+      <aside class="rail">
+        <div class="panel-h">
+          <span>Threads · INDEX</span>
+          <button type="button" id="refreshThreads">Refresh</button>
+        </div>
+        <div class="rail-body">
+          <p class="hint">Open workstreams the binder can select. Click to inspect SHORT_TERM for that hop.</p>
+          <div id="threads">—</div>
+        </div>
+      </aside>
 
-    <aside class="card">
-      <h2>State</h2>
-      <p class="howto"><b>Click a thread</b> to inspect its memory. CURRENT is what that thread would feed the model; HISTORY is superseded (e.g. black → navy).</p>
-      <div class="side-actions"><button id="refresh" type="button">Refresh state</button></div>
-      <div class="body">
-        <div class="block">
-          <div class="label">Open workstreams</div>
-          <div id="ws">—</div>
+      <section class="main">
+        <div class="toolbar">
+          <button class="chip-btn primary" type="button" id="buildHistory">Warm-up history</button>
+          <button class="chip-btn" type="button" id="pauseDeep" disabled>Pause</button>
+          <button class="chip-btn" type="button" id="newChat">New session</button>
+          <button class="chip-btn" type="button" id="toggleAutoTools" title="Auto-run session_health + search_bound after bind">Auto-tools: on</button>
         </div>
-        <div class="block" id="footprintBlock">
-          <div class="label">Working-context footprint</div>
-          <div class="footprint" id="footprint">Select a thread —</div>
+        <div class="chat" id="chat">
+          <div class="msg bot">ContextFlow agent shell is live.
+1) Optional <b>Warm-up history</b> — seeds eng / townhall / Lisbon / outfit threads.
+2) Click a thread on the left — RIGHT panel shows SHORT_TERM + planes.
+3) Type to revive, switch, or start new. Each turn shows bind → extract → short_term → tools → answer.
+Tools never replace the frozen binder.</div>
         </div>
-        <div class="block current">
-          <div class="label" id="currentLabel">CURRENT</div>
-          <ul id="current"><li>—</li></ul>
+        <div class="composer">
+          <input id="msg" placeholder="Ask across open threads — or start a new one…" autocomplete="off" />
+          <button class="send-btn" id="send" type="button">Send</button>
         </div>
-        <div class="block history">
-          <div class="label" id="historyLabel">HISTORY</div>
-          <ul id="history"><li>—</li></ul>
+        <div class="status" id="status">Ready</div>
+        <div class="err" id="err" hidden></div>
+      </section>
+
+      <aside class="inspector">
+        <div class="panel-h"><span>Memory · Tools</span></div>
+        <div class="inspector-body">
+          <div class="block">
+            <div class="label">SHORT_TERM (generate surface)</div>
+            <pre class="l1" id="l1expose">Select a thread or send a turn —</pre>
+          </div>
+          <div class="block">
+            <div class="label">Planes</div>
+            <div id="planesBox">—</div>
+          </div>
+          <div class="block">
+            <div class="label">HISTORY (superseded)</div>
+            <ul class="hist" id="history"><li>—</li></ul>
+          </div>
+          <div class="block">
+            <div class="label">Tool harness</div>
+            <div class="tools-list" id="toolsList">Loading…</div>
+          </div>
         </div>
-        <div class="block excluded">
-          <div class="label">EXCLUDED (other threads)</div>
-          <div id="excluded">—</div>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </div>
   </div>
 
   <script>
-    /** Optional warm-up: eng + life interrupts (not a judge script). */
     const DEEP = [
-      { t: "A", c: "Open eng thread", m: "We're on branch feat/submission-polish. Cloud Run service contextflow is public. Do NOT redesign gate/referent/scorer. Help me debug why judges hit {\"detail\":\"Not Found\"} on the root URL." },
-      { t: "A", c: "Constraint", m: "Root path / has no route — only /docs /health /turn. Confirm that's expected for FastAPI, then propose the smallest fix so / shows a clean UI without touching routing freeze files." },
-      { t: "A", c: "CI / ADO", m: "Azure DevOps-style check: pytest is green locally (312 passed) but the pipeline image build failed after COPY . . — no .dockerignore. List what must be excluded so we don't ship .env or eval/out." },
-      { t: "A", c: "401 hypothesis", m: "Hypothesis: POST /turn 401 after refresh is because middleware rejects expired access tokens and never accepts the rotated refresh cookie. Walk the request path and tell me what to log first." },
-      { t: "A", c: "Narrow bug", m: "We log correlation_id but not token_kind. Assume refresh hits /turn with Authorization Bearer <access>. If access is expired, should we return 401 with machine-readable code refresh_required?" },
-      { t: "A", c: "Falsify auth", m: "Correction: it's NOT the refresh cookie. Staging shows identity token missing on unauthenticated clients — Cloud Run IAM returns 403 HTML, not our FastAPI 401. Update the diagnosis." },
-      { t: "A", c: "Public vs durable", m: "We have contextflow (public demo) and contextflow-durable (IAM invoker only). Judges must use the public UI URL. Write a one-paragraph hackathon form note." },
-      { t: "A", c: "Deploy flags", m: "Before redeploy: GET / UI, Vertex extract+answer only, CF_LLM_EXTRACT=1, CF_SEED_ABCD=0, max instances 2. Confirm env flags and rollback." },
-      { t: "A", c: "Logging", m: "Cloud Logging query for turn_decision on service contextflow — which fields prove extract_ok and transition without logging raw user text?" },
-      { t: "A", c: "Freeze proof", m: "Give the exact git diff command to prove gate.py referent.py scorer.py config.py writer.py unchanged vs freeze commit 8cc5539." },
-      { t: "A", c: "GitHub link", m: "origin/main is still scaffold. Release is on feat/submission-polish. What GitHub URL should the form use until we update main?" },
-      { t: "B", c: "Townhall", m: "Quick switch — ignore engineering. Draft a warm 90-second hosting script for Friday office townhall. Thank volunteers; one ContextFlow shout-out." },
-      { t: "B", c: "Townhall short", m: "Shorten to 45 seconds. Remove jargon. Keep: leave a thought without losing it." },
-      { t: "C", c: "Lisbon trip", m: "Different thread: Lisbon trip planning. Hotel needs parking near the center. Mid-range budget, 4 nights." },
-      { t: "C", c: "Lisbon detail", m: "Prefer walkable neighborhoods. Add a note that airport traffic was mentioned in the deck — don't let that contaminate the hotel choice." },
-      { t: "D", c: "Haldi black", m: "Another thread: best friend's haldi this weekend. Festive but comfortable. Assuming black is fine for evening." },
-      { t: "D", c: "Falsify navy", m: "Actually navy, not black — formal evening. Keep black as old assumption for audit. What should CURRENT vs HISTORY look like?" },
-      { t: "D", c: "Outfit constraint", m: "Also no heavy embroidery — need to dance. Prefer breathable fabrics." }
+      { c: "Eng open", m: "We're on branch feat/submission-polish. Help me debug why judges hit {\"detail\":\"Not Found\"} on the root URL." },
+      { c: "Constraint", m: "Root path / should show a clean UI. Smallest fix without touching frozen gate files." },
+      { c: "401 hypo", m: "Hypothesis: POST /turn 401 after refresh is expired access tokens. What to log first?" },
+      { c: "Falsify", m: "Correction: staging shows identity token missing — Cloud Run IAM 403, not our FastAPI 401." },
+      { c: "Townhall", m: "Quick switch — ignore engineering. Draft a warm 45-second hosting script for Friday townhall." },
+      { c: "Lisbon", m: "Different thread: Lisbon trip. Hotel needs parking near the center. Mid-range, 4 nights." },
+      { c: "Lisbon detail", m: "Prefer walkable neighborhoods. Don't let airport traffic notes contaminate the hotel choice." },
+      { c: "Outfit black", m: "Another thread: best friend's haldi. Festive but comfortable. Assuming black for evening." },
+      { c: "Outfit navy", m: "Actually navy, not black — formal evening. Keep black as old assumption for audit." },
+      { c: "Outfit dance", m: "Also no heavy embroidery — need to dance. Prefer breathable fabrics." }
     ];
-
     const SUGGEST = [
       { c: "Revive Lisbon", m: "What about Alfama for my Lisbon stay — walkable, still okay with parking nearby?" },
-      { c: "Return to eng", m: "Okay, back to the Cloud Run / FastAPI judge access issue — continue from the IAM vs FastAPI diagnosis, don't restart." },
-      { c: "Maybe navy?", m: "Maybe the navy one?" },
-      { c: "Townhall tweak", m: "For the townhall script — add one line thanking the volunteers by first name only." }
+      { c: "Back to eng", m: "Okay, back to the Cloud Run / FastAPI access issue — continue from IAM vs FastAPI, don't restart." },
+      { c: "Maybe navy?", m: "Maybe the navy one?" }
     ];
 
-    let conversationId = "deep-" + Math.random().toString(36).slice(2, 10);
-    let turn = 1, busy = false, deepIdx = 0, playing = false, lastTaskId = null, historyReady = false;
-    let memoryCache = null;
+    let conversationId = "agent-" + Math.random().toString(36).slice(2, 10);
+    let turn = 1, busy = false, deepIdx = 0, playing = false, lastTaskId = null, autoTools = true;
+    let memoryCache = null, toolsCatalog = [];
+
     const chat = document.getElementById("chat");
     const status = document.getElementById("status");
     const err = document.getElementById("err");
-    const caption = document.getElementById("caption");
 
     function esc(s) {
       return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-    function addBubble(role, text, meta) {
-      const div = document.createElement("div");
-      div.className = "bubble " + (role === "user" ? "user" : "bot");
-      div.innerHTML = esc(text) + (meta ? `<div class="meta">${meta}</div>` : "");
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
     }
     function setBusy(v) {
       busy = v;
       document.getElementById("send").disabled = v || playing;
       document.getElementById("buildHistory").disabled = v || playing;
       document.getElementById("pauseDeep").disabled = !playing;
-      status.textContent = v ? ("Gemini turn " + turn + "…")
-        : (playing ? ("Building history " + deepIdx + "/" + DEEP.length) : ("Ready · " + conversationId));
+      status.textContent = v ? ("Agent turn " + turn + "…")
+        : (playing ? ("Warm-up " + deepIdx + "/" + DEEP.length) : ("Ready · " + conversationId));
+      document.getElementById("sessBadge").textContent = conversationId;
     }
-    function showSuggestBar() {
-      historyReady = true;
-      const bar = document.getElementById("suggestBar");
-      bar.style.display = "flex";
-      bar.innerHTML = '<span style="font-size:0.72rem;color:#78716c;width:100%;">Optional ideas (or just type your own):</span>';
-      SUGGEST.forEach((beat) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = beat.c;
-        b.onclick = () => send(beat.m, "You · " + beat.c);
-        bar.appendChild(b);
-      });
-      caption.textContent = "History ready — click a thread on the right, then type to revive / switch / start new.";
-      document.getElementById("buildHistory").textContent = "REBUILD HISTORY";
+    function addMsg(role, text, metaHtml) {
+      const div = document.createElement("div");
+      div.className = "msg " + (role === "user" ? "user" : "bot");
+      div.innerHTML = esc(text) + (metaHtml || "");
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
     }
-    function renderWorkstreams(tasks, selectedId) {
-      if (!tasks.length) {
-        document.getElementById("ws").textContent = "—";
-        return;
-      }
-      document.getElementById("ws").innerHTML = "";
+    function renderTimeline(steps) {
+      if (!steps || !steps.length) return "";
+      const chips = steps.map(s => {
+        const cls = s.step === "bind" ? "bind" : s.step === "tool" ? "tool" : s.step === "answer" ? "answer" : "";
+        return `<span class="tl ${cls}">${esc(s.step)}: ${esc(s.detail || "")}</span>`;
+      }).join("");
+      return `<div class="timeline">${chips}</div>`;
+    }
+    function renderToolCards(tools) {
+      if (!tools || !tools.length) return "";
+      return tools.map(t => {
+        const summary = t.ok
+          ? JSON.stringify(t.data || {}).slice(0, 180)
+          : (t.error || "failed");
+        return `<div class="tool-card"><div class="name">tool · ${esc(t.tool)} ${t.ok ? "ok" : "err"}</div>${esc(summary)}</div>`;
+      }).join("");
+    }
+    function renderPlanes(planes) {
+      const box = document.getElementById("planesBox");
+      if (!planes) { box.textContent = "—"; return; }
+      const rows = [
+        ["SHORT_TERM", planes.short_term ? "L1 generate surface" : "—"],
+        ["LONG_TERM", planes.long_term ? ((planes.long_term.count || 0) + " durable") : "—"],
+        ["PROCEDURAL", planes.procedural ? ((planes.procedural.count || 0) + " control/skills") : "—"],
+        ["RELEVANT", planes.relevant ? ((planes.relevant.count || 0) + " bound cold") : "—"],
+        ["INDEX", planes.index ? ((planes.index.count || 0) + " open cards") : "—"],
+      ];
+      box.innerHTML = rows.map(([k, v]) =>
+        `<div class="plane-row"><b>${k}</b><span>${esc(v)}</span></div>`
+      ).join("");
+    }
+    function renderThreads(tasks, selectedId) {
+      const el = document.getElementById("threads");
+      if (!tasks.length) { el.textContent = "No open threads yet"; return; }
+      el.innerHTML = "";
       tasks.forEach(t => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "ws" + (t.id === selectedId ? " on" : "");
+        btn.className = "thread" + (t.id === selectedId ? " on" : "");
         const mem = (memoryCache && (memoryCache.workstreams || []).find(x => x.id === t.id)) || null;
-        const nCur = mem
-          ? (mem.decisions || []).length + (mem.constraints || []).length + (mem.facts || []).length
-          : null;
-        const nHist = mem ? ((mem.history || []).length) : null;
-        const meta = (nCur != null)
-          ? `<span class="meta-line">${nCur} current · ${nHist} history</span>`
-          : "";
-        btn.innerHTML = `<span class="dot"></span><span>${esc(t.title || t.id)}${meta}</span>`;
-        btn.onclick = () => refreshState(t.id);
-        document.getElementById("ws").appendChild(btn);
+        const n = mem ? ((mem.decisions||[]).length + (mem.constraints||[]).length + (mem.facts||[]).length + (mem.procedures||[]).length) : null;
+        btn.innerHTML = `<span class="t">${esc(t.title || t.id)}</span>`
+          + `<span class="m">${esc(t.status || "")}${n != null ? " · " + n + " current" : ""}</span>`;
+        btn.onclick = () => inspectThread(t.id);
+        el.appendChild(btn);
       });
     }
-    async function refreshState(taskId) {
+    async function loadTools() {
+      try {
+        const r = await fetch("/agent/tools");
+        const j = await r.json();
+        toolsCatalog = j.tools || [];
+        const list = document.getElementById("toolsList");
+        list.innerHTML = "";
+        toolsCatalog.forEach(t => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "tool-run";
+          b.innerHTML = `<span class="n">${esc(t.name)}</span><span class="d">${esc(t.description)}</span>`;
+          b.onclick = () => runTool(t.name);
+          list.appendChild(b);
+        });
+      } catch (e) {
+        document.getElementById("toolsList").textContent = "Tools unavailable";
+      }
+    }
+    async function runTool(name) {
+      if (busy) return;
+      const args = { conversation_id: conversationId };
+      if (["assemble_short_term", "search_bound", "assert_procedure"].includes(name)) {
+        if (!lastTaskId) { alert("Select a thread first"); return; }
+        args.workstream_id = lastTaskId;
+      }
+      if (name === "search_bound") {
+        args.query = document.getElementById("msg").value.trim() || "memory";
+        args.limit = 5;
+      }
+      if (name === "assemble_short_term") {
+        args.query = document.getElementById("msg").value.trim() || undefined;
+      }
+      if (name === "assert_procedure") {
+        const text = prompt("Procedure / how-to step to store:");
+        if (!text) return;
+        args.text = text;
+        args.turn = turn;
+      }
+      setBusy(true);
+      try {
+        const r = await fetch("/agent/tools/" + encodeURIComponent(name), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversation_id: conversationId, arguments: args })
+        });
+        const j = await r.json();
+        const host = document.createElement("div");
+        host.innerHTML = renderToolCards([j]);
+        chat.appendChild(host.firstChild);
+        chat.scrollTop = chat.scrollHeight;
+        if (name === "assemble_short_term" && j.ok && j.data) {
+          document.getElementById("l1expose").textContent = j.data.expose_text || "—";
+          renderPlanes(j.data.planes);
+        }
+        await refreshThreads(lastTaskId);
+      } catch (e) {
+        err.hidden = false; err.textContent = String(e.message || e);
+      } finally { setBusy(false); }
+    }
+    async function inspectThread(taskId) {
+      lastTaskId = taskId;
       try {
         const tr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/tasks");
         const tj = await tr.json();
-        const tasks = tj.tasks || [];
+        renderThreads(tj.tasks || [], taskId);
         const mr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/memory");
         if (mr.ok) memoryCache = await mr.json();
-        if (!taskId && tasks[0]) taskId = tasks[0].id;
-        renderWorkstreams(tasks, taskId);
-        if (!taskId) return;
-        lastTaskId = taskId;
-        const title = (tasks.find(t => t.id === taskId) || {}).title || taskId;
-        document.getElementById("currentLabel").textContent = "CURRENT · " + title;
-        document.getElementById("historyLabel").textContent = "HISTORY · " + title;
-
-        const wr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/working-context?task_id=" + encodeURIComponent(taskId));
-        if (!wr.ok) return;
-        const w = await wr.json();
-        const inc = w.included || {};
-        const items = [].concat(inc.decisions || [], inc.constraints || [], inc.facts || [], inc.entities || []);
-        const chars = items.reduce((n, x) => n + String(x || "").length, 0);
-        document.getElementById("footprint").textContent =
-          items.length + " projected lines · ~" + chars + " chars in this thread’s working context"
-          + " (other open threads are excluded from the answer package).";
-        document.getElementById("current").innerHTML = items.length
-          ? items.map(x => `<li>${esc(x)}</li>`).join("")
-          : "<li>(empty — extract may not have written yet)</li>";
-        const ex = w.excluded_workstreams || [];
-        document.getElementById("excluded").innerHTML = ex.length
-          ? ex.map(e => `<span class="chip-x">× ${esc(typeof e === "string" ? e : (e.workstream || e.title || e))}</span>`).join("")
-          : "—";
-
         const ws = (memoryCache && (memoryCache.workstreams || []).find(x => x.id === taskId)) || null;
         const hist = (ws && ws.history) || [];
         document.getElementById("history").innerHTML = hist.length
           ? hist.map(i => `<li>${esc(i.text || "")}</li>`).join("")
-          : "<li>(none superseded yet)</li>";
+          : "<li>(none superseded)</li>";
+        const cr = await fetch(
+          "/conversations/" + encodeURIComponent(conversationId)
+          + "/compact-notation?task_id=" + encodeURIComponent(taskId)
+        );
+        if (cr.ok) {
+          const cj = await cr.json();
+          document.getElementById("l1expose").textContent = cj.expose_text || "—";
+          renderPlanes(cj.planes || {});
+        }
       } catch (e) {}
     }
-    async function send(text, beatCaption) {
+    async function refreshThreads(selectedId) {
+      try {
+        const tr = await fetch("/conversations/" + encodeURIComponent(conversationId) + "/tasks");
+        const tj = await tr.json();
+        renderThreads(tj.tasks || [], selectedId || lastTaskId);
+      } catch (e) {}
+    }
+    async function send(text) {
       text = (text || "").trim();
       if (!text || busy) return false;
       err.hidden = true;
-      if (beatCaption) caption.textContent = beatCaption;
       document.getElementById("msg").value = "";
-      addBubble("user", text);
+      addMsg("user", text);
       setBusy(true);
       try {
-        const r = await fetch("/turn", {
+        const r = await fetch("/agent/turn", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversation_id: conversationId, message: text, turn })
+          body: JSON.stringify({
+            conversation_id: conversationId,
+            message: text,
+            turn,
+            auto_tools: autoTools
+          })
         });
         const j = await r.json();
         if (!r.ok) throw new Error((j.detail && JSON.stringify(j.detail)) || ("HTTP " + r.status));
         turn += 1;
-        const reply = j.clarify_question || j.answer || "(no answer)";
-        const meta = `<b>${esc(j.transition || "?")}</b>` + (j.workstream_title ? " · " + esc(j.workstream_title) : "");
-        addBubble("bot", reply, meta);
-        await refreshState(j.task_id);
+        const interrupted = !!(j.interrupt || j.transition === "CLARIFY");
+        const reply = interrupted
+          ? ("[interrupt] " + (j.clarify_question || "Which task did you mean?"))
+          : (j.answer || "(no answer)");
+        const disc = j.discrimination || {};
+        const meta = `<div class="meta"><b>${esc(j.transition || "?")}</b>`
+          + (interrupted ? " · interrupt" : "")
+          + (j.workstream_title ? " · " + esc(j.workstream_title) : "")
+          + (j.latency_ms != null ? " · " + j.latency_ms + " ms" : "")
+          + (j.llm_mode ? " · " + esc(j.llm_mode) : "")
+          + (disc.region ? " · " + esc(disc.region) : "")
+          + (j.total_context_tokens != null ? " · " + j.total_context_tokens + " tok" : "")
+          + `</div>${renderTimeline(j.timeline)}`;
+        addMsg("bot", reply, meta);
+        if (!interrupted && j.tools && j.tools.length) {
+          const wrap = document.createElement("div");
+          wrap.style.cssText = "display:flex;flex-direction:column;gap:0.35rem;align-self:stretch;max-width:min(720px,94%)";
+          wrap.innerHTML = renderToolCards(j.tools);
+          chat.appendChild(wrap);
+          chat.scrollTop = chat.scrollHeight;
+        }
+        const expose = j.l1_expose || j.expose_text;
+        if (interrupted) document.getElementById("l1expose").textContent = "(paused — clarify)";
+        else if (expose) document.getElementById("l1expose").textContent = expose;
+        if (j.planes) renderPlanes(j.planes);
+        if (j.task_id) await inspectThread(j.task_id);
+        else await refreshThreads();
         return true;
       } catch (e) {
         err.hidden = false;
         err.textContent = String(e.message || e);
-        addBubble("bot", "Request failed — see error below.");
+        addMsg("bot", "Agent turn failed — see error.");
         playing = false;
         return false;
       } finally { setBusy(false); }
     }
     async function buildHistory() {
-      playing = true; historyReady = false; setBusy(false);
+      playing = true; setBusy(false);
       for (let i = deepIdx; i < DEEP.length; i++) {
         if (!playing) break;
         deepIdx = i + 1;
-        const beat = DEEP[i];
-        const ok = await send(beat.m, `Warm-up [${deepIdx}/${DEEP.length}] ${beat.c}`);
+        const ok = await send(DEEP[i].m);
         if (!ok) break;
-        await new Promise(r => setTimeout(r, 350));
+        await new Promise(r => setTimeout(r, 280));
       }
       playing = false; setBusy(false);
-      if (deepIdx >= DEEP.length) showSuggestBar();
+      if (deepIdx >= DEEP.length) {
+        SUGGEST.forEach(s => {
+          const b = document.createElement("button");
+          b.className = "chip-btn"; b.type = "button"; b.textContent = s.c;
+          b.onclick = () => send(s.m);
+          document.querySelector(".toolbar").appendChild(b);
+        });
+      }
     }
 
     document.getElementById("buildHistory").onclick = () => {
       if (busy || playing) return;
-      if (historyReady) document.getElementById("newChat").click();
       buildHistory();
     };
-    document.getElementById("pauseDeep").onclick = () => {
-      playing = false; setBusy(false);
-      caption.textContent = "Paused " + deepIdx + "/" + DEEP.length + ". Click a thread or type freely anytime.";
-      if (deepIdx >= 8) showSuggestBar();
-    };
+    document.getElementById("pauseDeep").onclick = () => { playing = false; setBusy(false); };
     document.getElementById("send").onclick = () => send(document.getElementById("msg").value);
-    document.getElementById("msg").addEventListener("keydown", e => { if (e.key === "Enter") send(document.getElementById("msg").value); });
-    document.getElementById("refresh").onclick = () => refreshState(lastTaskId);
-    document.getElementById("newChat").onclick = () => {
-      playing = false; historyReady = false;
-      conversationId = "deep-" + Math.random().toString(36).slice(2, 10);
-      turn = 1; deepIdx = 0; lastTaskId = null; memoryCache = null;
-      chat.innerHTML = "";
-      addBubble("bot", "New chat. Optional BUILD HISTORY, then click threads on the right and type to revive / switch / start new.");
-      document.getElementById("ws").textContent = "—";
-      document.getElementById("current").innerHTML = "<li>—</li>";
-      document.getElementById("history").innerHTML = "<li>—</li>";
-      document.getElementById("excluded").textContent = "—";
-      document.getElementById("footprint").textContent = "Select a thread —";
-      document.getElementById("currentLabel").textContent = "CURRENT";
-      document.getElementById("historyLabel").textContent = "HISTORY";
-      document.getElementById("suggestBar").style.display = "none";
-      document.getElementById("suggestBar").innerHTML = "";
-      caption.textContent = "Build history (optional) → click a thread → type to switch / revive / start new.";
-      document.getElementById("buildHistory").disabled = false;
-      document.getElementById("buildHistory").textContent = "1 · BUILD HISTORY (optional warm-up)";
-      status.textContent = "Ready · " + conversationId;
+    document.getElementById("msg").addEventListener("keydown", e => {
+      if (e.key === "Enter") send(document.getElementById("msg").value);
+    });
+    document.getElementById("refreshThreads").onclick = () => refreshThreads(lastTaskId);
+    document.getElementById("toggleAutoTools").onclick = (e) => {
+      autoTools = !autoTools;
+      e.target.textContent = "Auto-tools: " + (autoTools ? "on" : "off");
     };
+    document.getElementById("newChat").onclick = () => {
+      playing = false; deepIdx = 0; turn = 1; lastTaskId = null; memoryCache = null;
+      conversationId = "agent-" + Math.random().toString(36).slice(2, 10);
+      chat.innerHTML = "";
+      addMsg("bot", "New session. Warm-up optional. Binder + planes + tools ready.");
+      document.getElementById("threads").textContent = "—";
+      document.getElementById("l1expose").textContent = "—";
+      document.getElementById("planesBox").textContent = "—";
+      document.getElementById("history").innerHTML = "<li>—</li>";
+      setBusy(false);
+    };
+
     fetch("/health").then(r => r.json()).then(h => {
-      status.textContent = "Ready · llm=" + (h.llm || "?") + " · " + conversationId;
+      const mode = h.llm_mode || h.llm || "?";
+      document.getElementById("llmBadge").textContent = "llm=" + mode
+        + (h.vertex_pace_s ? (" pace=" + h.vertex_pace_s + "s") : "");
+      document.getElementById("llmBadge").classList.add("on");
+      status.textContent = "Ready · " + conversationId;
+      document.getElementById("sessBadge").textContent = conversationId;
     }).catch(() => {});
+    loadTools();
   </script>
 </body>
 </html>

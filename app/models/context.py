@@ -41,6 +41,7 @@ class ContextPackage:
     memory_item_ids: list[str] = field(default_factory=list)
     recent_changes: list[str] = field(default_factory=list)
     relevant_entities: list[str] = field(default_factory=list)
+    procedures: list[str] = field(default_factory=list)
     insufficient_working_set: bool = False
     decision_tokens: int = 0
     answer_tokens: int = 0

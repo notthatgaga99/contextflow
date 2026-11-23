@@ -89,13 +89,17 @@ _UNDERSPECIFIED_RE = re.compile(
 )
 
 # Pure recall / deixis — no new asserted memory (return-turn behavior).
+# Structural confirm/revive cues — not fixture-string overfitting.
 _RECALL_ONLY_RE = re.compile(
     r"(?is)\b(?:"
     r"what did we decide|what was the|what were the|what is the|"
     r"remind me(?:\s+about|\s+of)?|tell me again|"
     r"back to .{0,48}\bwhat\b|"
-    r"what\b.{0,32}\b(?:again|requirement|decision|color)\b"
-    r")\b"
+    r"what\b.{0,32}\b(?:again|requirement|decision|color)\b|"
+    r"did we (?:set|decide|pick|choose|confirm)|"
+    r"^(?:final check)\b|"
+    r"^(?:confirm|is)\b.{0,96}\?"
+    r")"
 )
 
 _COLOR_WORDS = frozenset({
@@ -570,14 +574,20 @@ class LlmMemoryExtractor:
             "Return JSON: {\"patches\": [...], \"abstain\": false}.\n"
             "Each patch keys: kind, text, workstream_id, referent_id, slot, action, "
             "supersedes_id, uncertain.\n"
-            "kind: fact, decision, constraint, entity, preference, event, correction.\n"
+            "kind: fact, decision, constraint, entity, preference, event, correction, procedure.\n"
+            "Use procedure for how-to / skill / playbook steps (procedural memory).\n"
             "action: assert or retract. If uncertain or recall-only, set abstain=true "
             "and patches=[].\n"
-            "workstream_id MUST be one known id from KNOWN WORKSTREAMS.\n"
+            "workstream_id MUST be one known id from KNOWN WORKSTREAMS "
+            "(single letter ids like A, B, E when those are the cards).\n"
             "referent_id MUST be a known_referent or omitted.\n"
+            "Prefer short CURRENT values with a slot when correcting "
+            "(slot=color|ttl|builder|mem|aud; text=value only, e.g. navy, 5 minutes, "
+            "debian slim, 4Gi, api.internal).\n"
             "Color decisions: kind=decision, slot=color, text=color word only "
             "(black, navy, etc).\n"
             "Color corrections: slot=color, text=new color, supersedes_id=asserted item id.\n"
+            "Confirm/final-check/did-we questions: abstain=true, patches=[].\n"
             "Do not invent ids. Do not copy ALREADY ASSERTED items.\n"
             "Do not route or choose ACT/CLARIFY/SWITCH.\n"
             f"{focus}"
@@ -588,7 +598,18 @@ class LlmMemoryExtractor:
         data = None
         try:
             from app.llm.gemini import GeminiClient
-            if isinstance(self.llm, GeminiClient):
+
+            def _structured_ok(llm) -> bool:
+                if isinstance(llm, GeminiClient):
+                    return True
+                inner = getattr(llm, "inner", None)
+                if isinstance(inner, GeminiClient):
+                    return True
+                return callable(getattr(llm, "propose", None)) and bool(
+                    getattr(llm, "LITE_MODEL", None)
+                )
+
+            if _structured_ok(self.llm):
                 from app.memory.extract_schema import MEMORY_EXTRACT_SCHEMA
                 raw = self.llm.propose(prompt, MEMORY_EXTRACT_SCHEMA)
                 if isinstance(raw, dict):

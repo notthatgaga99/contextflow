@@ -75,8 +75,11 @@ Auth: Application Default Credentials. No service-account JSON keys in git or im
 This is a **production-shaped POC**, not an SLO, not multi-region HA, not a
 claim of production readiness. Durable proof plan: `eval/cloud_poc/`.
 
-**Phase 8 status:** implementation + docs + tests only.  
-**Not done:** IAM apply, Firestore database create, Cloud Run deploy, Vertex smoke execution.
+**Host (2026-11-23):** Free Trial project `contextflow-gagan-20261019` / `us-central1`.  
+Durable Cloud Run `contextflow-durable` + Firestore `contextflow-poc`.  
+**Live path is Vertex (not Mock):** `CF_USE_VERTEX=1`, `CF_LLM_EXTRACT=1`, `CF_SMOKE_FIXTURE=0`.  
+Proven: Vertex cloud smoke + `end_to_end_resurrection` + multi 15-turn extract + dynamic NEW E2E (2/2).  
+Binder: return-prefix strip (`go back to the JWT` / `back to the dress`) + 29/29 casefile. Legacy `506414` unreachable.
 
 ## IAM (document / commands only)
 

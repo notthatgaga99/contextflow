@@ -203,7 +203,7 @@ def test_poc_harness_mock_run_smoke():
     assert payload["status"] == "ran"
     assert payload["poc"]["number_of_workstreams"] == 10
     assert payload["poc"]["number_of_turns"] == 52
-    assert payload["poc"]["trajectory_return_transitions"] == 33
+    assert payload["poc"]["trajectory_return_transitions"] == 36
     assert payload["poc"]["probe_return_count"] >= 1
     assert payload["poc"]["idempotency_correct"] is True
     assert payload["poc"]["isolation_correct"] is True

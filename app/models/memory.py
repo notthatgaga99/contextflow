@@ -6,6 +6,7 @@ from typing import Optional
 
 ITEM_KINDS = frozenset({
     "fact", "decision", "constraint", "entity", "preference", "event", "correction",
+    "procedure",  # how-to / skill / playbook — procedural plane
 })
 ITEM_STATUSES = frozenset({"asserted", "superseded", "retracted"})
 ITEM_PROPOSERS = frozenset({"user", "extractor", "system"})

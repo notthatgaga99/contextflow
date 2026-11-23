@@ -1,0 +1,3616 @@
+{
+  "meta": {
+    "kind": "synthetic_adversarial_engineering_fixture",
+    "not": "natural human behavior",
+    "conversation_id": "ten-ws-10x20",
+    "n_workstreams": 10,
+    "seed": 20,
+    "n_user_turns": 200,
+    "target": "10 workstreams x ~20 interleaved turns + revive",
+    "built_by": "eval.ten_workstream.build_fixture_10x20"
+  },
+  "workstreams": [
+    {
+      "id": "A",
+      "title": "authentication",
+      "goal": "fix JWT authentication on the auth service",
+      "loops": [
+        "401 after refresh",
+        "rotate signing key"
+      ],
+      "cues": [
+        "jwt",
+        "refresh",
+        "authentication",
+        "ttl",
+        "signing",
+        "401",
+        "token"
+      ]
+    },
+    {
+      "id": "B",
+      "title": "deployment",
+      "goal": "fix CI Docker deployment",
+      "loops": [
+        "CI failing on Docker step",
+        "container healthcheck"
+      ],
+      "cues": [
+        "docker",
+        "container",
+        "ci",
+        "alpine",
+        "debian",
+        "builder",
+        "deploy"
+      ]
+    },
+    {
+      "id": "C",
+      "title": "orders api",
+      "goal": "fix orders API 401 at the gateway",
+      "loops": [
+        "gateway 401 on /v2/orders"
+      ],
+      "cues": [
+        "orders",
+        "gateway",
+        "authorization",
+        "api",
+        "401",
+        "token"
+      ]
+    },
+    {
+      "id": "D",
+      "title": "checkout ui",
+      "goal": "fix checkout double-render and frontend API error toast",
+      "loops": [
+        "checkout renders twice"
+      ],
+      "cues": [
+        "checkout",
+        "frontend",
+        "toast",
+        "render",
+        "ui",
+        "401",
+        "api"
+      ]
+    },
+    {
+      "id": "E",
+      "title": "corporate outfit",
+      "goal": "choose a corporate event outfit",
+      "loops": [
+        "pick dress color"
+      ],
+      "cues": [
+        "dress",
+        "navy",
+        "formal",
+        "corporate",
+        "outfit",
+        "evening"
+      ]
+    },
+    {
+      "id": "F",
+      "title": "lisbon trip",
+      "goal": "plan Lisbon trip with parking",
+      "loops": [
+        "book hotel with parking"
+      ],
+      "cues": [
+        "lisbon",
+        "hotel",
+        "parking",
+        "flight",
+        "saturday",
+        "trip"
+      ]
+    },
+    {
+      "id": "G",
+      "title": "dinner",
+      "goal": "plan a dairy-free dinner",
+      "loops": [
+        "choose a dairy-free dish"
+      ],
+      "cues": [
+        "dinner",
+        "pasta",
+        "risotto",
+        "dairy",
+        "carbonara",
+        "recipe"
+      ]
+    },
+    {
+      "id": "H",
+      "title": "presentation deck",
+      "goal": "finish the presentation deck",
+      "loops": [
+        "Lisbon airport chart on the deck"
+      ],
+      "cues": [
+        "deck",
+        "slides",
+        "chart",
+        "presentation",
+        "lisbon",
+        "airport"
+      ]
+    },
+    {
+      "id": "I",
+      "title": "job application",
+      "goal": "submit Stripe backend application",
+      "loops": [
+        "submit before Friday deadline"
+      ],
+      "cues": [
+        "stripe",
+        "application",
+        "deadline",
+        "friday",
+        "backend",
+        "role"
+      ]
+    },
+    {
+      "id": "J",
+      "title": "trivia",
+      "goal": "settle a Pokémon height trivia argument",
+      "loops": [
+        "name the tallest Pokémon"
+      ],
+      "cues": [
+        "pokemon",
+        "wailord",
+        "celesteela",
+        "trivia",
+        "brainrot",
+        "tallest"
+      ]
+    }
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "ws": "A",
+      "message": "JWT still returns 401 after refresh on the auth service."
+    },
+    {
+      "turn": 2,
+      "ws": "B",
+      "message": "CI is failing on the Docker step again."
+    },
+    {
+      "turn": 3,
+      "ws": "C",
+      "message": "The orders API returns 401 even with a valid token."
+    },
+    {
+      "turn": 4,
+      "ws": "D",
+      "message": "The checkout component still renders twice."
+    },
+    {
+      "turn": 5,
+      "ws": "E",
+      "message": "I need a black dress for a corporate event."
+    },
+    {
+      "turn": 6,
+      "ws": "F",
+      "message": "Lisbon trip: the hotel needs parking."
+    },
+    {
+      "turn": 7,
+      "ws": "G",
+      "message": "Tonight I'll cook pasta carbonara."
+    },
+    {
+      "turn": 8,
+      "ws": "H",
+      "message": "The presentation deck is 12 slides and mentions Lisbon airport traffic."
+    },
+    {
+      "turn": 9,
+      "ws": "I",
+      "message": "I am applying to Stripe for the backend role."
+    },
+    {
+      "turn": 10,
+      "ws": "J",
+      "message": "Quick brainrot: what is the tallest Pokémon?"
+    },
+    {
+      "turn": 11,
+      "ws": "A",
+      "message": "On the auth service the access token TTL is 15 minutes for JWT 401 after refresh."
+    },
+    {
+      "turn": 12,
+      "ws": "B",
+      "message": "We're using alpine as the builder image for the container."
+    },
+    {
+      "turn": 13,
+      "ws": "C",
+      "message": "I think the gateway strips the Authorization header on /v2/orders."
+    },
+    {
+      "turn": 14,
+      "ws": "D",
+      "message": "The frontend toast shows an API 401 when the token is fine on the client."
+    },
+    {
+      "turn": 15,
+      "ws": "E",
+      "message": "The event is formal and in the evening."
+    },
+    {
+      "turn": 16,
+      "ws": "F",
+      "message": "The Lisbon flight is Saturday morning."
+    },
+    {
+      "turn": 17,
+      "ws": "G",
+      "message": "Wait, no dairy at all for this dinner."
+    },
+    {
+      "turn": 18,
+      "ws": "H",
+      "message": "Keep Lisbon as a chart on the deck, not the trip."
+    },
+    {
+      "turn": 19,
+      "ws": "I",
+      "message": "The Stripe application deadline is Friday."
+    },
+    {
+      "turn": 20,
+      "ws": "J",
+      "message": "Trivia correction: it is not Wailord, go with Celesteela."
+    },
+    {
+      "turn": 21,
+      "ws": "A",
+      "message": "Auth cookies are httpOnly on the auth service for JWT 401 after refresh."
+    },
+    {
+      "turn": 22,
+      "ws": "B",
+      "message": "Docker healthcheck curls /healthz in CI."
+    },
+    {
+      "turn": 23,
+      "ws": "C",
+      "message": "Orders path prefix is /v2/orders only."
+    },
+    {
+      "turn": 24,
+      "ws": "D",
+      "message": "Checkout uses React 18 StrictMode in dev."
+    },
+    {
+      "turn": 25,
+      "ws": "E",
+      "message": "Also need closed-toe shoes for the corporate event."
+    },
+    {
+      "turn": 26,
+      "ws": "F",
+      "message": "Prefer Alfama area for the Lisbon hotel."
+    },
+    {
+      "turn": 27,
+      "ws": "G",
+      "message": "Risotto instead of pasta carbonara, still no dairy."
+    },
+    {
+      "turn": 28,
+      "ws": "H",
+      "message": "Deck title is Q3 Ops Review."
+    },
+    {
+      "turn": 29,
+      "ws": "I",
+      "message": "Resume emphasizes Go and Postgres for Stripe."
+    },
+    {
+      "turn": 30,
+      "ws": "J",
+      "message": "Celesteela height cited as 30'02\"."
+    },
+    {
+      "turn": 31,
+      "ws": "A",
+      "message": "Refresh endpoint is /auth/refresh on the auth service."
+    },
+    {
+      "turn": 32,
+      "ws": "B",
+      "message": "Docker CI cache mount is /var/cache/ci for the failing Docker step."
+    },
+    {
+      "turn": 33,
+      "ws": "C",
+      "message": "Gateway allowlist must include Authorization."
+    },
+    {
+      "turn": 34,
+      "ws": "D",
+      "message": "Disable duplicate fetch in checkout effect."
+    },
+    {
+      "turn": 35,
+      "ws": "E",
+      "message": "Actually navy, not black, for the formal evening event."
+    },
+    {
+      "turn": 36,
+      "ws": "F",
+      "message": "Budget under 180 EUR night in Lisbon."
+    },
+    {
+      "turn": 37,
+      "ws": "G",
+      "message": "Use oat milk only if needed for dinner."
+    },
+    {
+      "turn": 38,
+      "ws": "H",
+      "message": "Speaker notes under 40 words per slide."
+    },
+    {
+      "turn": 39,
+      "ws": "I",
+      "message": "Ask referrer for Stripe intro Thursday."
+    },
+    {
+      "turn": 40,
+      "ws": "J",
+      "message": "the tallest Pokémon trivia again"
+    },
+    {
+      "turn": 41,
+      "ws": "A",
+      "message": "On the auth service, TTL is 5 minutes now, not 15, for JWT 401 after refresh."
+    },
+    {
+      "turn": 42,
+      "ws": "B",
+      "message": "Use debian slim, not alpine, as the builder image."
+    },
+    {
+      "turn": 43,
+      "ws": "C",
+      "message": "Orders service expects Bearer scheme."
+    },
+    {
+      "turn": 44,
+      "ws": "D",
+      "message": "the checkout component still rendering twice"
+    },
+    {
+      "turn": 45,
+      "ws": "E",
+      "message": "Peplum silhouette for the corporate hosting look."
+    },
+    {
+      "turn": 46,
+      "ws": "F",
+      "message": "back to the Lisbon hotel parking"
+    },
+    {
+      "turn": 47,
+      "ws": "G",
+      "message": "back to the dairy-free dinner"
+    },
+    {
+      "turn": 48,
+      "ws": "H",
+      "message": "the presentation deck Lisbon chart"
+    },
+    {
+      "turn": 49,
+      "ws": "I",
+      "message": "the Stripe application deadline Friday"
+    },
+    {
+      "turn": 50,
+      "ws": "J",
+      "message": "Celesteela trivia again"
+    },
+    {
+      "turn": 51,
+      "ws": "A",
+      "message": "Also rotate the signing key on the auth service."
+    },
+    {
+      "turn": 52,
+      "ws": "B",
+      "message": "Multi-stage build copies from builder to runtime in Docker CI."
+    },
+    {
+      "turn": 53,
+      "ws": "C",
+      "message": "back to the orders API 401 with a valid token"
+    },
+    {
+      "turn": 54,
+      "ws": "D",
+      "message": "the frontend toast API 401 on checkout"
+    },
+    {
+      "turn": 55,
+      "ws": "E",
+      "message": "back to the dress for the corporate event"
+    },
+    {
+      "turn": 56,
+      "ws": "F",
+      "message": "the Saturday morning Lisbon flight"
+    },
+    {
+      "turn": 57,
+      "ws": "G",
+      "message": "the dairy-free risotto dinner"
+    },
+    {
+      "turn": 58,
+      "ws": "H",
+      "message": "the 12 slides Lisbon chart on the deck"
+    },
+    {
+      "turn": 59,
+      "ws": "I",
+      "message": "Stripe backend role Friday deadline"
+    },
+    {
+      "turn": 60,
+      "ws": "J",
+      "message": "back to the tallest Pokémon Celesteela trivia"
+    },
+    {
+      "turn": 61,
+      "ws": "A",
+      "message": "Auth audience claim must be api.internal for JWT 401 after refresh."
+    },
+    {
+      "turn": 62,
+      "ws": "B",
+      "message": "Pin base digest for debian slim in CI."
+    },
+    {
+      "turn": 63,
+      "ws": "C",
+      "message": "the gateway Authorization header on /v2/orders"
+    },
+    {
+      "turn": 64,
+      "ws": "D",
+      "message": "Checkout error boundary swallows 401 toast."
+    },
+    {
+      "turn": 65,
+      "ws": "E",
+      "message": "the navy dress for the formal evening event"
+    },
+    {
+      "turn": 66,
+      "ws": "F",
+      "message": "Lisbon: need late checkout Sunday."
+    },
+    {
+      "turn": 67,
+      "ws": "G",
+      "message": "Add mushrooms to the dairy-free risotto."
+    },
+    {
+      "turn": 68,
+      "ws": "H",
+      "message": "Add one appendix slide for sources."
+    },
+    {
+      "turn": 69,
+      "ws": "I",
+      "message": "Cover letter under 300 words for Stripe."
+    },
+    {
+      "turn": 70,
+      "ws": "J",
+      "message": "Do not use Wailord as tallest."
+    },
+    {
+      "turn": 71,
+      "ws": "A",
+      "message": "Issuer is https://auth.example/issuer for JWT 401 after refresh."
+    },
+    {
+      "turn": 72,
+      "ws": "B",
+      "message": "Docker step OOM was 2Gi — raise to 4Gi."
+    },
+    {
+      "turn": 73,
+      "ws": "C",
+      "message": "Gateway forwards X-Request-Id on orders."
+    },
+    {
+      "turn": 74,
+      "ws": "D",
+      "message": "Use AbortController on checkout fetch."
+    },
+    {
+      "turn": 75,
+      "ws": "E",
+      "message": "Skip jewelry beyond studs for corporate."
+    },
+    {
+      "turn": 76,
+      "ws": "F",
+      "message": "What about Alfama for Lisbon?"
+    },
+    {
+      "turn": 77,
+      "ws": "G",
+      "message": "Dinner for two portions."
+    },
+    {
+      "turn": 78,
+      "ws": "H",
+      "message": "Revive presentation deck Lisbon chart"
+    },
+    {
+      "turn": 79,
+      "ws": "I",
+      "message": "Revive Stripe Friday deadline"
+    },
+    {
+      "turn": 80,
+      "ws": "J",
+      "message": "Revive Celesteela tallest trivia"
+    },
+    {
+      "turn": 81,
+      "ws": "A",
+      "message": "Clock skew tolerance is 30 seconds on auth for JWT 401 after refresh."
+    },
+    {
+      "turn": 82,
+      "ws": "B",
+      "message": "back to CI failing on the Docker step"
+    },
+    {
+      "turn": 83,
+      "ws": "C",
+      "message": "Orders 401 — is allowlist fixed?"
+    },
+    {
+      "turn": 84,
+      "ws": "D",
+      "message": "Revive checkout double-render"
+    },
+    {
+      "turn": 85,
+      "ws": "E",
+      "message": "maybe the navy one?"
+    },
+    {
+      "turn": 86,
+      "ws": "F",
+      "message": "Revive Lisbon parking hotel"
+    },
+    {
+      "turn": 87,
+      "ws": "G",
+      "message": "Revive dairy-free risotto"
+    },
+    {
+      "turn": 88,
+      "ws": "H",
+      "message": "Q3 Ops Review title still?"
+    },
+    {
+      "turn": 89,
+      "ws": "I",
+      "message": "Go Postgres resume bullets for Stripe?"
+    },
+    {
+      "turn": 90,
+      "ws": "J",
+      "message": "Height 30'02\" still the cite?"
+    },
+    {
+      "turn": 91,
+      "ws": "A",
+      "message": "Revoke old refresh family after key rotate on JWT auth."
+    },
+    {
+      "turn": 92,
+      "ws": "B",
+      "message": "CI failing on Docker step — debian slim builder image"
+    },
+    {
+      "turn": 93,
+      "ws": "C",
+      "message": "the token 401 on the orders API still"
+    },
+    {
+      "turn": 94,
+      "ws": "D",
+      "message": "Is StrictMode still the double-render cause?"
+    },
+    {
+      "turn": 95,
+      "ws": "E",
+      "message": "Peplum still the silhouette?"
+    },
+    {
+      "turn": 96,
+      "ws": "F",
+      "message": "Budget still under 180 EUR Lisbon?"
+    },
+    {
+      "turn": 97,
+      "ws": "G",
+      "message": "No dairy still hard constraint?"
+    },
+    {
+      "turn": 98,
+      "ws": "H",
+      "message": "Deck: Lisbon is chart not trip — confirm"
+    },
+    {
+      "turn": 99,
+      "ws": "I",
+      "message": "Referrer intro still Thursday?"
+    },
+    {
+      "turn": 100,
+      "ws": "J",
+      "message": "Trivia: tallest is Celesteela confirm"
+    },
+    {
+      "turn": 101,
+      "ws": "A",
+      "message": "go back to the JWT 401 after refresh on the auth service"
+    },
+    {
+      "turn": 102,
+      "ws": "B",
+      "message": "Is healthcheck still /healthz in Docker CI?"
+    },
+    {
+      "turn": 103,
+      "ws": "C",
+      "message": "Keep Bearer only on /v2/orders gateway."
+    },
+    {
+      "turn": 104,
+      "ws": "D",
+      "message": "Checkout dedupe fetch still on?"
+    },
+    {
+      "turn": 105,
+      "ws": "E",
+      "message": "Revive corporate outfit color decision"
+    },
+    {
+      "turn": 106,
+      "ws": "F",
+      "message": "Saturday morning flight still set?"
+    },
+    {
+      "turn": 107,
+      "ws": "G",
+      "message": "Oat milk only still?"
+    },
+    {
+      "turn": 108,
+      "ws": "H",
+      "message": "Speaker notes limit still 40 words?"
+    },
+    {
+      "turn": 109,
+      "ws": "I",
+      "message": "back to Stripe backend application"
+    },
+    {
+      "turn": 110,
+      "ws": "J",
+      "message": "Wailord excluded from tallest answer"
+    },
+    {
+      "turn": 111,
+      "ws": "A",
+      "message": "JWT 401 after refresh on the auth service still"
+    },
+    {
+      "turn": 112,
+      "ws": "B",
+      "message": "CI failing on Docker step — memory limit 4Gi confirmed?"
+    },
+    {
+      "turn": 113,
+      "ws": "C",
+      "message": "Revive orders gateway Authorization strip"
+    },
+    {
+      "turn": 114,
+      "ws": "D",
+      "message": "back to checkout toast 401"
+    },
+    {
+      "turn": 115,
+      "ws": "E",
+      "message": "Evening formal — navy peplum confirm"
+    },
+    {
+      "turn": 116,
+      "ws": "F",
+      "message": "back to Lisbon trip Alfama"
+    },
+    {
+      "turn": 117,
+      "ws": "G",
+      "message": "back to dinner risotto mushrooms"
+    },
+    {
+      "turn": 118,
+      "ws": "H",
+      "message": "back to 12-slide deck"
+    },
+    {
+      "turn": 119,
+      "ws": "I",
+      "message": "Cover letter length still under 300?"
+    },
+    {
+      "turn": 120,
+      "ws": "J",
+      "message": "back to Pokémon height trivia"
+    },
+    {
+      "turn": 121,
+      "ws": "A",
+      "message": "Auth service JWT 401 after refresh: keep 5 minute TTL after rotate."
+    },
+    {
+      "turn": 122,
+      "ws": "B",
+      "message": "Docker CI failing step multi-stage — runtime user nonroot."
+    },
+    {
+      "turn": 123,
+      "ws": "C",
+      "message": "Orders API: confirm allowlist Authorization"
+    },
+    {
+      "turn": 124,
+      "ws": "D",
+      "message": "AbortController on checkout — confirm"
+    },
+    {
+      "turn": 125,
+      "ws": "E",
+      "message": "Closed-toe shoes still required?"
+    },
+    {
+      "turn": 126,
+      "ws": "F",
+      "message": "Late checkout Sunday in Lisbon?"
+    },
+    {
+      "turn": 127,
+      "ws": "G",
+      "message": "Two portions dinner confirm"
+    },
+    {
+      "turn": 128,
+      "ws": "H",
+      "message": "Appendix sources slide on deck?"
+    },
+    {
+      "turn": 129,
+      "ws": "I",
+      "message": "Stripe deadline Friday confirm"
+    },
+    {
+      "turn": 130,
+      "ws": "J",
+      "message": "Final trivia: Celesteela not Wailord"
+    },
+    {
+      "turn": 131,
+      "ws": "A",
+      "message": "Did we set aud=api.internal on the auth service for JWT 401 after refresh?"
+    },
+    {
+      "turn": 132,
+      "ws": "B",
+      "message": "back to CI failing on the Docker step builder image choice"
+    },
+    {
+      "turn": 133,
+      "ws": "C",
+      "message": "X-Request-Id still forwarded on orders?"
+    },
+    {
+      "turn": 134,
+      "ws": "D",
+      "message": "checkout renders twice still?"
+    },
+    {
+      "turn": 135,
+      "ws": "E",
+      "message": "back to navy peplum corporate hosting"
+    },
+    {
+      "turn": 136,
+      "ws": "F",
+      "message": "Lisbon hotel with parking near Alfama"
+    },
+    {
+      "turn": 137,
+      "ws": "G",
+      "message": "What dish did we pick for dairy-free dinner?"
+    },
+    {
+      "turn": 138,
+      "ws": "H",
+      "message": "Revive deck airport traffic chart"
+    },
+    {
+      "turn": 139,
+      "ws": "I",
+      "message": "Final Stripe: Friday deadline Go Postgres"
+    },
+    {
+      "turn": 140,
+      "ws": "J",
+      "message": "Revive tallest Pokémon decision"
+    },
+    {
+      "turn": 141,
+      "ws": "A",
+      "message": "Signing key rotation status on auth service?"
+    },
+    {
+      "turn": 142,
+      "ws": "B",
+      "message": "Pin digest still required for debian slim on the failing Docker CI step?"
+    },
+    {
+      "turn": 143,
+      "ws": "C",
+      "message": "back to orders /v2/orders 401"
+    },
+    {
+      "turn": 144,
+      "ws": "D",
+      "message": "Frontend toast 401 vs real auth — checkout"
+    },
+    {
+      "turn": 145,
+      "ws": "E",
+      "message": "Studs only jewelry for the event?"
+    },
+    {
+      "turn": 146,
+      "ws": "F",
+      "message": "Confirm Lisbon flight Saturday morning"
+    },
+    {
+      "turn": 147,
+      "ws": "G",
+      "message": "Revive no-dairy dinner plan"
+    },
+    {
+      "turn": 148,
+      "ws": "H",
+      "message": "Final deck: Q3 Ops Review 12 slides + appendix"
+    },
+    {
+      "turn": 149,
+      "ws": "I",
+      "message": "Revive Stripe referrer Thursday"
+    },
+    {
+      "turn": 150,
+      "ws": "J",
+      "message": "Celesteela height cite again for tallest Pokemon trivia"
+    },
+    {
+      "turn": 151,
+      "ws": "A",
+      "message": "back to JWT refresh 401 — what is the TTL now?"
+    },
+    {
+      "turn": 152,
+      "ws": "B",
+      "message": "Docker CI failing step — cache path still /var/cache/ci?"
+    },
+    {
+      "turn": 153,
+      "ws": "C",
+      "message": "Orders prefix still /v2/orders?"
+    },
+    {
+      "turn": 154,
+      "ws": "D",
+      "message": "Error boundary should not swallow checkout toast"
+    },
+    {
+      "turn": 155,
+      "ws": "E",
+      "message": "Corporate outfit: navy not black"
+    },
+    {
+      "turn": 156,
+      "ws": "F",
+      "message": "Revive Lisbon budget constraint"
+    },
+    {
+      "turn": 157,
+      "ws": "G",
+      "message": "Final dinner: dairy-free mushroom risotto"
+    },
+    {
+      "turn": 158,
+      "ws": "H",
+      "message": "presentation deck Lisbon chart again"
+    },
+    {
+      "turn": 159,
+      "ws": "I",
+      "message": "Stripe backend role application status"
+    },
+    {
+      "turn": 160,
+      "ws": "J",
+      "message": "Confirm not Wailord for tallest"
+    },
+    {
+      "turn": 161,
+      "ws": "A",
+      "message": "Auth skew still 30 seconds for JWT 401 after refresh?"
+    },
+    {
+      "turn": 162,
+      "ws": "B",
+      "message": "Revive CI failing on the Docker step — what builder are we on?"
+    },
+    {
+      "turn": 163,
+      "ws": "C",
+      "message": "Gateway strip bug — Authorization on orders"
+    },
+    {
+      "turn": 164,
+      "ws": "D",
+      "message": "Final checkout: dedupe + AbortController + toast"
+    },
+    {
+      "turn": 165,
+      "ws": "E",
+      "message": "Final outfit: navy peplum evening formal"
+    },
+    {
+      "turn": 166,
+      "ws": "F",
+      "message": "Final Lisbon: Alfama parking Saturday flight"
+    },
+    {
+      "turn": 167,
+      "ws": "G",
+      "message": "pasta carbonara is out — risotto stands"
+    },
+    {
+      "turn": 168,
+      "ws": "H",
+      "message": "Confirm chart scope not Lisbon trip"
+    },
+    {
+      "turn": 169,
+      "ws": "I",
+      "message": "Confirm Friday deadline Stripe"
+    },
+    {
+      "turn": 170,
+      "ws": "J",
+      "message": "Pokémon trivia Celesteela still"
+    },
+    {
+      "turn": 171,
+      "ws": "A",
+      "message": "Confirm revoke refresh family after rotate on auth JWT 401."
+    },
+    {
+      "turn": 172,
+      "ws": "B",
+      "message": "Docker CI failing step — debian slim and 4Gi mem"
+    },
+    {
+      "turn": 173,
+      "ws": "C",
+      "message": "Final orders: allowlist Authorization Bearer /v2/orders"
+    },
+    {
+      "turn": 174,
+      "ws": "D",
+      "message": "Revive checkout StrictMode note"
+    },
+    {
+      "turn": 175,
+      "ws": "E",
+      "message": "What color did we decide for the dress?"
+    },
+    {
+      "turn": 176,
+      "ws": "F",
+      "message": "Lisbon trip parking again"
+    },
+    {
+      "turn": 177,
+      "ws": "G",
+      "message": "Dairy-free dinner mushrooms still in?"
+    },
+    {
+      "turn": 178,
+      "ws": "H",
+      "message": "Deck notes under 40 words still"
+    },
+    {
+      "turn": 179,
+      "ws": "I",
+      "message": "back to Stripe cover letter constraint"
+    },
+    {
+      "turn": 180,
+      "ws": "J",
+      "message": "back to Celesteela trivia"
+    },
+    {
+      "turn": 181,
+      "ws": "A",
+      "message": "JWT still returns 401 after refresh on the auth service."
+    },
+    {
+      "turn": 182,
+      "ws": "B",
+      "message": "Confirm nonroot runtime on the CI failing Docker step."
+    },
+    {
+      "turn": 183,
+      "ws": "C",
+      "message": "orders API 401 with valid token again"
+    },
+    {
+      "turn": 184,
+      "ws": "D",
+      "message": "checkout double-render and toast 401"
+    },
+    {
+      "turn": 185,
+      "ws": "E",
+      "message": "Revive peplum silhouette for hosting"
+    },
+    {
+      "turn": 186,
+      "ws": "F",
+      "message": "Alfama still preferred for Lisbon hotel?"
+    },
+    {
+      "turn": 187,
+      "ws": "G",
+      "message": "Confirm oat milk and two portions"
+    },
+    {
+      "turn": 188,
+      "ws": "H",
+      "message": "back to presentation deck"
+    },
+    {
+      "turn": 189,
+      "ws": "I",
+      "message": "Stripe resume Go Postgres still"
+    },
+    {
+      "turn": 190,
+      "ws": "J",
+      "message": "Tallest Pokémon answer Celesteela"
+    },
+    {
+      "turn": 191,
+      "ws": "A",
+      "message": "Final check: JWT 401 after refresh — TTL 5 minutes and aud api.internal on the auth service"
+    },
+    {
+      "turn": 192,
+      "ws": "B",
+      "message": "Final check: CI failing on Docker step — debian slim, pin digest, 4Gi"
+    },
+    {
+      "turn": 193,
+      "ws": "C",
+      "message": "Confirm gateway does not strip Authorization"
+    },
+    {
+      "turn": 194,
+      "ws": "D",
+      "message": "Confirm checkout fetch aborted on unmount"
+    },
+    {
+      "turn": 195,
+      "ws": "E",
+      "message": "Confirm navy peplum closed-toe corporate evening"
+    },
+    {
+      "turn": 196,
+      "ws": "F",
+      "message": "Confirm under 180 EUR and parking Lisbon"
+    },
+    {
+      "turn": 197,
+      "ws": "G",
+      "message": "back to dairy-free risotto dinner"
+    },
+    {
+      "turn": 198,
+      "ws": "H",
+      "message": "Confirm appendix sources on the deck"
+    },
+    {
+      "turn": 199,
+      "ws": "I",
+      "message": "Confirm referrer intro Thursday for Stripe"
+    },
+    {
+      "turn": 200,
+      "ws": "J",
+      "message": "Final check Celesteela height trivia"
+    }
+  ],
+  "extract_scripts": {
+    "JWT still returns 401 after refresh on the auth service.": {
+      "patches": [],
+      "uncertain": true
+    },
+    "CI is failing on the Docker step again.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "CI failing on Docker step",
+          "workstream_id": "B",
+          "referent_id": "B.loop1"
+        }
+      ]
+    },
+    "The orders API returns 401 even with a valid token.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "orders API 401 with valid token",
+          "workstream_id": "C",
+          "referent_id": "C.loop1"
+        }
+      ]
+    },
+    "The checkout component still renders twice.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "checkout renders twice",
+          "workstream_id": "D",
+          "referent_id": "D.loop1"
+        }
+      ]
+    },
+    "I need a black dress for a corporate event.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "black",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "color"
+        }
+      ]
+    },
+    "Lisbon trip: the hotel needs parking.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "Lisbon hotel needs parking",
+          "workstream_id": "F",
+          "referent_id": "F.loop1"
+        }
+      ]
+    },
+    "Tonight I'll cook pasta carbonara.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "pasta carbonara",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "dish"
+        }
+      ]
+    },
+    "The presentation deck is 12 slides and mentions Lisbon airport traffic.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "12 slides Lisbon airport chart",
+          "workstream_id": "H",
+          "referent_id": "H.loop1"
+        }
+      ]
+    },
+    "I am applying to Stripe for the backend role.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "Stripe backend role",
+          "workstream_id": "I",
+          "referent_id": "I.loop1"
+        }
+      ]
+    },
+    "Quick brainrot: what is the tallest Pokémon?": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "tallest Pokémon question",
+          "workstream_id": "J",
+          "referent_id": "J.loop1"
+        }
+      ]
+    },
+    "On the auth service the access token TTL is 15 minutes for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "access token TTL 15 minutes",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "ttl"
+        }
+      ]
+    },
+    "We're using alpine as the builder image for the container.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "alpine",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "builder"
+        }
+      ]
+    },
+    "I think the gateway strips the Authorization header on /v2/orders.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "gateway strips Authorization on /v2/orders",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "gateway"
+        }
+      ]
+    },
+    "The frontend toast shows an API 401 when the token is fine on the client.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "frontend toast API 401",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "toast"
+        }
+      ]
+    },
+    "The event is formal and in the evening.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "evening event",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "event_time"
+        }
+      ]
+    },
+    "The Lisbon flight is Saturday morning.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "Saturday morning flight",
+          "workstream_id": "F",
+          "referent_id": "F.loop1",
+          "slot": "flight"
+        }
+      ]
+    },
+    "Wait, no dairy at all for this dinner.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "no dairy",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "diet"
+        }
+      ]
+    },
+    "Keep Lisbon as a chart on the deck, not the trip.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "Lisbon chart not trip",
+          "workstream_id": "H",
+          "referent_id": "H.loop1",
+          "slot": "scope"
+        }
+      ]
+    },
+    "The Stripe application deadline is Friday.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "deadline Friday",
+          "workstream_id": "I",
+          "referent_id": "I.loop1",
+          "slot": "deadline"
+        }
+      ]
+    },
+    "Trivia correction: it is not Wailord, go with Celesteela.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "Celesteela",
+          "workstream_id": "J",
+          "referent_id": "J.loop1",
+          "slot": "answer"
+        }
+      ]
+    },
+    "Auth cookies are httpOnly on the auth service for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "httpOnly cookies",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "cookie"
+        }
+      ]
+    },
+    "Docker healthcheck curls /healthz in CI.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "healthcheck /healthz",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "health"
+        }
+      ]
+    },
+    "Orders path prefix is /v2/orders only.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "prefix /v2/orders",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "prefix"
+        }
+      ]
+    },
+    "Checkout uses React 18 StrictMode in dev.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "StrictMode double invoke",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "strict"
+        }
+      ]
+    },
+    "Also need closed-toe shoes for the corporate event.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "closed-toe shoes",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "shoes"
+        }
+      ]
+    },
+    "Prefer Alfama area for the Lisbon hotel.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "Alfama area",
+          "workstream_id": "F",
+          "referent_id": "F.loop1",
+          "slot": "area"
+        }
+      ]
+    },
+    "Risotto instead of pasta carbonara, still no dairy.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "risotto",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "dish"
+        }
+      ]
+    },
+    "Deck title is Q3 Ops Review.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "title Q3 Ops Review",
+          "workstream_id": "H",
+          "referent_id": "H.loop1",
+          "slot": "title"
+        }
+      ]
+    },
+    "Resume emphasizes Go and Postgres for Stripe.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "Go and Postgres on resume",
+          "workstream_id": "I",
+          "referent_id": "I.loop1",
+          "slot": "resume"
+        }
+      ]
+    },
+    "Celesteela height cited as 30'02\".": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "Celesteela 30'02\"",
+          "workstream_id": "J",
+          "referent_id": "J.loop1",
+          "slot": "height"
+        }
+      ]
+    },
+    "Refresh endpoint is /auth/refresh on the auth service.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "refresh at /auth/refresh",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "refresh_path"
+        }
+      ]
+    },
+    "Docker CI cache mount is /var/cache/ci for the failing Docker step.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "cache /var/cache/ci",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "cache"
+        }
+      ]
+    },
+    "Gateway allowlist must include Authorization.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "allowlist Authorization",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "allow"
+        }
+      ]
+    },
+    "Disable duplicate fetch in checkout effect.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "dedupe checkout fetch",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "dedupe"
+        }
+      ]
+    },
+    "Actually navy, not black, for the formal evening event.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "navy",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "color"
+        }
+      ]
+    },
+    "Budget under 180 EUR night in Lisbon.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "under 180 EUR",
+          "workstream_id": "F",
+          "referent_id": "F.loop1",
+          "slot": "budget"
+        }
+      ]
+    },
+    "Use oat milk only if needed for dinner.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "oat milk only",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "milk"
+        }
+      ]
+    },
+    "Speaker notes under 40 words per slide.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "notes <40 words",
+          "workstream_id": "H",
+          "referent_id": "H.loop1",
+          "slot": "notes"
+        }
+      ]
+    },
+    "Ask referrer for Stripe intro Thursday.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "referrer intro Thursday",
+          "workstream_id": "I",
+          "referent_id": "I.loop1",
+          "slot": "referrer"
+        }
+      ]
+    },
+    "the tallest Pokémon trivia again": {
+      "patches": [],
+      "uncertain": true
+    },
+    "On the auth service, TTL is 5 minutes now, not 15, for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "access token TTL 5 minutes",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "ttl"
+        }
+      ]
+    },
+    "Use debian slim, not alpine, as the builder image.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "debian slim",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "builder"
+        }
+      ]
+    },
+    "Orders service expects Bearer scheme.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "Bearer scheme",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "scheme"
+        }
+      ]
+    },
+    "the checkout component still rendering twice": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Peplum silhouette for the corporate hosting look.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "peplum",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "silhouette"
+        }
+      ]
+    },
+    "back to the Lisbon hotel parking": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to the dairy-free dinner": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the presentation deck Lisbon chart": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the Stripe application deadline Friday": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Celesteela trivia again": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Also rotate the signing key on the auth service.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "rotate signing key",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "signing"
+        }
+      ]
+    },
+    "Multi-stage build copies from builder to runtime in Docker CI.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "multi-stage copy",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "stages"
+        }
+      ]
+    },
+    "back to the orders API 401 with a valid token": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the frontend toast API 401 on checkout": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to the dress for the corporate event": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the Saturday morning Lisbon flight": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the dairy-free risotto dinner": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the 12 slides Lisbon chart on the deck": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Stripe backend role Friday deadline": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to the tallest Pokémon Celesteela trivia": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Auth audience claim must be api.internal for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "aud=api.internal",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "aud"
+        }
+      ]
+    },
+    "Pin base digest for debian slim in CI.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "pin debian slim digest",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "pin"
+        }
+      ]
+    },
+    "the gateway Authorization header on /v2/orders": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Checkout error boundary swallows 401 toast.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "error boundary swallows toast",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "boundary"
+        }
+      ]
+    },
+    "the navy dress for the formal evening event": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Lisbon: need late checkout Sunday.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "late checkout Sunday",
+          "workstream_id": "F",
+          "referent_id": "F.loop1",
+          "slot": "checkout"
+        }
+      ]
+    },
+    "Add mushrooms to the dairy-free risotto.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "mushrooms in risotto",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "addin"
+        }
+      ]
+    },
+    "Add one appendix slide for sources.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "appendix sources slide",
+          "workstream_id": "H",
+          "referent_id": "H.loop1",
+          "slot": "appendix"
+        }
+      ]
+    },
+    "Cover letter under 300 words for Stripe.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "cover <300 words",
+          "workstream_id": "I",
+          "referent_id": "I.loop1",
+          "slot": "cover"
+        }
+      ]
+    },
+    "Do not use Wailord as tallest.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "not Wailord",
+          "workstream_id": "J",
+          "referent_id": "J.loop1",
+          "slot": "exclude"
+        }
+      ]
+    },
+    "Issuer is https://auth.example/issuer for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "iss=https://auth.example/issuer",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "iss"
+        }
+      ]
+    },
+    "Docker step OOM was 2Gi — raise to 4Gi.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "memory 4Gi",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "mem"
+        }
+      ]
+    },
+    "Gateway forwards X-Request-Id on orders.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "forward X-Request-Id",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "xid"
+        }
+      ]
+    },
+    "Use AbortController on checkout fetch.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "AbortController checkout",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "abort"
+        }
+      ]
+    },
+    "Skip jewelry beyond studs for corporate.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "studs only",
+          "workstream_id": "E",
+          "referent_id": "E.loop1",
+          "slot": "jewelry"
+        }
+      ]
+    },
+    "What about Alfama for Lisbon?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Dinner for two portions.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "two portions",
+          "workstream_id": "G",
+          "referent_id": "G.loop1",
+          "slot": "portions"
+        }
+      ]
+    },
+    "Revive presentation deck Lisbon chart": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive Stripe Friday deadline": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive Celesteela tallest trivia": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Clock skew tolerance is 30 seconds on auth for JWT 401 after refresh.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "clock skew 30s",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "skew"
+        }
+      ]
+    },
+    "back to CI failing on the Docker step": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Orders 401 — is allowlist fixed?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive checkout double-render": {
+      "patches": [],
+      "uncertain": true
+    },
+    "maybe the navy one?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive Lisbon parking hotel": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive dairy-free risotto": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Q3 Ops Review title still?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Go Postgres resume bullets for Stripe?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Height 30'02\" still the cite?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revoke old refresh family after key rotate on JWT auth.": {
+      "patches": [
+        {
+          "kind": "decision",
+          "text": "revoke refresh family",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "revoke"
+        }
+      ]
+    },
+    "CI failing on Docker step — debian slim builder image": {
+      "patches": [],
+      "uncertain": true
+    },
+    "the token 401 on the orders API still": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Is StrictMode still the double-render cause?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Peplum still the silhouette?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Budget still under 180 EUR Lisbon?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "No dairy still hard constraint?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Deck: Lisbon is chart not trip — confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Referrer intro still Thursday?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Trivia: tallest is Celesteela confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "go back to the JWT 401 after refresh on the auth service": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Is healthcheck still /healthz in Docker CI?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Keep Bearer only on /v2/orders gateway.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "Bearer only",
+          "workstream_id": "C",
+          "referent_id": "C.loop1",
+          "slot": "scheme"
+        }
+      ]
+    },
+    "Checkout dedupe fetch still on?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive corporate outfit color decision": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Saturday morning flight still set?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Oat milk only still?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Speaker notes limit still 40 words?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to Stripe backend application": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Wailord excluded from tallest answer": {
+      "patches": [],
+      "uncertain": true
+    },
+    "JWT 401 after refresh on the auth service still": {
+      "patches": [],
+      "uncertain": true
+    },
+    "CI failing on Docker step — memory limit 4Gi confirmed?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive orders gateway Authorization strip": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to checkout toast 401": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Evening formal — navy peplum confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to Lisbon trip Alfama": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to dinner risotto mushrooms": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to 12-slide deck": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Cover letter length still under 300?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to Pokémon height trivia": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Auth service JWT 401 after refresh: keep 5 minute TTL after rotate.": {
+      "patches": [
+        {
+          "kind": "fact",
+          "text": "keep TTL 5 minutes",
+          "workstream_id": "A",
+          "referent_id": "A.loop1",
+          "slot": "ttl"
+        }
+      ]
+    },
+    "Docker CI failing step multi-stage — runtime user nonroot.": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "runtime nonroot",
+          "workstream_id": "B",
+          "referent_id": "B.loop1",
+          "slot": "user"
+        }
+      ]
+    },
+    "Orders API: confirm allowlist Authorization": {
+      "patches": [],
+      "uncertain": true
+    },
+    "AbortController on checkout — confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Closed-toe shoes still required?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Late checkout Sunday in Lisbon?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Two portions dinner confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Appendix sources slide on deck?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Stripe deadline Friday confirm": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final trivia: Celesteela not Wailord": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Did we set aud=api.internal on the auth service for JWT 401 after refresh?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to CI failing on the Docker step builder image choice": {
+      "patches": [],
+      "uncertain": true
+    },
+    "X-Request-Id still forwarded on orders?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "checkout renders twice still?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to navy peplum corporate hosting": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Lisbon hotel with parking near Alfama": {
+      "patches": [],
+      "uncertain": true
+    },
+    "What dish did we pick for dairy-free dinner?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive deck airport traffic chart": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final Stripe: Friday deadline Go Postgres": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive tallest Pokémon decision": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Signing key rotation status on auth service?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Pin digest still required for debian slim on the failing Docker CI step?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to orders /v2/orders 401": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Frontend toast 401 vs real auth — checkout": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Studs only jewelry for the event?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm Lisbon flight Saturday morning": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive no-dairy dinner plan": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final deck: Q3 Ops Review 12 slides + appendix": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive Stripe referrer Thursday": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Celesteela height cite again for tallest Pokemon trivia": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to JWT refresh 401 — what is the TTL now?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Docker CI failing step — cache path still /var/cache/ci?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Orders prefix still /v2/orders?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Error boundary should not swallow checkout toast": {
+      "patches": [
+        {
+          "kind": "constraint",
+          "text": "surface checkout toast",
+          "workstream_id": "D",
+          "referent_id": "D.loop1",
+          "slot": "boundary"
+        }
+      ]
+    },
+    "Corporate outfit: navy not black": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive Lisbon budget constraint": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final dinner: dairy-free mushroom risotto": {
+      "patches": [],
+      "uncertain": true
+    },
+    "presentation deck Lisbon chart again": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Stripe backend role application status": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm not Wailord for tallest": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Auth skew still 30 seconds for JWT 401 after refresh?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive CI failing on the Docker step — what builder are we on?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Gateway strip bug — Authorization on orders": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final checkout: dedupe + AbortController + toast": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final outfit: navy peplum evening formal": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final Lisbon: Alfama parking Saturday flight": {
+      "patches": [],
+      "uncertain": true
+    },
+    "pasta carbonara is out — risotto stands": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm chart scope not Lisbon trip": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm Friday deadline Stripe": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Pokémon trivia Celesteela still": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm revoke refresh family after rotate on auth JWT 401.": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Docker CI failing step — debian slim and 4Gi mem": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final orders: allowlist Authorization Bearer /v2/orders": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive checkout StrictMode note": {
+      "patches": [],
+      "uncertain": true
+    },
+    "What color did we decide for the dress?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Lisbon trip parking again": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Dairy-free dinner mushrooms still in?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Deck notes under 40 words still": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to Stripe cover letter constraint": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to Celesteela trivia": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm nonroot runtime on the CI failing Docker step.": {
+      "patches": [],
+      "uncertain": true
+    },
+    "orders API 401 with valid token again": {
+      "patches": [],
+      "uncertain": true
+    },
+    "checkout double-render and toast 401": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Revive peplum silhouette for hosting": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Alfama still preferred for Lisbon hotel?": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm oat milk and two portions": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to presentation deck": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Stripe resume Go Postgres still": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Tallest Pokémon answer Celesteela": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final check: JWT 401 after refresh — TTL 5 minutes and aud api.internal on the auth service": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final check: CI failing on Docker step — debian slim, pin digest, 4Gi": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm gateway does not strip Authorization": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm checkout fetch aborted on unmount": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm navy peplum closed-toe corporate evening": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm under 180 EUR and parking Lisbon": {
+      "patches": [],
+      "uncertain": true
+    },
+    "back to dairy-free risotto dinner": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm appendix sources on the deck": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Confirm referrer intro Thursday for Stripe": {
+      "patches": [],
+      "uncertain": true
+    },
+    "Final check Celesteela height trivia": {
+      "patches": [],
+      "uncertain": true
+    }
+  },
+  "llm_scripts": {
+    "JWT still returns 401 after refresh on the auth service.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "CI is failing on the Docker step again.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "The orders API returns 401 even with a valid token.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "The checkout component still renders twice.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "I need a black dress for a corporate event.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Lisbon trip: the hotel needs parking.": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Tonight I'll cook pasta carbonara.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "The presentation deck is 12 slides and mentions Lisbon airport traffic.": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "I am applying to Stripe for the backend role.": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Quick brainrot: what is the tallest Pokémon?": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "On the auth service the access token TTL is 15 minutes for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "We're using alpine as the builder image for the container.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "I think the gateway strips the Authorization header on /v2/orders.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "The frontend toast shows an API 401 when the token is fine on the client.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "The event is formal and in the evening.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "The Lisbon flight is Saturday morning.": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Wait, no dairy at all for this dinner.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Keep Lisbon as a chart on the deck, not the trip.": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "The Stripe application deadline is Friday.": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Trivia correction: it is not Wailord, go with Celesteela.": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Auth cookies are httpOnly on the auth service for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker healthcheck curls /healthz in CI.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Orders path prefix is /v2/orders only.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Checkout uses React 18 StrictMode in dev.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Also need closed-toe shoes for the corporate event.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Prefer Alfama area for the Lisbon hotel.": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Risotto instead of pasta carbonara, still no dairy.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Deck title is Q3 Ops Review.": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Resume emphasizes Go and Postgres for Stripe.": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Celesteela height cited as 30'02\".": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Refresh endpoint is /auth/refresh on the auth service.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker CI cache mount is /var/cache/ci for the failing Docker step.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Gateway allowlist must include Authorization.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Disable duplicate fetch in checkout effect.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Actually navy, not black, for the formal evening event.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Budget under 180 EUR night in Lisbon.": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Use oat milk only if needed for dinner.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Speaker notes under 40 words per slide.": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Ask referrer for Stripe intro Thursday.": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "the tallest Pokémon trivia again": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "On the auth service, TTL is 5 minutes now, not 15, for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Use debian slim, not alpine, as the builder image.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Orders service expects Bearer scheme.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "the checkout component still rendering twice": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Peplum silhouette for the corporate hosting look.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "back to the Lisbon hotel parking": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "back to the dairy-free dinner": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "the presentation deck Lisbon chart": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "the Stripe application deadline Friday": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Celesteela trivia again": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Also rotate the signing key on the auth service.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Multi-stage build copies from builder to runtime in Docker CI.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "back to the orders API 401 with a valid token": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "the frontend toast API 401 on checkout": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "back to the dress for the corporate event": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "the Saturday morning Lisbon flight": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "the dairy-free risotto dinner": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "the 12 slides Lisbon chart on the deck": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Stripe backend role Friday deadline": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "back to the tallest Pokémon Celesteela trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Auth audience claim must be api.internal for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Pin base digest for debian slim in CI.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "the gateway Authorization header on /v2/orders": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Checkout error boundary swallows 401 toast.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "the navy dress for the formal evening event": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Lisbon: need late checkout Sunday.": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Add mushrooms to the dairy-free risotto.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Add one appendix slide for sources.": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Cover letter under 300 words for Stripe.": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Do not use Wailord as tallest.": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Issuer is https://auth.example/issuer for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker step OOM was 2Gi — raise to 4Gi.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Gateway forwards X-Request-Id on orders.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Use AbortController on checkout fetch.": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Skip jewelry beyond studs for corporate.": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "What about Alfama for Lisbon?": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Dinner for two portions.": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Revive presentation deck Lisbon chart": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Revive Stripe Friday deadline": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Revive Celesteela tallest trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Clock skew tolerance is 30 seconds on auth for JWT 401 after refresh.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "back to CI failing on the Docker step": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Orders 401 — is allowlist fixed?": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Revive checkout double-render": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "maybe the navy one?": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Revive Lisbon parking hotel": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Revive dairy-free risotto": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Q3 Ops Review title still?": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Go Postgres resume bullets for Stripe?": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Height 30'02\" still the cite?": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Revoke old refresh family after key rotate on JWT auth.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "CI failing on Docker step — debian slim builder image": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "the token 401 on the orders API still": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Is StrictMode still the double-render cause?": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Peplum still the silhouette?": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Budget still under 180 EUR Lisbon?": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "No dairy still hard constraint?": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Deck: Lisbon is chart not trip — confirm": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Referrer intro still Thursday?": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Trivia: tallest is Celesteela confirm": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "go back to the JWT 401 after refresh on the auth service": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Is healthcheck still /healthz in Docker CI?": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Keep Bearer only on /v2/orders gateway.": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Checkout dedupe fetch still on?": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Revive corporate outfit color decision": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Saturday morning flight still set?": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Oat milk only still?": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Speaker notes limit still 40 words?": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "back to Stripe backend application": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Wailord excluded from tallest answer": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "JWT 401 after refresh on the auth service still": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "CI failing on Docker step — memory limit 4Gi confirmed?": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Revive orders gateway Authorization strip": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "back to checkout toast 401": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Evening formal — navy peplum confirm": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "back to Lisbon trip Alfama": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "back to dinner risotto mushrooms": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "back to 12-slide deck": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Cover letter length still under 300?": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "back to Pokémon height trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Auth service JWT 401 after refresh: keep 5 minute TTL after rotate.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker CI failing step multi-stage — runtime user nonroot.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Orders API: confirm allowlist Authorization": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "AbortController on checkout — confirm": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Closed-toe shoes still required?": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Late checkout Sunday in Lisbon?": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Two portions dinner confirm": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Appendix sources slide on deck?": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Stripe deadline Friday confirm": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Final trivia: Celesteela not Wailord": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Did we set aud=api.internal on the auth service for JWT 401 after refresh?": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "back to CI failing on the Docker step builder image choice": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "X-Request-Id still forwarded on orders?": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "checkout renders twice still?": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "back to navy peplum corporate hosting": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Lisbon hotel with parking near Alfama": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "What dish did we pick for dairy-free dinner?": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Revive deck airport traffic chart": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Final Stripe: Friday deadline Go Postgres": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Revive tallest Pokémon decision": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Signing key rotation status on auth service?": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Pin digest still required for debian slim on the failing Docker CI step?": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "back to orders /v2/orders 401": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Frontend toast 401 vs real auth — checkout": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Studs only jewelry for the event?": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Confirm Lisbon flight Saturday morning": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Revive no-dairy dinner plan": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Final deck: Q3 Ops Review 12 slides + appendix": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Revive Stripe referrer Thursday": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Celesteela height cite again for tallest Pokemon trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "back to JWT refresh 401 — what is the TTL now?": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker CI failing step — cache path still /var/cache/ci?": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Orders prefix still /v2/orders?": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Error boundary should not swallow checkout toast": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Corporate outfit: navy not black": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Revive Lisbon budget constraint": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Final dinner: dairy-free mushroom risotto": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "presentation deck Lisbon chart again": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Stripe backend role application status": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Confirm not Wailord for tallest": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Auth skew still 30 seconds for JWT 401 after refresh?": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Revive CI failing on the Docker step — what builder are we on?": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Gateway strip bug — Authorization on orders": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Final checkout: dedupe + AbortController + toast": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Final outfit: navy peplum evening formal": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Final Lisbon: Alfama parking Saturday flight": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "pasta carbonara is out — risotto stands": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Confirm chart scope not Lisbon trip": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Confirm Friday deadline Stripe": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Pokémon trivia Celesteela still": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Confirm revoke refresh family after rotate on auth JWT 401.": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Docker CI failing step — debian slim and 4Gi mem": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Final orders: allowlist Authorization Bearer /v2/orders": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Revive checkout StrictMode note": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "What color did we decide for the dress?": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Lisbon trip parking again": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Dairy-free dinner mushrooms still in?": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Deck notes under 40 words still": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "back to Stripe cover letter constraint": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "back to Celesteela trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Confirm nonroot runtime on the CI failing Docker step.": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "orders API 401 with valid token again": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "checkout double-render and toast 401": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Revive peplum silhouette for hosting": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Alfama still preferred for Lisbon hotel?": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "Confirm oat milk and two portions": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "back to presentation deck": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Stripe resume Go Postgres still": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Tallest Pokémon answer Celesteela": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    },
+    "Final check: JWT 401 after refresh — TTL 5 minutes and aud api.internal on the auth service": {
+      "task_id": "A",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_A"
+    },
+    "Final check: CI failing on Docker step — debian slim, pin digest, 4Gi": {
+      "task_id": "B",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_B"
+    },
+    "Confirm gateway does not strip Authorization": {
+      "task_id": "C",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_C"
+    },
+    "Confirm checkout fetch aborted on unmount": {
+      "task_id": "D",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_D"
+    },
+    "Confirm navy peplum closed-toe corporate evening": {
+      "task_id": "E",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_E"
+    },
+    "Confirm under 180 EUR and parking Lisbon": {
+      "task_id": "F",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_F"
+    },
+    "back to dairy-free risotto dinner": {
+      "task_id": "G",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_G"
+    },
+    "Confirm appendix sources on the deck": {
+      "task_id": "H",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_H"
+    },
+    "Confirm referrer intro Thursday for Stripe": {
+      "task_id": "I",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_I"
+    },
+    "Final check Celesteela height trivia": {
+      "task_id": "J",
+      "is_new_task": false,
+      "confidence": 0.86,
+      "rationale": "scripted_J"
+    }
+  }
+}

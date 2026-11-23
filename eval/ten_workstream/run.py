@@ -115,8 +115,11 @@ def _isolation_smoke(fx: dict) -> bool:
     )
 
 
-def replay(probes: list[dict] | None = None) -> dict:
-    fx = load_fixture()
+def replay(
+    probes: list[dict] | None = None,
+    fx: dict | None = None,
+) -> tuple:
+    fx = fx if fx is not None else load_fixture()
     probes = list(probes) if probes is not None else load_probes()
     probe_by_turn = {p["turn"]: p for p in probes}
     reg = make_registry(fx)
@@ -499,19 +502,40 @@ def write_results_md(payload: dict) -> None:
 
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description="Ten-workstream mock replay")
+    ap.add_argument("--fixture", type=Path, default=None, help="fixture.json path")
+    ap.add_argument("--probes", type=Path, default=None, help="probes.json path")
+    ap.add_argument(
+        "--out", type=Path, default=None,
+        help="output json (default eval/out/ten_workstream.json)",
+    )
+    ap.add_argument("--skip-md", action="store_true", help="skip docs/TEN_WORKSTREAM_RESULTS.md")
+    args = ap.parse_args()
+    fixture_path = args.fixture
+    if fixture_path is None and os.getenv("CF_TEN_WS_FIXTURE"):
+        fixture_path = Path(os.getenv("CF_TEN_WS_FIXTURE", ""))
+
     t0 = time.perf_counter()
-    payload, store, fx = replay()
-    probes = load_probes()
+    fx = load_fixture(fixture_path) if fixture_path is not None else load_fixture()
+    probes = load_probes(path=args.probes) if args.probes else load_probes()
+    turn_set = {t["turn"] for t in fx["turns"]}
+    probes = [p for p in probes if p.get("turn") in turn_set]
+    payload, store, fx = replay(fx=fx, probes=probes)
     payload["answer_compare"] = answer_compare(payload, fx, probes)
     payload["summary"]["wall_s"] = round(time.perf_counter() - t0, 3)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
-    write_results_md(payload)
+    payload["summary"]["fixture"] = str(fixture_path or "eval/ten_workstream/fixture.json")
+    payload["summary"]["n_probes_scored"] = len(probes)
+    out_path = args.out or OUT
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+    if not args.skip_md and fixture_path is None:
+        write_results_md(payload)
     print(json.dumps({
         "status": payload["status"],
         "summary": payload["summary"],
         "answer_compare": payload["answer_compare"].get("status"),
-        "out": str(OUT),
+        "out": str(out_path),
     }, indent=2))
     return 0
 

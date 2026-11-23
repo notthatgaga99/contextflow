@@ -177,8 +177,8 @@ def _run_turns(
 
 
 def run(
-    project: str = "contextflow-506414",
-    region: str = "asia-south1",
+    project: str = "contextflow-gagan-20261019",
+    region: str = "us-central1",
     *,
     max_calls: int = DEFAULT_MAX_CALLS,
     max_usd: float = DEFAULT_MAX_USD,

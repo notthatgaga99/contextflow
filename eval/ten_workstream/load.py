@@ -31,8 +31,9 @@ PROBE_REQUIRED_KEYS = (
 )
 
 
-def load_fixture() -> dict:
-    return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+def load_fixture(path: Path | str | None = None) -> dict:
+    p = Path(path) if path is not None else FIXTURE_PATH
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 def normalize_probe(raw: dict) -> dict:

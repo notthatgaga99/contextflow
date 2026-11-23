@@ -1,0 +1,203 @@
+{
+  "probes": [
+    {
+      "id": "r20_A",
+      "turn": 191,
+      "gold_task_id": "A",
+      "gold_referent_id": "A.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "TTL 5",
+        "aud"
+      ],
+      "should_not_carry": [
+        "Lisbon hotel",
+        "navy peplum"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_B",
+      "turn": 192,
+      "gold_task_id": "B",
+      "gold_referent_id": "B.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "debian slim",
+        "4Gi"
+      ],
+      "should_not_carry": [
+        "Celesteela",
+        "risotto"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_C",
+      "turn": 193,
+      "gold_task_id": "C",
+      "gold_referent_id": "C.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "Authorization",
+        "/v2/orders"
+      ],
+      "should_not_carry": [
+        "debian slim",
+        "navy"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_D",
+      "turn": 194,
+      "gold_task_id": "D",
+      "gold_referent_id": "D.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "dedupe",
+        "AbortController"
+      ],
+      "should_not_carry": [
+        "Alfama",
+        "Celesteela"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_E",
+      "turn": 195,
+      "gold_task_id": "E",
+      "gold_referent_id": "E.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "navy",
+        "peplum"
+      ],
+      "should_not_carry": [
+        "TTL",
+        "Docker"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_F",
+      "turn": 196,
+      "gold_task_id": "F",
+      "gold_referent_id": "F.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "Alfama",
+        "parking"
+      ],
+      "should_not_carry": [
+        "peplum",
+        "risotto"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_G",
+      "turn": 197,
+      "gold_task_id": "G",
+      "gold_referent_id": "G.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "risotto",
+        "no dairy"
+      ],
+      "should_not_carry": [
+        "Stripe",
+        "JWT"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_H",
+      "turn": 198,
+      "gold_task_id": "H",
+      "gold_referent_id": "H.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "Q3 Ops",
+        "Lisbon chart"
+      ],
+      "should_not_carry": [
+        "parking",
+        "Celesteela"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_I",
+      "turn": 199,
+      "gold_task_id": "I",
+      "gold_referent_id": "I.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "Friday",
+        "Go"
+      ],
+      "should_not_carry": [
+        "alpine",
+        "risotto"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    },
+    {
+      "id": "r20_J",
+      "turn": 200,
+      "gold_task_id": "J",
+      "gold_referent_id": "J.loop1",
+      "gold_policy": "ACT",
+      "needed_state": [
+        "Celesteela"
+      ],
+      "should_not_carry": [
+        "navy",
+        "Docker"
+      ],
+      "competing_similar": [],
+      "category": "density_revive",
+      "utterance_kind": "return",
+      "expected_open_workstream_count": 10,
+      "expected_gap": "long_density"
+    }
+  ]
+}

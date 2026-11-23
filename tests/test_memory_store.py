@@ -71,6 +71,28 @@ def test_unkeyed_decision_conflict_not_silently_won():
     assert len(asserted) == 1 and asserted[0].text == "black"
 
 
+def test_same_slot_supersedes_across_kinds():
+    """Builder/ttl slots: fact→correction must condense, not kind-mismatch."""
+    reg = InMemoryRegistry()
+    reg.add(make_task("B", "deploy", "ci", ["docker"], ["docker", "ci"]))
+    store = InMemoryMemoryStore()
+    w = MemoryWriter(store, reg)
+    a = w.commit([MemoryPatch(
+        kind="entity", text="alpine", source_turn=1, workstream_id="B",
+        slot="builder", proposer="extractor",
+    )])
+    assert a.ok
+    old_id = a.items[0].id
+    b = w.commit([MemoryPatch(
+        kind="correction", text="debian slim", source_turn=2, workstream_id="B",
+        slot="builder", proposer="extractor", supersedes_id=old_id,
+    )])
+    assert b.ok, b.errors
+    assert store.get(old_id).status == "superseded"
+    cur = store.asserted("B")
+    assert len(cur) == 1 and cur[0].text == "debian slim"
+
+
 def test_stale_namespace_and_idempotent_turn():
     reg = InMemoryRegistry()
     reg.add(make_task("B", "outfit", "outfit", ["color"], ["dress"]))

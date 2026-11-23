@@ -31,7 +31,17 @@ def _outfit_reg():
 def test_recall_only_messages_abstain():
     assert message_looks_recall_only("What did we decide on color?")
     assert message_looks_recall_only("What was the Lisbon hotel requirement again?")
+    assert message_looks_recall_only(
+        "Did we set aud=api.internal on the auth service for JWT 401 after refresh?"
+    )
+    assert message_looks_recall_only(
+        "Final check: JWT 401 after refresh — TTL 5 minutes and aud api.internal"
+    )
+    assert message_looks_recall_only("Confirm navy peplum still?")
     assert not message_looks_recall_only("Actually navy, not black.")
+    assert not message_looks_recall_only(
+        "Use debian slim, not alpine, as the builder image."
+    )
 
 
 def test_llm_recall_turn_returns_empty_without_llm_call():

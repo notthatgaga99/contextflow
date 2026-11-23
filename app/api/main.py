@@ -9,19 +9,23 @@ from pydantic import BaseModel, Field
 
 from app.config import SETTINGS
 from app.context.working_set import WorkingContextBuilder
+from app.memory.catalog import ConversationCatalog
 from app.memory.extractor import LlmMemoryExtractor, MockMemoryExtractor
+from app.memory.import_rollup import import_rollup_workstreams
+from app.memory.rollup import build_conversation_rollup
 from app.memory.sessions import ConversationStore
 from app.obs import correlation_id, decision_event, emit_decision
-from app.turn_pipeline import run_turn
+from app.kernel.bind_api import bind_and_expose, resolve_llm_mode
+from app.kernel.session import run_kernel_turn
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("contextflow")
 app = FastAPI(
-    title="ContextFlow",
+    title="ContextFlow Agent",
     description=(
-        "Working-memory layer for context-switching assistants. "
-        "DEMO/RESEARCH presentation shape — not a production readiness claim. "
-        "Public unauthenticated deployments are a demo boundary unless invoker IAM is set."
+        "Agent workspace: frozen binder + ContextFlow memory planes + tool harness. "
+        "UI at GET /. Agent turn at POST /agent/turn. Tools at GET/POST /agent/tools. "
+        "DEMO/RESEARCH shape — not a production readiness claim."
     ),
 )
 
@@ -49,6 +53,7 @@ def _make_llm():
 
 
 store = ConversationStore(_make_llm(), SETTINGS, mode=os.getenv("CF_MODE", "split"))
+catalog = ConversationCatalog()  # file-backed via CF_CATALOG_PATH / .data/catalog.json
 
 
 def _make_extractor():
@@ -68,6 +73,27 @@ class TurnIn(BaseModel):
     conversation_id: str = Field(..., min_length=1, max_length=128)
     message: str = Field(..., min_length=1, max_length=8000)
     turn: int = Field(..., ge=0, le=1_000_000)
+
+
+class ImportRollupIn(BaseModel):
+    """Opt-in only: seed rollup workstreams into this conversation as paused cards."""
+    source_conversation_id: str | None = Field(default=None, max_length=128)
+    rollup: dict | None = None
+    workstream_ids: list[str] | None = None
+    user_key: str = Field(default="local", max_length=128)
+    turn: int = Field(default=0, ge=0, le=1_000_000)
+
+
+def _touch_catalog(conversation_id: str, *, user_key: str = "local") -> None:
+    """Best-effort H2 index update; never fails the turn."""
+    try:
+        eng = store.engine(conversation_id)
+        mem = store.memory_store(conversation_id)
+        catalog.touch_from_live(
+            eng.reg, mem, conversation_id=conversation_id, user_key=user_key,
+        )
+    except Exception:
+        log.exception("catalog_touch_failed conversation_id=%s", conversation_id)
 
 
 class TurnOut(BaseModel):
@@ -90,6 +116,12 @@ class TurnOut(BaseModel):
     extract_committed: bool | None = None
     demo_only: bool | None = None
     memory_backend: str | None = None
+    # Host contract (bind_and_expose)
+    interrupt: bool | None = None
+    l1_expose: str | None = None
+    discrimination: dict | None = None
+    latency_ms: float | None = None
+    llm_mode: str | None = None
 
 
 def _title_and_loop(r) -> tuple[str | None, str | None]:
@@ -150,7 +182,8 @@ def live_demo_ui():
 @app.get("/healthz")
 def health():
     cfg = _config_ok()
-    vertex_on = os.getenv("CF_USE_VERTEX") == "1" or os.getenv("CF_USE_GEMINI") == "1"
+    mode = resolve_llm_mode()
+    vertex_on = mode == "vertex" or os.getenv("CF_USE_VERTEX") == "1"
     return {
         "status": "ok" if cfg["ok"] else "degraded",
         "service": "contextflow",
@@ -162,14 +195,14 @@ def health():
         "multi_instance_safe": MEMORY_DURABLE,
         "config_ok": cfg["ok"],
         "config_issues": cfg["issues"],
-        "llm": (
-            "vertex" if os.getenv("CF_USE_VERTEX") == "1"
-            else "gemini" if os.getenv("CF_USE_GEMINI") == "1"
-            else "ollama" if os.getenv("CF_USE_OLLAMA") == "1"
-            else "mock"
-        ),
+        "llm_mode": mode,
+        "llm": mode,
         "extract": "llm" if os.getenv("CF_LLM_EXTRACT") == "1" else "mock",
         "vertex_enabled": vertex_on,
+        "vertex_pace_s": (
+            float(os.getenv("CF_VERTEX_MIN_INTERVAL_S") or "0")
+            if mode == "vertex" else 0.0
+        ),
         "boundary": (
             "Authenticated Cloud Run + Firestore is the durable POC path. "
             "Public unauthenticated access remains a demo-only boundary. "
@@ -184,51 +217,49 @@ def health():
 
 @app.post("/turn", response_model=TurnOut)
 def turn(t: TurnIn, request: Request):
+    """HTTP door → same ``bind_and_expose`` contract as in-process hosts."""
     corr = getattr(request.state, "correlation_id", correlation_id())
-    t0 = time.perf_counter()
     try:
-        eng = store.engine(t.conversation_id)
-        writer = store.writer(t.conversation_id)
-        mem = store.memory_store(t.conversation_id)
+        bound = bind_and_expose(
+            store, extractor,
+            conversation_id=t.conversation_id.strip(),
+            message=t.message,
+            turn=t.turn,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    try:
-        pipe = run_turn(
-            eng, writer, extractor,
-            conversation_id=t.conversation_id.strip(),
-            message=t.message, turn=t.turn,
-        )
-    except Exception as exc:
+    except Exception:
         log.exception("turn_failed correlation_id=%s", corr)
         raise HTTPException(
             status_code=500,
             detail={"error": "turn_failed", "correlation_id": corr},
-        ) from exc
-    r = pipe.turn
-    title, loop = _title_and_loop(r)
-    latency_ms = round((time.perf_counter() - t0) * 1000, 1)
-    package_status = "ok" if r.package is not None else (
-        "clarify" if r.transition and r.transition.value == "CLARIFY" else "none"
+        ) from None
+
+    eng = store.engine(bound.conversation_id)
+    mem = store.memory_store(bound.conversation_id)
+    package_status = (
+        "clarify" if bound.interrupt
+        else "ok" if bound.package_summary else "none"
     )
     answer_status = (
-        "clarify" if r.transition and r.transition.value == "CLARIFY"
-        else "ok" if r.answer else "none"
+        "clarify" if bound.interrupt
+        else "ok" if bound.answer else "none"
     )
     mem_stats = mem.stats() if hasattr(mem, "stats") else {}
     reg_stats = eng.reg.stats() if hasattr(eng.reg, "stats") else {}
     hist = mem.historical()
     emit_decision(decision_event(
         correlation_id=corr,
-        conversation_id=t.conversation_id.strip(),
+        conversation_id=bound.conversation_id,
         turn=t.turn,
-        transition=r.transition.value,
-        task_id=r.task_id,
-        referent_id=r.predicted_referent_id,
-        extract_ok=pipe.extract.ok,
-        extract_status="ok" if pipe.extract.ok else "rejected",
-        extract_committed=bool(pipe.extract.items) or bool(pipe.extract.idempotent_retry),
+        transition=bound.transition,
+        task_id=bound.task_id,
+        referent_id=bound.predicted_referent_id,
+        extract_ok=bound.extract_ok,
+        extract_status="ok" if bound.extract_ok else "rejected",
+        extract_committed=bound.extract_committed,
         message_chars=len(t.message or ""),
-        latency_ms=latency_ms,
+        latency_ms=bound.latency_ms,
         memory_asserted=len(mem.asserted()),
         memory_total=len(mem.all()),
         memory_backend=MEMORY_BACKEND,
@@ -240,29 +271,68 @@ def turn(t: TurnIn, request: Request):
         registry_reads=reg_stats.get("registry_reads"),
         registry_writes=reg_stats.get("registry_writes"),
         package_status=package_status,
-        context_mode=r.package.context_mode if r.package else None,
+        context_mode=bound.context_mode,
         demo_only=DEMO_ONLY,
         answer_status=answer_status,
     ))
+    _touch_catalog(bound.conversation_id)
     return TurnOut(
-        conversation_id=t.conversation_id,
-        transition=r.transition.value, task_id=r.task_id, answer=r.answer,
-        workstream_title=title,
-        selected_loop=loop,
-        clarify_question=r.clarify_question,
-        decision_tokens=r.package.decision_tokens if r.package else None,
-        answer_tokens=r.package.answer_tokens if r.package else None,
-        predicted_task_id=r.predicted_task_id,
-        predicted_referent_id=r.predicted_referent_id,
-        context_mode=r.package.context_mode if r.package else None,
-        included_loop_ids=r.package.included_loop_ids if r.package else None,
-        total_context_tokens=r.package.total_context_tokens if r.package else None,
+        conversation_id=bound.conversation_id,
+        transition=bound.transition,
+        task_id=bound.task_id,
+        answer=bound.answer,
+        workstream_title=bound.workstream_title,
+        selected_loop=bound.selected_loop,
+        clarify_question=bound.clarify_question,
+        decision_tokens=bound.decision_tokens,
+        answer_tokens=bound.answer_tokens,
+        predicted_task_id=bound.predicted_task_id,
+        predicted_referent_id=bound.predicted_referent_id,
+        context_mode=bound.context_mode,
+        included_loop_ids=bound.included_loop_ids,
+        total_context_tokens=bound.total_context_tokens,
         correlation_id=corr,
-        extract_ok=pipe.extract.ok,
-        extract_committed=bool(pipe.extract.items) or bool(pipe.extract.idempotent_retry),
+        extract_ok=bound.extract_ok,
+        extract_committed=bound.extract_committed,
         demo_only=DEMO_ONLY,
         memory_backend=MEMORY_BACKEND,
+        interrupt=bound.interrupt,
+        l1_expose=bound.l1_expose,
+        discrimination=bound.discrimination or None,
+        latency_ms=bound.latency_ms,
+        llm_mode=bound.llm_mode,
     )
+
+
+@app.post("/bind")
+def bind_only(t: TurnIn, request: Request):
+    """Host door: full ``bind_and_expose`` JSON (interrupt + L1 + discrimination).
+
+    Same kernel as ``/turn``. Prefer this when the shell owns generate and must
+    pause on ``interrupt=true`` (LangGraph-shaped hosts).
+    """
+    corr = getattr(request.state, "correlation_id", correlation_id())
+    try:
+        bound = bind_and_expose(
+            store, extractor,
+            conversation_id=t.conversation_id.strip(),
+            message=t.message,
+            turn=t.turn,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception:
+        log.exception("bind_failed correlation_id=%s", corr)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "bind_failed", "correlation_id": corr},
+        ) from None
+    _touch_catalog(bound.conversation_id)
+    payload = bound.to_dict()
+    payload["correlation_id"] = corr
+    payload["demo_only"] = DEMO_ONLY
+    payload["memory_backend"] = MEMORY_BACKEND
+    return payload
 
 
 @app.get("/conversations/{conversation_id}/tasks")
@@ -307,6 +377,11 @@ def list_memory(conversation_id: str):
             "corrections": [i.text for i in asserted if i.kind == "correction"],
             "constraints": [i.text for i in asserted if i.kind == "constraint"],
             "facts": [i.text for i in asserted if i.kind in ("fact", "preference", "event")],
+            "procedures": [i.text for i in asserted if i.kind == "procedure"],
+            "planes": {
+                "long_term": [i.text for i in asserted if i.kind != "procedure"],
+                "procedural": [i.text for i in asserted if i.kind == "procedure"],
+            },
             "history": [
                 {
                     "text": i.text, "slot": i.slot, "status": i.status,
@@ -370,6 +445,137 @@ def list_memory(conversation_id: str):
     }
 
 
+@app.get("/conversations/{conversation_id}/rollup")
+def conversation_rollup(conversation_id: str):
+    """Structured condensation of open workstreams from asserted memory (not chat summary)."""
+    try:
+        eng = store.engine(conversation_id)
+        mem = store.memory_store(conversation_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    roll = build_conversation_rollup(eng.reg, mem, conversation_id=conversation_id)
+    out = roll.to_dict()
+    out["demo_only"] = DEMO_ONLY
+    out["memory_backend"] = MEMORY_BACKEND
+    return out
+
+
+@app.post("/conversations/{conversation_id}/archive")
+def archive_conversation(
+    conversation_id: str,
+    user_key: str = Query(default="local", max_length=128),
+):
+    """Snapshot structured rollup into the last-N catalog (does not delete the live chat)."""
+    try:
+        eng = store.engine(conversation_id)
+        mem = store.memory_store(conversation_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    entry = catalog.touch_from_live(
+        eng.reg, mem, conversation_id=conversation_id.strip(), user_key=user_key,
+    )
+    return {
+        "ok": True,
+        "entry": entry.summary(),
+        "catalog_limit": catalog.max_entries,
+        "demo_only": DEMO_ONLY,
+    }
+
+
+@app.get("/catalog")
+def list_catalog(
+    user_key: str = Query(default="local", max_length=128),
+    limit: int | None = Query(default=None, ge=1, le=50),
+):
+    """Last-N conversation index. Summaries only — not injected into generate()."""
+    entries = catalog.list(user_key=user_key, limit=limit)
+    return {
+        "user_key": user_key,
+        "catalog_limit": catalog.max_entries,
+        "count": len(entries),
+        "conversations": [e.summary() for e in entries],
+        "demo_only": DEMO_ONLY,
+        "note": "Opt-in import via POST /conversations/{id}/import-rollup. Never auto-merged.",
+    }
+
+
+@app.get("/catalog/{conversation_id}")
+def get_catalog_entry(
+    conversation_id: str,
+    user_key: str = Query(default="local", max_length=128),
+):
+    entry = catalog.get(conversation_id, user_key=user_key)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="catalog_entry_not_found")
+    return {
+        "entry": entry.summary(),
+        "rollup": entry.rollup,
+        "demo_only": DEMO_ONLY,
+    }
+
+
+@app.post("/conversations/{conversation_id}/import-rollup")
+def import_rollup(conversation_id: str, body: ImportRollupIn):
+    """Explicitly seed paused workstreams from a catalog entry or inline rollup."""
+    try:
+        eng = store.engine(conversation_id)
+        writer = store.writer(conversation_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    rollup = body.rollup
+    if rollup is None:
+        src = (body.source_conversation_id or "").strip()
+        if not src:
+            raise HTTPException(
+                status_code=400,
+                detail="source_conversation_id_or_rollup_required",
+            )
+        entry = catalog.get(src, user_key=body.user_key)
+        if entry is None:
+            # Fall back to live conversation rollup if still in process memory.
+            try:
+                src_eng = store.engine(src)
+                src_mem = store.memory_store(src)
+                rollup = build_conversation_rollup(
+                    src_eng.reg, src_mem, conversation_id=src,
+                ).to_dict()
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=404, detail="source_not_found",
+                ) from exc
+        else:
+            rollup = entry.rollup
+
+    result = import_rollup_workstreams(
+        eng.reg,
+        writer,
+        rollup,
+        workstream_ids=body.workstream_ids,
+        turn=body.turn,
+        as_paused=True,
+    )
+    if not result.ok:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "import_failed",
+                "errors": result.errors,
+                "skipped": result.skipped,
+                "imported": result.imported,
+            },
+        )
+    _touch_catalog(conversation_id.strip(), user_key=body.user_key)
+    return {
+        "ok": True,
+        "conversation_id": conversation_id,
+        "imported": result.imported,
+        "skipped": result.skipped,
+        "demo_only": DEMO_ONLY,
+        "note": "Imported as paused. Gate must SELECT before answer package uses them.",
+    }
+
+
 @app.get("/conversations/{conversation_id}/working-context")
 def working_context(
     conversation_id: str,
@@ -395,8 +601,168 @@ def working_context(
             "constraints": list(proj.constraints),
             "facts": list(proj.facts),
             "entities": list(proj.entities),
+            "procedures": list(getattr(proj, "procedures", []) or []),
         },
         "excluded_workstreams": list(proj.excluded_workstreams),
+        "demo_only": DEMO_ONLY,
+    }
+
+
+@app.get("/conversations/{conversation_id}/compact-notation")
+def compact_notation(
+    conversation_id: str,
+    task_id: str = Query(..., min_length=1),
+    referent_id: str | None = None,
+    query: str | None = None,
+):
+    """SHORT_TERM (L1) compact notation + plane diagnostics for a bound thread."""
+    from app.context.working_memory_switch import assemble_bound_memory
+    from app.memory.planes import plane_catalog
+
+    try:
+        eng = store.engine(conversation_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    task = eng.reg.get(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="task_not_found")
+    if eng.memory_port is None:
+        raise HTTPException(status_code=404, detail="memory_port_unavailable")
+    ref = referent_id or (f"{task_id}.loop1" if task.anchor.open_loops else task_id)
+    loop = task.anchor.open_loops[0] if task.anchor.open_loops else None
+    bundle = assemble_bound_memory(
+        eng.memory_port,
+        workstream_id=task_id,
+        referent_id=ref,
+        selected_loop=loop,
+        builder=eng.working_context_builder,
+        open_tasks=eng.reg.open_tasks(),
+        query=query,
+    )
+    if bundle is None or bundle.short_term is None:
+        raise HTTPException(status_code=404, detail="notation_unavailable")
+    notation = bundle.short_term
+    return {
+        "conversation_id": conversation_id,
+        "notation": notation.to_dict(),
+        "expose_text": notation.to_expose_text(),
+        "planes": {
+            "short_term": notation.to_dict(),
+            "long_term": bundle.long_term.to_dict(),
+            "procedural": bundle.procedural.to_dict(),
+            "relevant": bundle.relevant.to_dict(),
+            "index": bundle.index.to_dict(),
+        },
+        "diagnostics": bundle.diagnostics,
+        "plane_catalog": plane_catalog(),
+        "design": bundle.to_dict().get("design"),
+        "demo_only": DEMO_ONLY,
+        "note": (
+            "ContextFlow RB-WSR: generate() reads SHORT_TERM (L1) only. "
+            "LONG_TERM / PROCEDURAL feed it; RELEVANT is bound cold; "
+            "INDEX/ARCHIVE never dump into generate."
+        ),
+    }
+
+
+@app.get("/memory/planes")
+def memory_planes():
+    """Describe ContextFlow memory planes (our model; learn-from, not clone)."""
+    from app.memory.planes import design_notes, plane_catalog
+
+    return {
+        "planes": plane_catalog(),
+        "design": design_notes(),
+        "demo_only": DEMO_ONLY,
+    }
+
+
+class AgentTurnIn(BaseModel):
+    conversation_id: str = Field(..., min_length=1, max_length=128)
+    message: str = Field(..., min_length=1, max_length=8000)
+    turn: int = Field(..., ge=0, le=1_000_000)
+    auto_tools: bool = True
+
+
+class ToolInvokeIn(BaseModel):
+    conversation_id: str = Field(..., min_length=1, max_length=128)
+    arguments: dict = Field(default_factory=dict)
+
+
+@app.get("/agent/tools")
+def agent_tools():
+    """List tool harness entries for the agent shell."""
+    from app.agent.tools import list_tools
+
+    return {
+        "tools": list_tools(),
+        "note": "Tools use MemoryPort/Writer. Binder stays frozen authority.",
+        "demo_only": DEMO_ONLY,
+    }
+
+
+@app.post("/agent/tools/{tool_name}")
+def agent_tool_invoke(tool_name: str, body: ToolInvokeIn):
+    from app.agent.tools import invoke_tool
+
+    args = dict(body.arguments or {})
+    args.setdefault("conversation_id", body.conversation_id)
+    result = invoke_tool(store, tool_name, args)
+    if not result.ok and result.error and result.error.startswith("unknown_tool"):
+        raise HTTPException(status_code=404, detail=result.error)
+    return {**result.to_dict(), "demo_only": DEMO_ONLY}
+
+
+@app.post("/agent/turn")
+def agent_turn(body: AgentTurnIn, request: Request):
+    """Agentic turn: bind → extract → SHORT_TERM → tools → answer (+ timeline)."""
+    from app.agent.turn import run_agent_turn
+
+    corr = getattr(request.state, "correlation_id", correlation_id())
+    try:
+        payload = run_agent_turn(
+            store, extractor,
+            conversation_id=body.conversation_id.strip(),
+            message=body.message,
+            turn=body.turn,
+            auto_tools=body.auto_tools,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception:
+        log.exception("agent_turn_failed correlation_id=%s", corr)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "agent_turn_failed", "correlation_id": corr},
+        ) from None
+    _touch_catalog(body.conversation_id.strip())
+    payload["correlation_id"] = corr
+    payload["demo_only"] = DEMO_ONLY
+    mode = resolve_llm_mode()
+    payload["llm"] = mode
+    payload["llm_mode"] = mode
+    return payload
+
+
+@app.get("/agent/snapshot")
+def agent_snapshot(conversation_id: str = Query(..., min_length=1)):
+    """Full shell snapshot: threads + planes catalog + tool list."""
+    from app.agent.tools import invoke_tool, list_tools
+    from app.memory.planes import design_notes, plane_catalog
+
+    threads = invoke_tool(
+        store, "list_threads", {"conversation_id": conversation_id},
+    )
+    health = invoke_tool(
+        store, "session_health", {"conversation_id": conversation_id},
+    )
+    return {
+        "conversation_id": conversation_id,
+        "threads": threads.data if threads.ok else {},
+        "health": health.data if health.ok else {},
+        "planes": plane_catalog(),
+        "design": design_notes(),
+        "tools": list_tools(),
         "demo_only": DEMO_ONLY,
     }
 
