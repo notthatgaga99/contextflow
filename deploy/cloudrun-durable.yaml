@@ -31,7 +31,7 @@ spec:
       containerConcurrency: 4
       timeoutSeconds: 180
       containers:
-        - image: us-central1-docker.pkg.dev/contextflow-gagan-20261019/contextflow/contextflow-durable:ft4
+        - image: us-central1-docker.pkg.dev/contextflow-gagan-20261019/contextflow/contextflow-durable:ft5
           ports:
             - name: http1
               containerPort: 8080
