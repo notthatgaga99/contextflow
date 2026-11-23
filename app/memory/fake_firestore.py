@@ -32,6 +32,9 @@ class _DocRef:
     def set(self, data: dict[str, Any]) -> None:
         self._store._docs["/".join(self._path)] = deepcopy(data)
 
+    def delete(self) -> None:
+        self._store._docs.pop("/".join(self._path), None)
+
 
 class _ColRef:
     def __init__(self, store: "FakeFirestoreClient", path: tuple[str, ...]):
@@ -56,13 +59,20 @@ class _Batch:
         self._ops: list[tuple[str, dict[str, Any]]] = []
 
     def set(self, ref: _DocRef, data: dict[str, Any]) -> None:
-        self._ops.append(("/".join(ref._path), deepcopy(data)))
+        self._ops.append(("set", "/".join(ref._path), deepcopy(data)))
+
+    def delete(self, ref: _DocRef) -> None:
+        self._ops.append(("delete", "/".join(ref._path), None))
 
     def commit(self) -> None:
         if getattr(self._store, "fail_commits", False):
             raise RuntimeError("simulated_firestore_failure")
-        for key, data in self._ops:
-            self._store._docs[key] = data
+        for op in self._ops:
+            kind, key = op[0], op[1]
+            if kind == "delete":
+                self._store._docs.pop(key, None)
+            else:
+                self._store._docs[key] = op[2]
 
 
 class FakeFirestoreClient:

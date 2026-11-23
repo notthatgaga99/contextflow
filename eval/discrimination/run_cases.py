@@ -82,7 +82,9 @@ def _run_one(case: dict, *, ablate_slots: bool = False) -> dict:
         # Still build evidence for plot via a decide call with forced path —
         # re-score by calling decide and reading None path: use score from a dummy
         from app.router.thread_discriminate import build_evidence, score_threads
-        ev = build_evidence(score_threads(msg, tasks, mem)).to_dict()
+        ev = build_evidence(
+            score_threads(msg, tasks, mem, cues or None),
+        ).to_dict()
         ev["region"] = ev.get("region") or "keep_gate"
     else:
         final_tr = decided.transition
@@ -127,9 +129,12 @@ def _run_one(case: dict, *, ablate_slots: bool = False) -> dict:
         "gold_transition": gold_tr_norm,
         "c_S": ev.get("c_S"),
         "delta_I": ev.get("delta_I"),
+        "C_S_count": ev.get("C_S_count"),
         "high_confusion": ev.get("high_confusion"),
         "region": ev.get("region"),
         "winner_id": ev.get("winner_id"),
+        "second_id": ev.get("second_id"),
+        "scores": ev.get("scores") or {},
         "slot_hits": ev.get("slot_hits") or {},
         "notes": case.get("notes"),
         "used_identity_cues": bool(cues),

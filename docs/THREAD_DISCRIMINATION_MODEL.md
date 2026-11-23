@@ -257,14 +257,27 @@ Effects:
 **Implementation note:** Replace unweighted \(d_i,s_i\) with \(d_i^{w},s_i^{w}\) inside
 `score_threads` while keeping the same decision table. Log both for a while.
 
-### 6.1 Optional embedding channels (later)
+### 6.1 Embedding into the I channel (shipped)
 
-If using vectors, **do not** collapse to one cosine:
+Vectors may **boost** distinctive \(d\) only — never replace genre \(s\) or pick
+winners by raw cosine overlap of full cards.
 
-- \(S\): embed full blobs / genre spans.  
-- \(I\): embed only Dist-side strings (or Dist-weighted tokens).  
+\[
+d_i^{\mathrm{emb}} = \max\bigl(0,\;
+\cos(m,\mathrm{Dist}_i) - \cos(m,\mathrm{Share}_i)\bigr)
+\]
 
-Then redefine \(d_i,s_i\) as similarities in those spaces. Same decision table.
+\[
+d_i = (1-w)\,d_i^{w} + w\,d_i^{\mathrm{emb}}
+\quad(w=\texttt{CF\_DISC\_EMBED\_W},\;\mathrm{default}\,0.35)
+\]
+
+- Deterministic trust path uses `LLM.embed` / Mock hash embeds (same family as
+  cold search). With `CF_EMBED_LOCAL=1`, Vertex does **not** call a paid embed API.
+- `CF_DISC_EMBED=1` default on. When lexical Dist∩msg is empty (\(d^{\mathrm{lex}}=0\)
+  and overlap \(=0\)), embed boost is **ignored** so hash collisions cannot veto
+  true NEW.
+- Genre \(s\) stays lexical. Decision table unchanged.
 
 ---
 
@@ -301,25 +314,30 @@ IDF/margins are standard; wiring them as bind law for RB-WSR is the product move
 | `align_plan` | Thin adapter over `decide_discrimination` |
 | High-\(C_S\) ⇒ bind \(\arg\max d\) or CLARIFY | `near_miss_*` regions + trust invariant |
 | Slot / entity into \(I\) | `IdentityCues` from `MemoryItem.slot` + `kind=entity` |
+| Embed boost into \(I\) only | `score_threads(..., llm=)` + `CF_DISC_EMBED` / `CF_DISC_EMBED_W` (§6.1) |
 | Gate CLARIFY through I-channel | Recoverable identity binds; deixis/correction keep clocks |
 | Stick ACTIVE extension / underspecified | same policy table |
-| Trust cases | `tests/test_thread_discrimination.py` (`pytest -m trust`) |
+| Trust cases | `tests/test_thread_discrimination.py` + `test_disc_embed.py` (`pytest -m trust`) |
+| Casefile plane \((c_S,\Delta_I)\) | `eval/discrimination/insights.py` → `eval/out/discrimination_plane.json` |
 | LLM narrative of same laws | `build_discern_prompt` in `topic_discern.py` |
 
 ### 8.2 Still open
 
 | Model piece | Gap |
 |-------------|-----|
-| Calibration casefile plotted in \((c_S,\Delta_I)\) | Started: `eval/discrimination/cases.jsonl` + `run_cases` |
 | Absolute identity floor under confusion | Done: \(\tau_{\mathrm{id\_abs}}\) — weak \(d\) ⇒ CLARIFY even if \(\Delta_I\) large |
-| Embedding / structured intent into **I** channel | Slot/entity cues wired (`IdentityCues`); embeddings still later |
-| LLM discern same evidence schema | Partial (lexical path is Mock source of truth) |
+| Paid Vertex embeddings for \(I\) | Deferred — trust uses local/hash embeds (`CF_EMBED_LOCAL=1`) |
+| H2 catalog / rollup / opt-in import | **Done** — file + Firestore (`CF_CATALOG_BACKEND`); match suggest only; never auto-merge |
+| Cross-hop “A with B implied” merge law | Deferred — opt-in import + CLARIFY; no silent A∪B mash |
+| LLM discern same evidence schema | Partial (lexical+embed \(I\) is Mock source of truth) |
 
 **Drift check:** see [`DISCRIMINATION_DRIFT_CHECK.md`](DISCRIMINATION_DRIFT_CHECK.md) — field supports anti-similarity-only bind; detour = becoming DST/Mem0.
 
 ### 8.3 Honest limits
 
-- Lexical \(\mathrm{tok}\) is brittle (synonyms, typos, multilingual).  
+- Lexical \(\mathrm{tok}\) remains brittle (typos, multilingual); synonym
+  paraphrase is partially covered by the Dist−Share embed boost (§6.1), not
+  by cosine-of-full-card retrieval.  
 - Open-set \(\mathrm{Dist}_i\) **changes when threads open/close** — correct for
   discrimination among *current* rivals; do not cache Dist across sessions
   without recomputing.  

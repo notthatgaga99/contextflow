@@ -306,7 +306,8 @@ class Engine:
 
         # Always compute two-channel snapshot (genre S vs identity I) for audit + bind.
         disc_scores = (
-            score_threads(message, open_tasks, mem_texts, id_cues) if open_tasks else {}
+            score_threads(message, open_tasks, mem_texts, id_cues, llm=self.llm)
+            if open_tasks else {}
         )
         disc_ev = build_evidence(disc_scores).to_dict()
 
@@ -318,6 +319,7 @@ class Engine:
             active_id=active_id,
             memory_texts_by_task=mem_texts,
             identity_cues_by_task=id_cues,
+            llm=self.llm,
         )
         if aligned is None:
             out = TurnPlan(

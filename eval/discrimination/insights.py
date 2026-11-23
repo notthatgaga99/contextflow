@@ -1,9 +1,10 @@
-"""A/B insight: slot/entity I-channel vs text-only blobs.
+"""A/B insight: slot/entity I-channel vs text-only blobs + (c_S, Δ_I) plane.
 
   python -m eval.discrimination.insights
 
-Writes eval/out/discrimination_insights.json. Mock only — not CI-blocking.
-Shows which existing prompts need MemoryItem.slot to bind.
+Writes:
+  eval/out/discrimination_insights.json
+  eval/out/discrimination_plane.json
 """
 
 from __future__ import annotations
@@ -15,6 +16,36 @@ from eval.discrimination.run_cases import CASES, _load_cases, _run_one
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "eval" / "out" / "discrimination_insights.json"
+PLANE = ROOT / "eval" / "out" / "discrimination_plane.json"
+
+
+def _plane_rows(results: list[dict], cases: list[dict]) -> list[dict]:
+    by_case = {c["id"]: c for c in cases}
+    rows = []
+    for r in results:
+        gold = by_case.get(r["id"], {})
+        wid = r.get("winner_id")
+        scores = r.get("scores") or {}
+        d_emb = None
+        if wid and isinstance(scores.get(wid), dict):
+            d_emb = scores[wid].get("d_emb")
+        rows.append({
+            "id": r["id"],
+            "bucket": r.get("bucket") or gold.get("bucket"),
+            "c_S": r.get("c_S"),
+            "delta_I": r.get("delta_I"),
+            "C_S_count": r.get("C_S_count"),
+            "region": r.get("region"),
+            "high_confusion": r.get("high_confusion"),
+            "winner_id": wid,
+            "final_transition": r.get("final_transition"),
+            "final_task_id": r.get("final_task_id"),
+            "gold_task_id": gold.get("gold_task_id"),
+            "gold_transition": gold.get("gold_transition"),
+            "ok": r.get("ok"),
+            "d_emb_winner": d_emb,
+        })
+    return rows
 
 
 def main() -> int:
@@ -62,19 +93,40 @@ def main() -> int:
             "ranking, but the binder only hashed item.text. Unique slot names "
             "(ttl, sku, color) are I-channel tokens; a shared slot name "
             "(window on two threads) is genre and must CLARIFY. Thin prompts "
-            "like 'what's the TTL?' hop only when that unique slot is wired."
+            "like 'what's the TTL?' hop only when that unique slot is wired. "
+            "CF_DISC_EMBED mixes Dist-Share embed contrast into d only."
         ),
         "law": {
             "unique_slot_or_entity": "bind argmax d (even if underspecified)",
             "shared_slot_name": "genre — CLARIFY if no other identity",
             "no_slot_thin_ok": "CONTINUE ACTIVE",
+            "embed_i_only": "d_emb = max(0, cos(msg,Dist)-cos(msg,Share)); never pick by o/s",
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    plane_rows = _plane_rows(with_cues, cases)
+    plane = {
+        "n": len(plane_rows),
+        "axes": {"x": "c_S", "y": "delta_I"},
+        "note": (
+            "Plot every casefile row in the (c_S, delta_I) plane. "
+            "High c_S + low delta_I → CLARIFY; high delta_I → bind by d."
+        ),
+        "points": plane_rows,
+    }
+    PLANE.write_text(json.dumps(plane, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    hi_c = [p for p in plane_rows if (p.get("c_S") or 0) >= 0.05]
+    clarify = sum(1 for p in plane_rows if p.get("final_transition") == "CLARIFY")
     print(
         f"insights with={n_ok}/{n} text_only={n_ok_wo}/{n} "
         f"lift={payload['lift_ids']} wrote={OUT}",
+        flush=True,
+    )
+    print(
+        f"plane n={len(plane_rows)} high_c_S={len(hi_c)} clarify={clarify} wrote={PLANE}",
         flush=True,
     )
     return 0 if n_ok == n and not regress else 1

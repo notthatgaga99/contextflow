@@ -104,11 +104,12 @@ That is “entire working memory handling **and** switch.”
 | 2 | Typed MemoryItems + Writer supersession | Have |
 | 3 | RB-WSR + referent compact + caps | Have (+ caps) |
 | 4 | Hierarchy L0–L6 documented | Have (research docs) |
-| 5 | Catalog / opt-in import (archival tier) | Scaffolding |
+| 5 | Catalog / opt-in import (archival tier) | **Done** — rollup + archive + import-rollup + `/catalog/match` (suggest only) |
 | 6 | `MemoryPort` + **real** cold search | **Done** — lexical+hash rank over store (`cold_search.py`); bound-scoped enrich into L1 |
 | 7 | L1 compact notation | **Done** — `CompactNotation` + `expose_bound_thread` + `GET …/compact-notation` |
 | 7a | Memory planes (STM / LTM / procedural / relevant) | **Done** — `MemoryManager` + `docs/MEMORY_MANAGEMENT.md` (RB-WSR; not a vendor clone) |
 | 7b | File-backed last-N catalog | **Done** — `.data/catalog.json` via `CF_CATALOG_PATH` / `CF_CATALOG_PERSIST` |
+| 7c | Firestore last-N catalog | **Done** — `FirestoreConversationCatalog` via `CF_CATALOG_BACKEND=firestore` |
 | 8 | Density stress: long run on one hop then revive others | Research fixture |
 | 9 | Bound cold enrich after bind | **Done** — superseded-slot filter + provenance ids |
 

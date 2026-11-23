@@ -5,6 +5,7 @@ Best practices:
 - Cap hot set (default 5).
 - Never inject catalog into generate() — UI / opt-in import only.
 - Persist to JSON when CF_CATALOG_PATH is set (default: .data/catalog.json).
+- Backend: CF_CATALOG_BACKEND=file|firestore (default: follow CF_MEMORY_BACKEND).
 
 Frozen routing / MemoryWriter contracts untouched.
 """
@@ -13,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import tempfile
 import time
 from dataclasses import asdict, dataclass, field
@@ -31,11 +33,62 @@ def catalog_limit() -> int:
     return max(1, min(n, 50))
 
 
+def catalog_backend() -> str:
+    """Resolve catalog storage: file (default) or firestore."""
+    raw = (os.getenv("CF_CATALOG_BACKEND", "") or "").strip().lower()
+    if raw in ("file", "json", "memory", "firestore"):
+        if raw in ("json", "memory"):
+            return "file"
+        return raw
+    mem = (os.getenv("CF_MEMORY_BACKEND", "memory") or "memory").strip().lower()
+    return "firestore" if mem == "firestore" else "file"
+
+
+def create_catalog(*, client=None, **kwargs: Any):
+    """Factory: file ConversationCatalog or FirestoreConversationCatalog."""
+    kind = catalog_backend()
+    if kind == "firestore":
+        from app.memory.firestore_catalog import FirestoreConversationCatalog
+
+        return FirestoreConversationCatalog(client=client, **{
+            k: v for k, v in kwargs.items()
+            if k in ("max_entries", "project", "database", "root_collection")
+        })
+    # Drop firestore-only kwargs for file catalog.
+    file_kwargs = {
+        k: v for k, v in kwargs.items()
+        if k in ("max_entries", "path", "persist")
+    }
+    return ConversationCatalog(**file_kwargs)
+
+
 def default_catalog_path() -> Path:
     raw = os.getenv("CF_CATALOG_PATH", "").strip()
     if raw:
         return Path(raw)
     return Path(os.getenv("CF_DATA_DIR", ".data")).expanduser() / "catalog.json"
+
+
+def score_catalog_match(entry: "CatalogEntry", query: str) -> float:
+    """Lexical soft-match score for Tier C suggest (no import side effects)."""
+    q_toks = set(re.findall(r"[a-z0-9]{3,}", (query or "").lower()))
+    if not q_toks:
+        return 0.0
+    parts = [entry.blurb or ""]
+    roll = entry.rollup or {}
+    for ws in roll.get("workstreams") or []:
+        if not isinstance(ws, dict):
+            continue
+        parts.extend([
+            str(ws.get("title") or ""),
+            str(ws.get("goal") or ""),
+            " ".join(str(x) for x in (ws.get("open_loops") or [])[:4]),
+            " ".join(str(x) for x in (ws.get("decisions") or [])[:4]),
+            " ".join(str(x) for x in (ws.get("facts") or [])[:4]),
+        ])
+    blob = " ".join(parts).lower()
+    hits = sum(1 for t in q_toks if t in blob)
+    return hits / max(len(q_toks), 1)
 
 
 @dataclass
@@ -157,6 +210,25 @@ class ConversationCatalog:
     ) -> CatalogEntry | None:
         uk = (user_key or "local").strip() or "local"
         return self._by_user.get(uk, {}).get((conversation_id or "").strip())
+
+    def match(
+        self,
+        query: str,
+        *,
+        user_key: str = "local",
+        limit: int = 3,
+    ) -> list[tuple[CatalogEntry, float]]:
+        """Lexical soft match over blurb + rollup titles — summaries only, no import."""
+        q = (query or "").strip()
+        if not q:
+            return []
+        scored: list[tuple[CatalogEntry, float]] = []
+        for ent in self.list(user_key=user_key, limit=self.max_entries):
+            sc = score_catalog_match(ent, q)
+            if sc > 0:
+                scored.append((ent, sc))
+        scored.sort(key=lambda t: (t[1], t[0].updated_at), reverse=True)
+        return scored[: max(1, limit)]
 
     def _trim(self, user_key: str) -> None:
         bucket = self._by_user.get(user_key) or {}

@@ -118,8 +118,12 @@ def contextflow_node(state, *, store, extractor):
 ## 6. Trust bar
 
 ```powershell
+. .\scripts\env_mock_local.ps1
+# I-channel embed boost on by default (CF_DISC_EMBED=1); hash embeds via CF_EMBED_LOCAL=1
 pytest -m "trust or integration" -q
 python -m eval.discrimination.run_cases --json eval/out/discrimination_cases.json
+python -m eval.discrimination.insights   # also writes eval/out/discrimination_plane.json
+pytest -m "integration or h2" -q         # H2 catalog / Firestore Fake / HTTP archive→import
 ```
 
 Optional live: `. .\scripts\env_vertex_local.ps1` then `python -m eval.discrimination.vertex_smoke`.

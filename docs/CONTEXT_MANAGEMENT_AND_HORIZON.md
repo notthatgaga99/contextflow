@@ -27,7 +27,7 @@ Models are soft proposers. The harness decides what is allowed into the answer p
 | 4 Select | **Strong** | A− | Gate + referent + fail-closed CLARIFY is the real product |
 | 5 Assemble | Good | B+ | RB-WSR + compact; now with per-kind caps / recent-first ranking |
 | 6 Generate | Thin | C | Answer-only; no tool loop |
-| 7 Compact / H2 | **In progress** | C+ | Supersession + working-set caps + structured rollup + last-N catalog + opt-in import (process-local) |
+| 7 Compact / H2 | **Yes** | B | Supersession + caps + rollup + last-N catalog (file/Firestore) + match suggest + opt-in import |
 
 **Bottom line:** ~**55–65%** of a full industry context manager if you weight all stages equally; ~**80%+ of the wedge** (stages 4–5) if you grade what you set out to prove. Condensation across chats and industrial retrieve backends were the real gaps — not “the idea is wrong.”
 
@@ -38,10 +38,12 @@ Models are soft proposers. The harness decides what is allowed into the answer p
 | Per-kind condensation | `WorkingSetLimits` in `working_set.py` | Recent-first, slotted preferred, capped |
 | Structured rollup | `GET …/rollup`, `app/memory/rollup.py` | From asserted memory, not transcript |
 | Last-N catalog | `GET /catalog`, `POST …/archive`, `app/memory/catalog.py` | Hot index of rollups; `CF_CATALOG_LIMIT` (default 5) |
+| Firestore catalog | `app/memory/firestore_catalog.py` | `CF_CATALOG_BACKEND=firestore` (default when memory is firestore) |
+| Soft match suggest | `GET /catalog/match` | Lexical over blurbs/titles — **no** import side effects |
 | Opt-in import | `POST …/import-rollup`, `app/memory/import_rollup.py` | Paused cards + Writer seeds; never auto-merge |
 | Turn touch | after `POST /turn` | Catalog stays warm without polluting generate |
 
-Still open vs industry: durable catalog (Firestore), auth/tenancy, extract quality, tool loop, vector/graph cold memory as optional compose.
+Still open vs industry: auth/tenancy, extract quality, tool loop, vector/graph cold memory as optional compose, explicit cross-hop merge law (A∪B).
 
 ---
 
@@ -242,17 +244,18 @@ Useful comparison while learning — different primary problem (coding trajector
 
 ## 7. Longer horizon: last-N conversations, summaries, moving forward
 
-This section is **design consideration**, not an implemented feature. Frozen routing (`gate.py`, `referent.py`, `scorer.py`, `config.py`, `MemoryWriter` contracts) stays untouched unless a new phase explicitly unfreezes it.
+Tier A/B + opt-in import + soft match are **implemented**. Frozen routing (`gate.py`, `referent.py`, `scorer.py`, `config.py`, `MemoryWriter` contracts) stays untouched.
 
 ### 7.1 What exists today vs what “last 5 convos” means
 
-| Layer | Today | “Last 5 conversations” would add |
+| Layer | Today | Status |
 |---|---|---|
-| Within one chat | Workstream cards + asserted/superseded memory | (already the unit of revive) |
-| Across chats | Isolated by `conversation_id`; NEW CHAT resets demo memory | A **user-level** index of recent conversations + optional rolled-up state |
-| Process | In-memory demo dies on revision; Firestore can persist per-cid | Durable **conversation catalog** + retention policy |
+| Within one chat | Workstream cards + asserted/superseded memory | Done (revive unit) |
+| Across chats | User-level catalog of rollups; opt-in import as paused | Done (file + Firestore) |
+| Soft suggest | `GET /catalog/match` — summaries only | Done (no auto-merge) |
+| Process | File JSON or Firestore `cf_catalog/{user}/entries/{cid}` | Done |
 
-So “last 5” is a **catalog + retention + optional cross-chat recall** problem sitting *above* RB-WSR, not a replacement for it.
+“Last 5” is a **catalog + retention + optional cross-chat recall** problem sitting *above* RB-WSR, not a replacement for it.
 
 ### 7.2 Three horizons to keep separate
 
@@ -261,7 +264,7 @@ Always name which horizon you mean — mixing them causes bad designs.
 ```text
 H0  Turn          — this utterance
 H1  Conversation  — one conversation_id (workstreams + memory)   ← ContextFlow today
-H2  User / device — last N conversations, preferences, projects  ← not built
+H2  User / device — last N conversations + rollup catalog        ← shipped (opt-in)
 H3  Org / corpus  — shared knowledge, RAG over docs               ← out of PoC scope
 ```
 

@@ -124,5 +124,5 @@ shared slot names stay genre (CLARIFY). Insights A/B:
    referent clock. Ten-workstream **p07** (gold ACT B) now ACTs instead of CLARIFY.
 
 1. Durable real-process revive beyond FakeFirestore (live Firestore later).  
-2. Optional embed contract into **I** — still two channels, same table.  
+2. Embed boost into **I** shipped (`CF_DISC_EMBED`) — still two channels, same table; no cosine-only winner.  
 3. Do **not** pause switch work to build a memory SaaS.

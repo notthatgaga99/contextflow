@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from app.config import SETTINGS
 from app.context.working_set import WorkingContextBuilder
-from app.memory.catalog import ConversationCatalog
+from app.memory.catalog import catalog_backend, create_catalog
 from app.memory.extractor import LlmMemoryExtractor, MockMemoryExtractor
 from app.memory.import_rollup import import_rollup_workstreams
 from app.memory.rollup import build_conversation_rollup
@@ -53,7 +53,10 @@ def _make_llm():
 
 
 store = ConversationStore(_make_llm(), SETTINGS, mode=os.getenv("CF_MODE", "split"))
-catalog = ConversationCatalog()  # file-backed via CF_CATALOG_PATH / .data/catalog.json
+# H2 catalog: file by default; Firestore when CF_CATALOG_BACKEND=firestore
+# (or when CF_MEMORY_BACKEND=firestore and backend unset).
+catalog = create_catalog()
+CATALOG_BACKEND = catalog_backend()
 
 
 def _make_extractor():
@@ -191,6 +194,7 @@ def health():
         "demo_only": DEMO_ONLY,
         "memory_backend": MEMORY_BACKEND,
         "memory_durable": MEMORY_DURABLE,
+        "catalog_backend": CATALOG_BACKEND,
         "registry_durable": MEMORY_DURABLE,
         "multi_instance_safe": MEMORY_DURABLE,
         "config_ok": cfg["ok"],
@@ -492,10 +496,37 @@ def list_catalog(
     return {
         "user_key": user_key,
         "catalog_limit": catalog.max_entries,
+        "catalog_backend": CATALOG_BACKEND,
         "count": len(entries),
         "conversations": [e.summary() for e in entries],
         "demo_only": DEMO_ONLY,
         "note": "Opt-in import via POST /conversations/{id}/import-rollup. Never auto-merged.",
+    }
+
+
+@app.get("/catalog/match")
+def match_catalog(
+    q: str = Query(..., min_length=1, max_length=500),
+    user_key: str = Query(default="local", max_length=128),
+    limit: int = Query(default=3, ge=1, le=10),
+):
+    """Tier C soft suggest: lexical match over rollup blurbs/titles.
+
+    Returns summaries only. Does **not** import or touch generate/L1.
+    Host/UI must call POST …/import-rollup after explicit consent.
+    """
+    hits = catalog.match(q, user_key=user_key, limit=limit)
+    return {
+        "query": q,
+        "user_key": user_key,
+        "catalog_backend": CATALOG_BACKEND,
+        "count": len(hits),
+        "matches": [
+            {**ent.summary(), "score": round(score, 4)}
+            for ent, score in hits
+        ],
+        "demo_only": DEMO_ONLY,
+        "note": "Suggest only — never auto-merged. Import via POST /conversations/{id}/import-rollup.",
     }
 
 
@@ -511,6 +542,7 @@ def get_catalog_entry(
         "entry": entry.summary(),
         "rollup": entry.rollup,
         "demo_only": DEMO_ONLY,
+        "catalog_backend": CATALOG_BACKEND,
     }
 
 

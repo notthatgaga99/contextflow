@@ -31,7 +31,7 @@ spec:
       containerConcurrency: 4
       timeoutSeconds: 180
       containers:
-        - image: us-central1-docker.pkg.dev/contextflow-gagan-20261019/contextflow/contextflow-durable:ft3
+        - image: us-central1-docker.pkg.dev/contextflow-gagan-20261019/contextflow/contextflow-durable:ft4
           ports:
             - name: http1
               containerPort: 8080
@@ -58,6 +58,14 @@ spec:
               value: gemini-2.5-flash-lite
             - name: CF_EMBED_LOCAL
               value: "1"
+            - name: CF_DISC_EMBED
+              value: "1"
+            - name: CF_DISC_EMBED_W
+              value: "0.35"
+            - name: CF_CATALOG_BACKEND
+              value: "firestore"
+            - name: CF_CATALOG_LIMIT
+              value: "5"
             - name: CF_USE_VERTEX
               value: "1"
             - name: CF_USE_GEMINI

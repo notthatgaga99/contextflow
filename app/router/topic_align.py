@@ -105,6 +105,7 @@ def align_plan(
     active_id: str | None,
     memory_texts_by_task: dict[str, list[str]] | None = None,
     identity_cues_by_task: dict[str, IdentityCues] | None = None,
+    llm: Any | None = None,
     keep_min: float = 0.12,  # retained for call-site compat; policy owns thresholds
     steal_margin: float = 0.08,
     accept_min: float = 0.10,
@@ -120,6 +121,7 @@ def align_plan(
         memory_texts_by_task=memory_texts_by_task,
         identity_cues_by_task=identity_cues_by_task,
         underspecified=is_underspecified(message),
+        llm=llm,
     )
     if decided is None:
         return None

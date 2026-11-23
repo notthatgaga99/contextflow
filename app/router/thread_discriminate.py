@@ -19,7 +19,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+import numpy as np
+
 from app.domain import Transition
+from app.memory.cold_search import _hash_embed, cosine
 from app.models.task import Task
 from app.router.referent import classify_utterance
 
@@ -160,11 +163,12 @@ def _weighted_frac(hit: set[str], universe: set[str], w: dict[str, float]) -> fl
 class ThreadScores:
     task_id: str
     overlap: float          # o_i (unweighted; debug / legacy)
-    distinctive: float      # d_i^w identity
+    distinctive: float      # d_i^w identity (lex + optional embed mix)
     shared_hit: float       # s_i^w genre
     overlap_w: float = 0.0  # o_i^w
     distinctive_raw: float = 0.0
     shared_hit_raw: float = 0.0
+    distinctive_emb: float = 0.0  # max(0, cos(msg,Dist)-cos(msg,Share))
     slot_hits: tuple[str, ...] = ()
 
 
@@ -201,6 +205,7 @@ class DiscriminationEvidence:
                     "o_w": round(s.overlap_w, 4),
                     "d": round(s.distinctive, 4),
                     "d_raw": round(s.distinctive_raw, 4),
+                    "d_emb": round(s.distinctive_emb, 4),
                     "s": round(s.shared_hit, 4),
                     "s_raw": round(s.shared_hit_raw, 4),
                     "slot_hits": list(s.slot_hits),
@@ -229,13 +234,57 @@ def _message_for_score(message: str) -> str:
     return stripped or m
 
 
+def _disc_embed_enabled() -> bool:
+    raw = (os.getenv("CF_DISC_EMBED", "1") or "1").strip().lower()
+    return raw not in ("0", "false", "off", "no")
+
+
+def _disc_embed_weight() -> float:
+    try:
+        w = float(os.getenv("CF_DISC_EMBED_W", "0.35") or "0.35")
+    except ValueError:
+        w = 0.35
+    return min(1.0, max(0.0, w))
+
+
+def _embed_matrix(texts: list[str], llm: Any | None) -> list[np.ndarray]:
+    """Identity embeds: hash bag-of-tokens by default; optional LLM.embed."""
+    use_llm = (os.getenv("CF_DISC_EMBED_USE_LLM", "0") or "0").strip() == "1"
+    if use_llm and llm is not None and hasattr(llm, "embed"):
+        try:
+            vecs = llm.embed(texts)
+            if vecs and len(vecs) == len(texts):
+                return [np.asarray(v, dtype=np.float32) for v in vecs]
+        except Exception:
+            pass
+    return [_hash_embed(t or "") for t in texts]
+
+
+def _identity_emb(
+    msg_vec: np.ndarray,
+    dist_text: str,
+    share_text: str,
+    llm: Any | None,
+) -> float:
+    """max(0, cos(msg, Dist_i) - cos(msg, Share_i)) — never a genre-only score."""
+    dist_text = (dist_text or "").strip()
+    share_text = (share_text or "").strip()
+    if not dist_text and not share_text:
+        return 0.0
+    vecs = _embed_matrix([dist_text or " ", share_text or " "], llm)
+    cos_d = cosine(msg_vec, vecs[0]) if dist_text else 0.0
+    cos_s = cosine(msg_vec, vecs[1]) if share_text else 0.0
+    return max(0.0, cos_d - cos_s)
+
+
 def score_threads(
     message: str,
     open_tasks: list[Task],
     memory_texts_by_task: dict[str, list[str]] | None = None,
     identity_cues_by_task: dict[str, IdentityCues] | None = None,
+    llm: Any | None = None,
 ) -> dict[str, ThreadScores]:
-    """Per-thread o/d/s with IDF-weighted d and s (identity / genre channels)."""
+    """Per-thread o/d/s with IDF-weighted d/s; optional embed mix on d only."""
     mem = memory_texts_by_task or {}
     cues = identity_cues_by_task or {}
     blobs: dict[str, str] = {}
@@ -246,9 +295,13 @@ def score_threads(
             extra.extend(ic.extra_texts())
         blobs[t.id] = _task_blob(t, extra)
     tok_sets = {tid: _tokens(blob) for tid, blob in blobs.items()}
-    msg_toks = _tokens(_message_for_score(message))
+    msg_for_score = _message_for_score(message)
+    msg_toks = _tokens(msg_for_score)
     weights = idf_weights(tok_sets)
     n_msg = max(len(msg_toks), 1)
+    embed_on = _disc_embed_enabled()
+    w_emb = _disc_embed_weight() if embed_on else 0.0
+    msg_vec = _embed_matrix([msg_for_score], llm)[0] if embed_on else None
     out: dict[str, ThreadScores] = {}
     for t in open_tasks:
         own = tok_sets[t.id]
@@ -264,14 +317,30 @@ def score_threads(
         ic = cues.get(t.id)
         slot_toks = _tokens(" ".join(ic.slots)) if ic and ic.slots else set()
         slot_hits = tuple(sorted(msg_toks & slot_toks & distinctive))
+        d_lex = _weighted_frac(inter_dist, msg_toks, weights) if msg_toks else 0.0
+        d_emb = 0.0
+        o_raw = len(inter_own) / n_msg
+        if embed_on and msg_vec is not None:
+            dist_text = " ".join(sorted(distinctive))
+            share_text = " ".join(sorted(shared))
+            d_emb = _identity_emb(msg_vec, dist_text, share_text, llm)
+            # Hash/LLM collisions must not invent identity when the message
+            # shares no tokens with the card (protects true NEW).
+            if d_lex <= 1e-12 and len(inter_own) == 0:
+                d_mix = 0.0
+            else:
+                d_mix = (1.0 - w_emb) * d_lex + w_emb * d_emb
+        else:
+            d_mix = d_lex
         out[t.id] = ThreadScores(
             task_id=t.id,
-            overlap=len(inter_own) / n_msg,
-            distinctive=_weighted_frac(inter_dist, msg_toks, weights) if msg_toks else 0.0,
+            overlap=o_raw,
+            distinctive=d_mix,
             shared_hit=_weighted_frac(inter_shared, msg_toks, weights) if msg_toks else 0.0,
             overlap_w=_weighted_frac(inter_own, msg_toks, weights) if msg_toks else 0.0,
             distinctive_raw=len(inter_dist) / n_msg,
             shared_hit_raw=len(inter_shared) / n_msg,
+            distinctive_emb=d_emb,
             slot_hits=slot_hits,
         )
     return out
@@ -396,13 +465,14 @@ def decide_discrimination(
     memory_texts_by_task: dict[str, list[str]] | None = None,
     identity_cues_by_task: dict[str, IdentityCues] | None = None,
     underspecified: bool = False,
+    llm: Any | None = None,
 ) -> DiscriminationDecision | None:
     """Single policy table (§5). None = keep frozen gate decision."""
     if not open_tasks and gate_transition != Transition.NEW:
         return None
 
     scores = score_threads(
-        message, open_tasks, memory_texts_by_task, identity_cues_by_task,
+        message, open_tasks, memory_texts_by_task, identity_cues_by_task, llm=llm,
     ) if open_tasks else {}
     ev = build_evidence(scores)
 
