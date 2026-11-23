@@ -120,13 +120,14 @@ def contextflow_node(state, *, store, extractor):
 ```powershell
 . .\scripts\env_mock_local.ps1
 # I-channel embed boost on by default (CF_DISC_EMBED=1); hash embeds via CF_EMBED_LOCAL=1
-pytest -m "trust or integration" -q
+pytest -m "trust or integration or h2 or organic" -q
 python -m eval.discrimination.run_cases --json eval/out/discrimination_cases.json
 python -m eval.discrimination.insights   # also writes eval/out/discrimination_plane.json
-pytest -m "integration or h2" -q         # H2 catalog / Firestore Fake / HTTP archive→import
-pytest -m organic -q                     # authored interleaved mini-slice (not prod accuracy)
 python -m eval.organic.run
+python -m eval.ten_workstream.catalog_revive
 ```
+
+Latest local freeze stamp: `docs/STABILITY_FREEZE.md` (exit codes only; not production accuracy).
 
 Optional live: `. .\scripts\env_vertex_local.ps1` then `python -m eval.discrimination.vertex_smoke`.
 
